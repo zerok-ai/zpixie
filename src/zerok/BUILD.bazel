@@ -16,17 +16,17 @@
 
 load("//bazel:pl_build_system.bzl", "pl_cc_library", "pl_cc_test")
 
-package(default_visibility = ["//src/zerok:__subpackages__"])
+package(default_visibility = ["//src/stirling:__subpackages__"])
 
 pl_cc_library(
     name = "cc_library",
     srcs = glob(
-        ["*.cc"],
+        ["**/*.cc"],
         exclude = [
             "**/*_test.cc",
         ],
     ),
-    hdrs = glob(["*.h"]),
+    hdrs = glob(["**/*.h"]),
     deps = [
         # "@com_github_tencent_rapidjson//:rapidjson",
     ],

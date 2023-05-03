@@ -53,7 +53,8 @@ namespace zk {
                 rule->condition = conditionTypeMap[conditionString];
                 const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
                 std::vector<Rule*> vector;
-                for (int i = 0; i < rulesDoc.Size(); i++) {
+                int rulesDocSize = static_cast<int>(rulesDoc.Size());
+                for (int i = 0; i < rulesDocSize; i++) {
                     Rule* rule = parse(rulesDoc[i]);
                     vector.push_back(rule);
                 }
@@ -66,7 +67,8 @@ namespace zk {
                 rule->condition = conditionTypeMap[compositeRuleDoc["condition"].GetString()];
                 const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
                 std::vector<Rule*> vector;
-                for (int i = 0; i < rulesDoc.Size(); i++) {
+                int rulesDocSize = static_cast<int>(rulesDoc.Size());
+                for (int i = 0; i < rulesDocSize; i++) {
                     Rule* rule = parse(rulesDoc[i]);
                     vector.push_back(rule);
                 }
@@ -75,7 +77,8 @@ namespace zk {
             }
 
             static Rule* parseWorkloadIdentifierRule(rapidjson::Document& ruleDoc){
-                CompositeRule* rule;
+                (void)ruleDoc; // Cast to void to suppress the warning/error
+                CompositeRule* rule = nullptr;
                 // rule->condition = ConditionType::OR;
                 
                 // rapidjson::Value value = ruleDoc["value"];
