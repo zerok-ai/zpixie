@@ -1172,6 +1172,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   LOG(INFO) << "AVIN_DEBUG02__SocketTraceConnector::AppendMessage ";
   zk::Query* query = zk::QueryBuilder::parseQuery(json);
   LOG(INFO) << "AVIN_DEBUG03__SocketTraceConnector::AppendMessage ";
+  if(query != nullptr){
+    LOG(INFO) << "AVIN_DEBUG04__SocketTraceConnector::AppendMessage ";
+  }
   std::map<std::string, std::string> propsMap = {
       {"zk_req_type", "HTTP"},
       {"int_field", "35"},
@@ -1179,6 +1182,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
       {"remote_addr", "10.0.0.4"},
       {"key_value_field", "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}"},
   };
+  LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
   // std::cout << "query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
 
   md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,

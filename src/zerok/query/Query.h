@@ -10,22 +10,22 @@
 #include "FieldType.h"
 
 namespace zk {
-    std::unordered_map<std::string, ConditionType> conditionTypeMap = {
+    static std::unordered_map<std::string, ConditionType> conditionTypeMap = {
         {"AND", AND},
         {"OR", OR},
     };
 
-    std::unordered_map<std::string, QueryType> queryTypeMap = {
+    static std::unordered_map<std::string, QueryType> queryTypeMap = {
         {"HTTP", HTTP},
         {"MYSQL", MYSQL},
     };
 
-    std::unordered_map<std::string, OperatorType> operatorTypeMap = {
+    static std::unordered_map<std::string, OperatorType> operatorTypeMap = {
         {"equals", EQUALS},
         {"not_equals", NOT_EQUALS},
     };
 
-    std::unordered_map<std::string, FieldType> fieldTypeMap = {
+    static std::unordered_map<std::string, FieldType> fieldTypeMap = {
         {"string", STRING},
         {"integer", INTEGER},
         {"key-map", KEY_MAP},
