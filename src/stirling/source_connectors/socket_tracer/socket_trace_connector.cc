@@ -1183,6 +1183,14 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   // Note that we do this after filtering to avoid burning CPU cycles unnecessarily.
   protocols::http::PreProcessMessage(&resp_message);
 
+  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
+                conn_tracker.conn_id().upid.start_time_ticks);
+
+  HTTPContentType content_type = HTTPContentType::kUnknown;
+  if (protocols::http::IsJSONContent(resp_message)) {
+    content_type = HTTPContentType::kJSON;
+  }
+
   //HTTP Filters go here
   LOG(INFO) << "AVIN_DEBUG01__SocketTraceConnector::AppendMessage ";
   const char* json = "{\"condition\":\"AND\",\"zk_request_type\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},\"rules\":[{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"int_field\",\"field\":\"int_field\",\"type\":\"integer\",\"input\":\"string\",\"operator\":\"equal\",\"value\":35},{\"id\":\"key_value_field\",\"field\":\"key_value_field\",\"key\":\"/value/value2/value3\",\"type\":\"key-map\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"source\",\"field\":\"source\",\"type\":\"workload-identifier\",\"operator\":\"in\",\"value\":{\"service_name\":\"demo/sofa, demo2/invent\",\"ip\":\"10.43.3.4\",\"pod_name\":\"abc,zxy\"}}]}";
@@ -1231,13 +1239,6 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
   // std::cout << "query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
 
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
-
-  HTTPContentType content_type = HTTPContentType::kUnknown;
-  if (protocols::http::IsJSONContent(resp_message)) {
-    content_type = HTTPContentType::kJSON;
-  }
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
   r.Append<r.ColIndex("time_")>(resp_message.timestamp_ns);
