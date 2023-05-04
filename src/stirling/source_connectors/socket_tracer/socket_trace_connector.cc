@@ -1208,7 +1208,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
 
   ///////
-  propsMap["time_"] = std::to_string(resp_message.timestamp_ns);
+  propsMap["time_"] = std::to_string(static_cast<long>(resp_message.timestamp_ns));
   propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
   // Note that there is a string copy here,
   // But std::move is not allowed because we re-use conn object.
@@ -1233,7 +1233,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   std::string myString = "";
   for (const auto& pair : propsMap) {
-      myString += pair.first + ": " + std::to_string(pair.second) + "@@@@";
+      myString += pair.first + ": " + pair.second + "@@@@";
   }
   LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
   LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
