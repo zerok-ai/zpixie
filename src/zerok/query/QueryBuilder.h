@@ -16,7 +16,8 @@ namespace zk {
                 doc.Parse(jsonRule);
                 Query* parsedQuery;
                 parsedQuery = new Query();
-                parsedQuery->queryType = queryTypeMap[doc["zk_request_type"].GetString()];
+                std::string reqTypeString = doc["zk_request_type"]["value"].GetString();
+                parsedQuery->queryType = queryTypeMap[reqTypeString];
                 parsedQuery->rule = parse(doc);
 
                 return parsedQuery;
