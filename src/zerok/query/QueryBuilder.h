@@ -118,7 +118,11 @@ namespace zk {
                 traceRule->id = "trace_role";
                 traceRule->type = STRING;
                 traceRule->input = "string";
-                traceRule->value = "server";
+                if(sourceOrDestination == "source"){
+                    traceRule->value = "server";
+                }else{
+                    traceRule->value = "client";
+                }
                 rule->rules.push_back(traceRule);
 
                 //delete once done:
