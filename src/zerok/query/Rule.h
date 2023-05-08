@@ -62,6 +62,12 @@ namespace zk {
                     case NOT_EQUALS:
                         return evaluateNotEquals(propsMap);
                     
+                    case IN:
+                        return evaluateIn(propsMap);
+                    
+                    case NOT_IN:
+                        return evaluateNotIn(propsMap);
+                    
                     default:
                         break;
                 }
@@ -71,5 +77,7 @@ namespace zk {
 
             virtual bool evaluateEquals(std::map<std::string, std::string> propsMap) const = 0;
             virtual bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateIn(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateNotIn(std::map<std::string, std::string> propsMap) const = 0;
     };
 }

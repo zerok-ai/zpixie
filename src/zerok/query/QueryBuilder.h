@@ -123,6 +123,7 @@ namespace zk {
                 }else{
                     traceRule->value = "client";
                 }
+                
                 rule->rules.push_back(traceRule);
 
                 //delete once done:

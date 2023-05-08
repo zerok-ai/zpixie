@@ -13,5 +13,14 @@ namespace zk {
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         };
+        bool evaluateIn(std::map<std::string, std::string> propsMap) const override{
+            (void)propsMap; // Cast to void to suppress the warning/error
+            return false;
+        };
+        
+        bool evaluateNotIn(std::map<std::string, std::string> propsMap) const override{
+            (void)propsMap; // Cast to void to suppress the warning/error
+            return false;
+        };
     };
 }

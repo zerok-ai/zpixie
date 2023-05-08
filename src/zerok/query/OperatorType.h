@@ -3,6 +3,8 @@
 namespace zk {
     enum OperatorType{
         EQUALS, 
-        NOT_EQUALS
+        NOT_EQUALS,
+        IN,
+        NOT_IN
     };
 }
