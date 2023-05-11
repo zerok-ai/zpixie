@@ -50,6 +50,7 @@
 #include "src/stirling/utils/proc_path_tools.h"
 #include "src/zerok/query/Query.h"
 #include "src/zerok/query/QueryBuilder.h"
+#include "src/stirling/source_connectors/socket_tracer/socket_trace_connector_zk.h"
 
 // 50 X less often than the normal sampling frequency. Based on the conn_stats_table.h's
 // sampling period of 5 seconds, and other tables' 100 milliseconds.
@@ -1192,6 +1193,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   }
 
   //HTTP Filters go here
+  ZkRulesExecutor::httpEvaluate(req_message, resp_message);
   LOG(INFO) << "AVIN_DEBUG01__SocketTraceConnector::AppendMessage ";
   const char* json = "{\"condition\":\"AND\",\"zk_request_type\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},\"rules\":[{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"int_field\",\"field\":\"int_field\",\"type\":\"integer\",\"input\":\"string\",\"operator\":\"equal\",\"value\":35},{\"id\":\"key_value_field\",\"field\":\"key_value_field\",\"key\":\"/value/value2/value3\",\"type\":\"key-map\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"source\",\"field\":\"source\",\"type\":\"workload-identifier\",\"operator\":\"in\",\"value\":{\"service_name\":\"demo/sofa, demo2/invent\",\"ip\":\"10.43.3.4\",\"pod_name\":\"abc,zxy\"}}]}";
   LOG(INFO) << "AVIN_DEBUG02__SocketTraceConnector::AppendMessage ";
