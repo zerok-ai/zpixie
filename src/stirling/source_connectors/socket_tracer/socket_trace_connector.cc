@@ -1192,55 +1192,10 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     content_type = HTTPContentType::kJSON;
   }
 
+  //Zerok Starts
   //HTTP Filters go here
-  ZkRulesExecutor::httpEvaluate(req_message, resp_message);
-  LOG(INFO) << "AVIN_DEBUG01__SocketTraceConnector::AppendMessage ";
-  const char* json = "{\"condition\":\"AND\",\"zk_request_type\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},\"rules\":[{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"int_field\",\"field\":\"int_field\",\"type\":\"integer\",\"input\":\"string\",\"operator\":\"equal\",\"value\":35},{\"id\":\"key_value_field\",\"field\":\"key_value_field\",\"key\":\"/value/value2/value3\",\"type\":\"key-map\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"source\",\"field\":\"source\",\"type\":\"workload-identifier\",\"operator\":\"in\",\"value\":{\"service_name\":\"demo/sofa, demo2/invent\",\"ip\":\"10.43.3.4\",\"pod_name\":\"abc,zxy\"}}]}";
-  LOG(INFO) << "AVIN_DEBUG02__SocketTraceConnector::AppendMessage ";
-  zk::Query* query = zk::QueryBuilder::parseQuery(json);
-  LOG(INFO) << "AVIN_DEBUG03__SocketTraceConnector::AppendMessage ";
-  if(query != nullptr){
-    LOG(INFO) << "AVIN_DEBUG04__SocketTraceConnector::AppendMessage ";
-  }
-  std::map<std::string, std::string> propsMap;
-  propsMap["zk_req_type"] = "HTTP";
-  propsMap["int_field"] = "35";
-  propsMap["trace_role"] = "server";
-  propsMap["remote_addr"] = "10.0.0.4";
-  propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
-
-  ///////
-  propsMap["time_"] = std::to_string(static_cast<long>(resp_message.timestamp_ns));
-  propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
-  // Note that there is a string copy here,
-  // But std::move is not allowed because we re-use conn object.
-  propsMap["remote_addr"] = conn_tracker.remote_endpoint().AddrStr();
-  propsMap["remote_port"] = std::to_string(conn_tracker.remote_endpoint().port());
-  propsMap["trace_role"] = std::to_string(conn_tracker.role());
-  propsMap["major_version"] = std::to_string(1);
-  propsMap["minor_version"] = std::to_string(resp_message.minor_version);
-  propsMap["content_type"] = std::to_string(static_cast<uint64_t>(content_type));
-  propsMap["req_headers"] = ToJSONString(req_message.headers);
-  propsMap["req_method"] = req_message.req_method;
-  propsMap["req_path"] = req_message.req_path;
-  propsMap["req_body_size"] = std::to_string(req_message.body_size);
-  propsMap["req_body"] = req_message.body;
-  propsMap["resp_headers"] = ToJSONString(resp_message.headers);
-  propsMap["resp_status"] = std::to_string(resp_message.resp_status);
-  propsMap["resp_message"] = resp_message.resp_message;
-  propsMap["resp_body_size"] = std::to_string(resp_message.body_size);
-  propsMap["resp_body"] = resp_message.body;
-  propsMap["latency"] = std::to_string(CalculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
-  ///////
-
-  std::string myString = "";
-  for (const auto& pair : propsMap) {
-      myString += pair.first + ": " + pair.second + "@@@@";
-  }
-  LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
-  LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
-  // std::cout << "query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
-
+  ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+  //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
   r.Append<r.ColIndex("time_")>(resp_message.timestamp_ns);
