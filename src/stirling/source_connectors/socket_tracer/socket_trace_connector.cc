@@ -48,8 +48,6 @@
 #include "src/stirling/source_connectors/socket_tracer/protocols/http2/grpc.h"
 #include "src/stirling/utils/linux_headers.h"
 #include "src/stirling/utils/proc_path_tools.h"
-#include "src/zerok/query/Query.h"
-#include "src/zerok/query/QueryBuilder.h"
 #include "src/stirling/source_connectors/socket_tracer/socket_trace_connector_zk.h"
 
 // 50 X less often than the normal sampling frequency. Based on the conn_stats_table.h's

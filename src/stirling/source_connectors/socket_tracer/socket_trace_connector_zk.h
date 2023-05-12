@@ -48,9 +48,9 @@
 #include "src/stirling/source_connectors/socket_tracer/protocols/http2/grpc.h"
 #include "src/stirling/utils/linux_headers.h"
 #include "src/stirling/utils/proc_path_tools.h"
-#include "src/zerok/query/Query.h"
-#include "src/zerok/query/QueryBuilder.h"
-#include "src/zerok/store/redis.h"
+#include "src/zerok/filters/query/Query.h"
+#include "src/zerok/filters/query/QueryBuilder.h"
+// #include "src/zerok/store/redis.h"
 
 namespace px {
   namespace stirling {
@@ -75,8 +75,8 @@ namespace px {
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){
           (void)req_message;
           (void)resp_message;
-          zk::ZkStore zkStore;
-          zkStore.connect();
+          // zk::ZkStore zkStore;
+          // zkStore.connect();
           LOG(INFO) << "AVIN_NEW01_DEBUG__ZkRulesExecutor::httpEvaluate ";
           LOG(INFO) << "AVIN_DEBUG01__SocketTraceConnector::AppendMessage ";
           const char* json = "{\"condition\":\"AND\",\"zk_request_type\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},\"rules\":[{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"int_field\",\"field\":\"int_field\",\"type\":\"integer\",\"input\":\"string\",\"operator\":\"equal\",\"value\":35},{\"id\":\"key_value_field\",\"field\":\"key_value_field\",\"key\":\"/value/value2/value3\",\"type\":\"key-map\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"source\",\"field\":\"source\",\"type\":\"workload-identifier\",\"operator\":\"in\",\"value\":{\"service_name\":\"demo/sofa, demo2/invent\",\"ip\":\"10.43.3.4\",\"pod_name\":\"abc,zxy\"}}]}";
