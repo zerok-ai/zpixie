@@ -14,22 +14,17 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-load("//bazel:pl_build_system.bzl", "pl_cc_library", "pl_cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 
-package(default_visibility = ["//src/stirling:__subpackages__"])
+# licenses(["notice"])
+# # MIT LICENSE
 
-pl_cc_library(
-    name = "cc_library",
-    srcs = glob(
-        ["**/*.cc"],
-        exclude = [
-            "**/*_test.cc",
-            "**/main.cc",
-        ],
-    ),
-    hdrs = glob(["**/*.h", "**/*.hpp"]),
-    deps = [
-        # "@com_github_tencent_rapidjson//:rapidjson",
-        "@com_github_redis_hiredis//:hiredis",
-    ],
+# exports_files(["license.txt"])
+
+cc_library(
+    name = "hiredis",
+    srcs = glob(["hiredis/*.c"]),
+    hdrs = glob(["hiredis/*.h"]),
+    # includes = ["include"],
+    visibility = ["//visibility:public"],
 )

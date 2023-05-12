@@ -50,6 +50,7 @@
 #include "src/stirling/utils/proc_path_tools.h"
 #include "src/zerok/query/Query.h"
 #include "src/zerok/query/QueryBuilder.h"
+#include "src/zerok/store/redis.h"
 #include "src/stirling/source_connectors/socket_tracer/socket_trace_connector_zk.h"
 
 // 50 X less often than the normal sampling frequency. Based on the conn_stats_table.h's
@@ -1195,6 +1196,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   //Zerok Starts
   //HTTP Filters go here
   ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+  zk::ZkStore::connect();
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
