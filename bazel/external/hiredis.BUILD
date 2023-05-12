@@ -23,8 +23,30 @@ load("@rules_cc//cc:defs.bzl", "cc_library")
 
 cc_library(
     name = "hiredis",
-    srcs = glob(["hiredis/*.c"]),
-    hdrs = glob(["hiredis/*.h"]),
+    srcs = glob(["*.c", "**/*.c"], exclude = ["examples/**", "ssl.c"],),
+    hdrs = glob(["*.h", "**/*.h", "dict.c",]),
+    includes = [],
     # includes = ["include"],
+    # srcs = [
+    #     "async.c",
+    #     "hiredis.c",
+    #     "net.c",
+    #     "read.c",
+    #     "sds.c",
+    #     "*.c",
+    # ],
+    # hdrs = [
+    #     # adding dict.c here since async.c includes it
+    #     "dict.c",
+    #     "alloc.h",
+    #     "async.h",
+    #     "dict.h",
+    #     "hiredis.h",
+    #     "net.h",
+    #     "read.h",
+    #     "sds.h",
+    #     "fmacros.h",
+    #     "*.h",
+    # ],
     visibility = ["//visibility:public"],
 )
