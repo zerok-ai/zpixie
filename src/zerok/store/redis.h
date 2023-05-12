@@ -4,7 +4,7 @@
 // #define REDISCPP_HEADER_ONLY
 // #include "redis-cpp/stream.h"
 // #include "redis-cpp/execute.h"
-// #include <iostream>
+#include <iostream>
 
 namespace zk {
     class ZkStore{
@@ -17,6 +17,9 @@ namespace zk {
                 // client.connect("127.0.0.1", 6379);
 
                 redisContext* context = redisConnect("127.0.0.1", 6379);
+                if (context != nullptr){
+                    std::cout << "DEBUG_AVIN_NEW02 - ZkStore::Connect" << std::endl;
+                }
             }
     };
 }
