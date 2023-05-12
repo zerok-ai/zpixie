@@ -7,11 +7,14 @@
 #include "SimpleRuleInteger.h"
 #include "SimpleRuleString.h"
 #include "SimpleRuleKeyValue.h"
+#include "src/zerok/store/store.h"
 
 namespace zk {
     class QueryBuilder{
         public:
             static Query* parseQuery(const char* jsonRule){
+                zk::ZkStore zkStore;
+                zkStore.connect();
                 rapidjson::Document doc;
                 doc.Parse(jsonRule);
                 Query* parsedQuery;

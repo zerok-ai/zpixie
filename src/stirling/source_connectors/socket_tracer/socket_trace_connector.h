@@ -49,8 +49,6 @@
 #include "src/stirling/utils/linux_headers.h"
 #include "src/stirling/utils/proc_path_tools.h"
 #include "src/stirling/utils/proc_tracker.h"
-#include "src/zerok/query/Query.h"
-#include "src/zerok/query/QueryBuilder.h"
 
 DECLARE_uint32(stirling_conn_stats_sampling_ratio);
 DECLARE_bool(stirling_enable_periodic_bpf_map_cleanup);
