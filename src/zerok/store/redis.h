@@ -4,21 +4,36 @@
 // #define REDISCPP_HEADER_ONLY
 // #include "redis-cpp/stream.h"
 // #include "redis-cpp/execute.h"
+#include "store.h"
 #include <iostream>
 
 namespace zk {
-    class ZkStore{
-        public:
-            void connect(){
-                // auto stream = rediscpp::make_stream("localhost", "6379");
-                // auto response = rediscpp::execute(*stream, "ping");
-                // std::cout << response.as<std::string>() << std::endl;
-                // cpp_redis::client client;
-                // client.connect("127.0.0.1", 6379);
+    class ZkRedis : public ZkStore{
+        private:
+            redisContext* redisConnection;
 
-                redisContext* context = redisConnect("127.0.0.1", 6379);
-                if (context != nullptr){
-                    std::cout << "DEBUG_AVIN_NEW02 - ZkStore::Connect" << std::endl;
+        public:
+            ZkRedis() : redisConnection(nullptr) {}
+            bool connect() override {
+                redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
+                if (redisConnection == nullptr || redisConnection->err) {
+                    if (redisConnection) {
+                        // Handle connection error
+                        printf("AVIN_DEBUG_STORE01_ Connection error: %s\n", redisConnection->errstr);
+                        disconnect();
+                    } else {
+                        // Handle memory allocation error
+                        printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
+                    }
+                    return false;
+                }
+                return true;
+            }
+
+            void disconnect() override {
+                if (redisConnection) {
+                    redisFree(redisConnection);
+                    redisConnection = nullptr;
                 }
             }
     };

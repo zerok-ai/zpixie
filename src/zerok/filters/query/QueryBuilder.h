@@ -13,8 +13,10 @@ namespace zk {
     class QueryBuilder{
         public:
             static Query* parseQuery(const char* jsonRule){
-                zk::ZkStore zkStore;
-                zkStore.connect();
+                zk::ZkStore* zkStore = zk::ZkStore::instance()
+                zkStore->connect();
+                // zk::ZkStore zkStore;
+                // zkStore.connect();
                 rapidjson::Document doc;
                 doc.Parse(jsonRule);
                 Query* parsedQuery;
