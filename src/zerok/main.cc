@@ -1,7 +1,7 @@
 #include <iostream>
 #include <string>
 #include <map>
-#include "rapidjson/document.h"
+#include <rapidjson/document.h>
 #include "query/Query.h"
 #include "query/QueryBuilder.h"
 
