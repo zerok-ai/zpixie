@@ -27,7 +27,7 @@ pl_cc_library(
             "**/main.cc",
         ],
     ),
-    hdrs = glob(["**/*.h"]),
+    hdrs = glob(["**/*.h", "**/*.hpp"]),
     deps = [
         # "@com_github_tencent_rapidjson//:rapidjson",
     ],
