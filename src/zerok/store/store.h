@@ -1,9 +1,6 @@
-// #include "cpp_redis/cpp_redis"
-// #include <hiredis.h>
-// #include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
-// #define REDISCPP_HEADER_ONLY
-// #include "redis-cpp/stream.h"
-// #include "redis-cpp/execute.h"
+#ifndef STORE_H
+#define STORE_H
+
 #include "redis.h"
 #include <iostream>
 
@@ -24,3 +21,5 @@ namespace zk {
             // virtual bool exists(const std::string& key) = 0;
     };
 }
+
+#endif // STORE_H
