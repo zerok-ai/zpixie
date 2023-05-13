@@ -13,7 +13,7 @@ namespace zk {
     class QueryBuilder{
         public:
             static Query* parseQuery(const char* jsonRule){
-                zk::ZkStore* zkStore = zk::ZkStore::instance()
+                zk::ZkStore* zkStore = zk::ZkStoreProvider::instance();
                 zkStore->connect();
                 // zk::ZkStore zkStore;
                 // zkStore.connect();
