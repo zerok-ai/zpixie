@@ -8,13 +8,35 @@
 #include "SimpleRuleString.h"
 #include "SimpleRuleKeyValue.h"
 #include "src/zerok/store/store.h"
+#include <iostream>
+#include <random>
+#include <string>
 
 namespace zk {
     class QueryBuilder{
         public:
+            std::string generateRandomString(int length) {
+                const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+                const int charactersLength = characters.length();
+
+                std::random_device rd;
+                std::mt19937 generator(rd());
+
+                std::string randomString;
+                for (int i = 0; i < length; ++i) {
+                    randomString += characters[generator() % charactersLength];
+                }
+
+                return randomString;
+            }
             static Query* parseQuery(const char* jsonRule){
                 zk::ZkStore* zkStore = zk::ZkStoreProvider::instance();
                 zkStore->connect();
+                std::string foundValue = zkStore->get("key01");
+                printf("AVIN_DEBUG_STORE900_ found value %s\n", foundValue.c_str());
+                std::string randomString = generateRandomString(5);
+                printf("AVIN_DEBUG_STORE901_ setting value %s\n", randomString.c_str());
+                zkStore->set("key01", randomString);
                 // zk::ZkStore zkStore;
                 // zkStore.connect();
                 rapidjson::Document doc;
