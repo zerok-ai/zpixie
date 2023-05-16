@@ -19,12 +19,18 @@ namespace zk {
     class ZkRedis : public ZkStore{
         private:
             redisContext* redisConnection;
+            bool setOnce = false;
 
         public:
             ZkRedis() : redisConnection(nullptr) {}
             bool connect() override {
                 printf("AVIN_DEBUG_STORE00_ Trying to connect\n");
-                redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
+                if(redisConnection == nullptr){
+                    printf("AVIN_DEBUG_STORE00_ Connecting\n");
+                    redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
+                }else{
+                    printf("AVIN_DEBUG_STORE00_ Already connected\n");
+                }
                 if (redisConnection == nullptr || redisConnection->err) {
                     if (redisConnection) {
                         // Handle connection error
@@ -37,6 +43,24 @@ namespace zk {
                     return false;
                 }else{
                     printf("AVIN_DEBUG_STORE03_ Connected\n");
+                    // set("key01", "value01");
+                    // std::string key = "key01";
+                    // std::string value = "value01";
+                    if (setOnce == false){
+                        auto reply = redisCommand(redisConnection, "SET key02 value02");
+                        if (reply != nullptr) {
+                            printf("AVIN_DEBUG_STORE044_ Set done - Reply not null\n");
+                            redisReply* replyObj = (redisReply*)reply;
+                            printf("AVIN_DEBUG_STORE046_ Set done - Casting done %d\n", replyObj->type);
+                        }else{
+                            printf("AVIN_DEBUG_STORE045_ Set done - Reply null\n");
+                        }
+                        setOnce = true;
+                    }else{
+                        printf("AVIN_DEBUG_STORE045_ Already set once\n");
+                    }
+                    
+                    // printf("AVIN_DEBUG_STORE03333333333_ Set done\n");
                 }
                 return true;
             }
@@ -65,7 +89,8 @@ namespace zk {
 
             std::string get(const std::string& key) override {
                 printf("AVIN_DEBUG_STORE07_ store.get\n");
-                redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
+                redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "GET %s", key.c_str()));
+                // redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
                     printf("AVIN_DEBUG_STORE08_ store.get %s\n", reply ? reply->str : "Unknown error");
@@ -81,13 +106,20 @@ namespace zk {
     };
 
     class ZkStoreProvider {
+        private:
+            static ZkStore* zkStore;
         public:
             static ZkStore* instance(){
+                if(zkStore != nullptr){
+                    return zkStore;
+                }
                 ZkRedis* hiredisClient = new ZkRedis();
                 ZkStore* redisClient = hiredisClient;
+                ZkStoreProvider::zkStore = hiredisClient;
                 return redisClient;
             }
     };
+    ZkStore* ZkStoreProvider::zkStore = nullptr;
 }
 
 #endif // STORE_H
