@@ -3,9 +3,34 @@
 
 #include <iostream>
 #include <string>
+#include "../fetch/AsyncTask.h"
 #include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
 
+
+
 namespace zk {
+
+    void readerTask(){
+        std::cout << "\nreader task" << std::flush;
+        std::string identifier = "abc01";
+        zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
+        std::string output = zkMemory->get(100);
+        std::cout << "\nfound data " << output << std::flush;
+
+    }
+
+    void writerTask(){
+        // printf("hello 01");
+        std::cout << "\nwriter task" << std::flush;
+        std::string identifier = "abc01";
+        zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
+        std::string timestampStr = std::to_string(nanoseconds);
+        zkMemory->push(timestampStr);
+        std::cout << "\nwrote " << timestampStr << std::flush;
+    }
+
     class ZkStore{
         public:
             virtual bool connect() = 0;
