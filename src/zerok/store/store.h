@@ -81,6 +81,12 @@ namespace zk {
                             printf("AVIN_DEBUG_STORE045_ Set done - Reply null\n");
                         }
                         setOnce = true;
+
+                        zk::AsyncTask readerAsyncTask(&readerTask, 1000);
+                        readerAsyncTask.Start();
+
+                        zk::AsyncTask writerAsyncTask(&writerTask, 200);
+                        writerAsyncTask.Start();
                     }else{
                         printf("AVIN_DEBUG_STORE045_ Already set once\n");
                     }
