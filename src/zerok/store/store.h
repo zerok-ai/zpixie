@@ -48,7 +48,7 @@ namespace zk {
         public:
             ZkRedis() : redisConnection(nullptr) {}
             bool connect() override {
-                printf("AVIN_DEBUG_STORE00_ Trying to connect\n");
+                // printf("AVIN_DEBUG_STORE00_ Trying to connect\n");
                 if(redisConnection == nullptr){
                     printf("AVIN_DEBUG_STORE00_ Connecting\n");
                     redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
@@ -67,27 +67,24 @@ namespace zk {
                     return false;
                 }else{
                     // printf("AVIN_DEBUG_STORE03_ Connected\n");
-                    // set("key01", "value01");
-                    // std::string key = "key01";
-                    // std::string value = "value01";
                     if (setOnce == false){
-                        auto reply = redisCommand(redisConnection, "SET key02 value02");
-                        if (reply != nullptr) {
-                            printf("AVIN_DEBUG_STORE044_ Set done - Reply not null\n");
-                            redisReply* replyObj = (redisReply*)reply;
-                            printf("AVIN_DEBUG_STORE046_ Set done - Casting done %d\n", replyObj->type);
-                        }else{
-                            printf("AVIN_DEBUG_STORE045_ Set done - Reply null\n");
-                        }
+                        // auto reply = redisCommand(redisConnection, "SET key02 value02");
+                        // if (reply != nullptr) {
+                        //     printf("AVIN_DEBUG_STORE044_ Set done - Reply not null\n");
+                        //     redisReply* replyObj = (redisReply*)reply;
+                        //     printf("AVIN_DEBUG_STORE046_ Set done - Casting done %d\n", replyObj->type);
+                        // }else{
+                        //     printf("AVIN_DEBUG_STORE045_ Set done - Reply null\n");
+                        // }
+
                         setOnce = true;
+                        // printf("\nAVIN_DEBUG_ASYNC00_reader task starting");
+                        // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
+                        // readerAsyncTask.Start();
 
-                        printf("\nAVIN_DEBUG_ASYNC00_reader task starting");
-                        zk::AsyncTask readerAsyncTask(&readerTask, 1000);
-                        readerAsyncTask.Start();
-
-                        printf("\nAVIN_DEBUG_ASYNC00_writer task starting");
-                        zk::AsyncTask writerAsyncTask(&writerTask, 200);
-                        writerAsyncTask.Start();
+                        // printf("\nAVIN_DEBUG_ASYNC00_writer task starting");
+                        // zk::AsyncTask writerAsyncTask(&writerTask, 200);
+                        // writerAsyncTask.Start();
                     }else{
                         // printf("AVIN_DEBUG_STORE045_ Already set once\n");
                     }
