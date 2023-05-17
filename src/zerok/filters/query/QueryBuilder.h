@@ -7,6 +7,7 @@
 #include "SimpleRuleInteger.h"
 #include "SimpleRuleString.h"
 #include "SimpleRuleKeyValue.h"
+#include "src/zerok/store/store.h"
 #include <iostream>
 #include <random>
 #include <string>
@@ -29,6 +30,8 @@ namespace zk {
                 return randomString;
             }
             static Query* parseQuery(const char* jsonRule){
+                zk::ZkStore* zkStore = zk::ZkStoreProvider::instance();
+                zkStore->connect();
                 rapidjson::Document doc;
                 doc.Parse(jsonRule);
                 Query* parsedQuery;

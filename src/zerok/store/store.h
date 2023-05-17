@@ -3,7 +3,8 @@
 
 #include <iostream>
 #include <string>
-#include "../fetch/AsyncTask.h"
+#include "./db/memory.h"
+#include "src/zerok/filters/fetch/AsyncTask.h"
 #include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
 
 
@@ -11,24 +12,22 @@
 namespace zk {
 
     void readerTask(){
-        std::cout << "\nreader task" << std::flush;
+        printf("\nAVIN_DEBUG_ASYNC01_reader task");
         std::string identifier = "abc01";
         zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
         std::string output = zkMemory->get(100);
-        std::cout << "\nfound data " << output << std::flush;
-
+        printf("\nAVIN_DEBUG_ASYNC02_found data %s", output.c_str());
     }
 
     void writerTask(){
-        // printf("hello 01");
-        std::cout << "\nwriter task" << std::flush;
+        printf("\nAVIN_DEBUG_ASYNC03_writer task");
         std::string identifier = "abc01";
         zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
         std::string timestampStr = std::to_string(nanoseconds);
         zkMemory->push(timestampStr);
-        std::cout << "\nwrote " << timestampStr << std::flush;
+        // printf("\nAVIN_DEBUG_ASYNC04_wrote %s", timestampStr.c_str());
     }
 
     class ZkStore{
@@ -54,7 +53,7 @@ namespace zk {
                     printf("AVIN_DEBUG_STORE00_ Connecting\n");
                     redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
                 }else{
-                    printf("AVIN_DEBUG_STORE00_ Already connected\n");
+                    // printf("AVIN_DEBUG_STORE00_ Already connected\n");
                 }
                 if (redisConnection == nullptr || redisConnection->err) {
                     if (redisConnection) {
@@ -67,7 +66,7 @@ namespace zk {
                     }
                     return false;
                 }else{
-                    printf("AVIN_DEBUG_STORE03_ Connected\n");
+                    // printf("AVIN_DEBUG_STORE03_ Connected\n");
                     // set("key01", "value01");
                     // std::string key = "key01";
                     // std::string value = "value01";
@@ -82,17 +81,20 @@ namespace zk {
                         }
                         setOnce = true;
 
+                        printf("\nAVIN_DEBUG_ASYNC00_reader task starting");
                         zk::AsyncTask readerAsyncTask(&readerTask, 1000);
                         readerAsyncTask.Start();
 
+                        printf("\nAVIN_DEBUG_ASYNC00_writer task starting");
                         zk::AsyncTask writerAsyncTask(&writerTask, 200);
                         writerAsyncTask.Start();
                     }else{
-                        printf("AVIN_DEBUG_STORE045_ Already set once\n");
+                        // printf("AVIN_DEBUG_STORE045_ Already set once\n");
                     }
                     
                     // printf("AVIN_DEBUG_STORE03333333333_ Set done\n");
                 }
+                // std::this_thread::sleep_for(std::chrono::milliseconds(100));
                 return true;
             }
 
