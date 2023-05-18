@@ -12,15 +12,15 @@
 namespace zk {
 
     void readerTask(){
-        printf("\nAVIN_DEBUG_ASYNC01_reader task");
+        std::cout << "\nAVIN_DEBUG_STORE_ASYNC01_reader task" << std::endl;
         std::string identifier = "abc01";
         zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
         std::string output = zkMemory->get(100);
-        printf("\nAVIN_DEBUG_ASYNC02_found data %s", output.c_str());
+        std::cout << "\nAVIN_DEBUG_STORE_ASYNC02_found data " << output.c_str() << std::endl;
     }
 
     void writerTask(){
-        printf("\nAVIN_DEBUG_ASYNC03_writer task");
+        std::cout << "\nAVIN_DEBUG_STORE_ASYNC03_writer task" << std::endl;
         std::string identifier = "abc01";
         zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
         auto currentTime = std::chrono::high_resolution_clock::now();
@@ -50,9 +50,10 @@ namespace zk {
             bool connect() override {
                 // printf("AVIN_DEBUG_STORE00_ Trying to connect\n");
                 if(redisConnection == nullptr){
-                    printf("AVIN_DEBUG_STORE00_ Connecting\n");
+                    std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
                     redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
                 }else{
+                    std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
                     // printf("AVIN_DEBUG_STORE00_ Already connected\n");
                 }
                 if (redisConnection == nullptr || redisConnection->err) {
@@ -141,11 +142,22 @@ namespace zk {
         public:
             static ZkStore* instance(){
                 if(zkStore != nullptr){
+                    std::cout << "\nAVIN_DEBUG_STORE_INIT_01 not_initializing zk::zk-store" << std::endl;
                     return zkStore;
                 }
+                std::cout << "\nAVIN_DEBUG_STORE_INIT_01 initializing zk::zk-store" << std::endl;
                 ZkRedis* hiredisClient = new ZkRedis();
                 ZkStore* redisClient = hiredisClient;
                 ZkStoreProvider::zkStore = hiredisClient;
+
+                // std::cout << "\nAVIN_DEBUG_STORE_ASYNC00_reader task starting" << std::endl;
+                // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
+                // readerAsyncTask.Start();
+
+                // std::cout << "\nAVIN_DEBUG_STORE_ASYNC00_writer task starting" << std::endl;
+                // zk::AsyncTask writerAsyncTask(&writerTask, 200);
+                // writerAsyncTask.Start();
+
                 return redisClient;
             }
     };

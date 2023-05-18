@@ -503,6 +503,12 @@ Status SocketTraceConnector::InitImpl() {
       std::make_unique<ebpf::BPFHashTable<uint32_t, struct openssl_trace_state_debug_t>>(
           GetHashTable<uint32_t, openssl_trace_state_debug_t>("openssl_trace_state_debug"));
 
+  // //Zerok initialization goes here
+  // std::thread::id threadId = std::this_thread::get_id();
+  // LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_00 initializing socket-trace-connector " << threadId;
+  // // std::cout << "Current Thread ID: " << threadId << std::endl;
+  // ZkRulesExecutor::init();
+
   return Status::OK();
 }
 

@@ -17,6 +17,7 @@
  */
 
 #include <sole.hpp>
+#include <thread>
 
 #include "src/integrations/grpc_clocksync/grpc_clock_converter.h"
 #include "src/vizier/services/agent/pem/pem_manager.h"
@@ -56,6 +57,9 @@ int main(int argc, char** argv) {
   sole::uuid agent_id = sole::uuid4();
   LOG(INFO) << absl::Substitute("Pixie PEM. Version: $0, id: $1", px::VersionInfo::VersionString(),
                                 agent_id.str());
+
+  std::thread::id threadId = std::this_thread::get_id();
+  LOG(INFO) << "\nAVIN_DEBUG_STORE_PEM_MAIN we are in pem main " << threadId;
 
   if (FLAGS_clock_converter == "grpc") {
     px::system::Config::ResetInstance(

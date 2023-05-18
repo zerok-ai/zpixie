@@ -25,6 +25,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <utility>
+#include <thread>
 
 #include <absl/container/flat_hash_map.h>
 #include <absl/strings/match.h>
@@ -50,6 +51,7 @@
 #include "src/stirling/utils/proc_path_tools.h"
 #include "src/zerok/filters/query/Query.h"
 #include "src/zerok/filters/query/QueryBuilder.h"
+#include "src/zerok/filters/query/QueryExecutor.h"
 // #include "src/zerok/store/redis.h"
 
 namespace px {
@@ -71,6 +73,12 @@ namespace px {
         }
 
       public:
+        static void init(){
+          std::thread::id threadId = std::this_thread::get_id();
+          LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
+          zk::ZkQueryExecutor::init();
+        }
+
         static void httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){
           (void)req_message;
