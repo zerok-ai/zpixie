@@ -29,17 +29,88 @@ namespace zk {
 
                 return randomString;
             }
+            static std::vector<Query*> parseQueries(const char* jsonRule){
+                rapidjson::Document doc;
+                doc.Parse(jsonRule);
+
+                std::vector<Query*> vector;
+                rapidjson::Value& rulesDoc = doc["rules"];
+                int filtersSize = static_cast<int>(rulesDoc.Size());
+                for (int i = 0; i < filtersSize; i++) {
+                    rapidjson::Value& filterDoc = rulesDoc[i];
+                    rapidjson::Value& workloadsDoc = filterDoc["workloads"];
+                    for (auto& member : workloadsDoc.GetObject()) {
+                        const char* key = member.name.GetString();
+                        rapidjson::Value& workloadDoc = workloadsDoc[key];
+                        // Query* query = parseWorkload(key, workloadDoc);
+                        Query* query = parseQuery(workloadDoc);
+                        std::string keyString(key);
+                        query->workloadId = keyString;
+                        vector.push_back(query);
+                    }
+                }
+                return vector;
+            }
+
+            static Query* parseWorkload(const char* key, const rapidjson::Value& doc){
+                // std::vector<Query*> vector;
+                // int filtersSize = static_cast<int>(doc.Size());
+                // for (int i = 0; i < filtersSize; i++) {
+                    Query* query = parseQuery(doc);
+                    std::string keyString(key);
+                    query->workloadId = keyString;
+                    // vector.push_back(query);
+                // }
+                return query;
+            }
+
             static Query* parseQuery(const char* jsonRule){
-                // zk::ZkStore* zkStore = zk::ZkStoreProvider::instance();
-                // zkStore->connect();
                 rapidjson::Document doc;
                 doc.Parse(jsonRule);
                 Query* parsedQuery;
                 parsedQuery = new Query();
-                std::string reqTypeString = doc["zk_request_type"]["value"].GetString();
-                parsedQuery->queryType = queryTypeMap[reqTypeString];
+                std::string protocolString = doc["protocol"].GetString();
+                std::string traceRoleString = doc["trace_role"].GetString();
+                std::string serviceString = doc["service"].GetString();
+                std::vector<std::string> splits = CommonUtils::splitString(serviceString, "/");
+                std::string ns = splits.at(0);
+                std::string service = splits.at(1);
+                parsedQuery->traceRole = traceRoleString;
+                parsedQuery->queryType = queryTypeMap[protocolString];
+                parsedQuery->ns = ns;
+                parsedQuery->service = service;
                 parsedQuery->rule = parse(doc);
+                return parsedQuery;
+            }
 
+            static Query* parseQuery(const rapidjson::Value& doc){
+                Query* parsedQuery;
+                parsedQuery = new Query();
+                std::string protocolString = doc["protocol"].GetString();
+                std::string traceRoleString = doc["trace_role"].GetString();
+                std::string serviceString = doc["service"].GetString();
+                std::vector<std::string> splits = CommonUtils::splitString(serviceString, "/");
+                std::string ns = splits.at(0);
+                std::string service = splits.at(1);
+                parsedQuery->traceRole = traceRoleString;
+                parsedQuery->queryType = queryTypeMap[protocolString];
+                parsedQuery->ns = ns;
+                parsedQuery->service = service;
+
+                //////////
+                CompositeRule* andRule = new CompositeRule();
+                andRule->condition = conditionTypeMap["AND"];
+                SimpleRuleString* traceRule = new SimpleRuleString();
+                traceRule->id = "trace_role";
+                traceRule->type = STRING;
+                traceRule->input = "string";
+                traceRule->value = parsedQuery->traceRole;
+                andRule->rules.push_back(traceRule);
+                //////////
+                Rule* parsedRule = parse(doc);
+                andRule->rules.push_back(parsedRule);
+
+                parsedQuery->rule = andRule;
                 return parsedQuery;
             }
 

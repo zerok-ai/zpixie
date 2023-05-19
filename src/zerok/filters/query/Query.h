@@ -38,5 +38,9 @@ namespace zk {
          public:
             Rule* rule;
             QueryType queryType;
+            std::string workloadId;
+            std::string traceRole;
+            std::string ns;
+            std::string service;
     };
 }
