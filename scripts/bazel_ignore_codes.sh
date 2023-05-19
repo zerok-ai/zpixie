@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/bash
 
 # Copyright 2018- The Pixie Authors.
 #
@@ -16,8 +16,14 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-echo "BPF Runner Kernel Version: $(uname -r)"
-echo "Proc Version: $(cat /proc/version)"
-
-sudo usermod -aG docker "${USER}"
-newgrp - docker
+set +e
+bazel "$@"
+retval="$?"
+# 4 means that tests not present.
+# 38 means that bes update failed.
+# Both are not fatal.
+if [[ "${retval}" == 4 ]] || [[ "${retval}" == 38 ]]; then
+  echo "Bazel returned code ${retval}, ignoring..." >&2
+  exit 0
+fi
+exit "${retval}"

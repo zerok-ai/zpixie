@@ -23,9 +23,9 @@ default['owner'] = 'root'
 default['group'] = 'root'
 
 default['bazel']['download_path'] =
-  "https://github.com/bazelbuild/bazel/releases/download/6.0.0/bazel-6.0.0-linux-x86_64"
+  "https://github.com/bazelbuild/bazel/releases/download/6.2.0/bazel-6.2.0-linux-x86_64"
 default['bazel']['sha256'] =
-  'f03d44ecaac3878e3d19489e37caa4ca1dc57427b686a78a85065ea3c27ebe68'
+  '3d11c26fb9ba12c833844450bb90165b176e8a19cb5cf5923f3cec855837f17c'
 
 default['codecov']['download_path'] =
   'https://uploader.codecov.io/v0.2.3/linux/codecov'
@@ -33,9 +33,9 @@ default['codecov']['sha256'] =
   '648b599397548e4bb92429eec6391374c2cbb0edb835e3b3f03d4281c011f401'
 
 default['golang']['download_path'] =
-  'https://go.dev/dl/go1.20.2.linux-amd64.tar.gz'
+  'https://go.dev/dl/go1.20.4.linux-amd64.tar.gz'
 default['golang']['sha256'] =
-  '4eaea32f59cde4dc635fbc42161031d13e1c780b87097f4b4234cfce671f1768'
+  '698ef3243972a51ddb4028e4a1ac63dc6d60821bf18e59a807e051fee0a385bd'
 
 default['golangci-lint']['download_path'] =
   'https://github.com/golangci/golangci-lint/releases/download/v1.51.1/golangci-lint-1.51.1-linux-amd64.tar.gz'
@@ -53,6 +53,6 @@ default['prototool']['sha256'] =
   '2247ff34ad31fa7d9433b3310879190d1ab63b2ddbd58257d24c267f53ef64e6'
 
 default['shellcheck']['download_path'] =
-  'https://github.com/koalaman/shellcheck/releases/download/v0.7.0/shellcheck-v0.7.0.linux.x86_64.tar.xz'
+  'https://github.com/koalaman/shellcheck/releases/download/v0.9.0/shellcheck-v0.9.0.linux.x86_64.tar.xz'
 default['shellcheck']['sha256'] =
-  '39c501aaca6aae3f3c7fc125b3c3af779ddbe4e67e4ebdc44c2ae5cba76c847f'
+  '700324c6dd0ebea0117591c6cc9d7350d9c7c5c287acbad7630fa17b1d4d9e2f'

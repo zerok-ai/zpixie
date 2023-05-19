@@ -20,6 +20,7 @@ set -ex
 
 printenv
 
+artifacts_dir="${ARTIFACTS_DIR:?}"
 versions_file="$(realpath "${VERSIONS_FILE:?}")"
 repo_path=$(pwd)
 release_tag=${TAG_NAME##*/v}
@@ -45,8 +46,8 @@ latest_output_path="gs://${bucket}/vizier/latest"
 
 push_all_multiarch_images "//k8s/vizier:vizier_images_push" "//k8s/vizier:list_image_bundle" "${release_tag}" "${build_type}" "${extra_bazel_args[@]}"
 
-bazel build --stamp -c opt --//k8s:image_version="${release_tag}" \
-    --stamp "${build_type}" //k8s/vizier:vizier_yamls "${extra_bazel_args[@]}"
+bazel build --config=stamp -c opt --//k8s:image_version="${release_tag}" \
+    --config=stamp "${build_type}" //k8s/vizier:vizier_yamls "${extra_bazel_args[@]}"
 
 output_path="gs://${bucket}/vizier/${release_tag}"
 yamls_tar="${repo_path}/bazel-bin/k8s/vizier/vizier_yamls.tar"
@@ -54,6 +55,9 @@ yamls_tar="${repo_path}/bazel-bin/k8s/vizier/vizier_yamls.tar"
 sha256sum "${yamls_tar}" | awk '{print $1}' > sha
 gsutil cp "${yamls_tar}" "${output_path}/vizier_yamls.tar"
 gsutil cp sha "${output_path}/vizier_yamls.tar.sha256"
+
+cp "${yamls_tar}" "${artifacts_dir}/vizier_yamls.tar"
+cp sha "${artifacts_dir}/vizier_yamls.tar.sha256"
 
 # Upload templated YAMLs.
 tmp_dir="$(mktemp -d)"

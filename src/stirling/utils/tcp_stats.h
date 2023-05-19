@@ -20,18 +20,18 @@
 
 #include <string>
 
-#include <absl/container/flat_hash_map.h>
-
-#include "proto/profile.pb.h"
-
 namespace px {
 namespace stirling {
 
-using PProfProfile = ::perftools::profiles::Profile;
-using histo_t = absl::flat_hash_map<std::string, uint64_t>;
-
-// https://github.com/google/pprof/blob/main/proto/profile.proto
-PProfProfile CreatePProfProfile(const uint32_t num_cpus, const histo_t& histo);
+struct TcpStatsRecord {
+  std::string local_addr;
+  int local_port;
+  std::string remote_addr;
+  int remote_port;
+  int tx;
+  int rx;
+  int retransmits;
+};
 
 }  // namespace stirling
 }  // namespace px
