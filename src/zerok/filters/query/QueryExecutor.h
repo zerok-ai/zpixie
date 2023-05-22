@@ -7,8 +7,7 @@
 #include <string>
 #include <map>
 #include <set>
-#include "../utils.h"
-
+#include "src/zerok/common/utils.h"
 
 namespace zk{
     class ZkQueryExecutor{
@@ -90,7 +89,7 @@ namespace zk{
                 }
                 std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
                 if(splitString.size() <= 1){
-                    printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent);
+                    printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent.c_str());
                     return false;
                 }
                 std::string traceId = splitString.at(1);
@@ -106,7 +105,7 @@ namespace zk{
                             bool evaluation = query->rule->evaluate(propsMap);
                             if(evaluation){
                                 printf("\nAVIN_DEBUG_STORE_apply04 applying value");
-                                zkstore->addToSet("key01", traceId);
+                                zkStore->addToSet("key01", traceId.c_str());
                                 //TODO: Extract the traceid and put it into 
                             }
                         }

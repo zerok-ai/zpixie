@@ -1,8 +1,9 @@
 #pragma once
 
-#include "../utils.h"
+// #include "../utils.h"
 #include "SimpleRuleDefault.h"
 #include <algorithm>
+#include "src/zerok/common/utils.h"
 
 namespace zk {
     class SimpleRuleString : public SimpleRuleDefault {

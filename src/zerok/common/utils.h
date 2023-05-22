@@ -1,3 +1,4 @@
+#pragma once
 #include <iostream>
 #include <string>
 #include <any>
@@ -6,7 +7,7 @@
 // #include <any_cast>
 
 namespace zk {
-    class CommonUtils2{
+    class CommonUtils{
         public: 
             bool compare(std::any arg1, std::any arg2) const{
                 std::cout << "\n@Debug14" << " arg1.type() " << arg1.type().name();
