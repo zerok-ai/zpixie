@@ -20,6 +20,11 @@ namespace zk {
         {"MYSQL", MYSQL},
     };
 
+    static std::unordered_map<QueryType, std::string> queryTypeStringMap = {
+        {HTTP, "HTTP"},
+        {MYSQL, "MYSQL"},
+    };
+
     static std::unordered_map<std::string, OperatorType> operatorTypeMap = {
         {"equals", EQUALS},
         {"not_equals", NOT_EQUALS},
