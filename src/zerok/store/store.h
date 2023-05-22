@@ -123,7 +123,7 @@ namespace zk {
                 va_end(args);
                 
 
-                redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key.c_str(), finalArgs.c_str());
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
                     printf("AVIN_DEBUG_STORE05_ store.addToSet %s\n", reply ? reply->str : "Unknown error");
