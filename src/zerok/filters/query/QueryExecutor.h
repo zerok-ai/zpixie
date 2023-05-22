@@ -81,7 +81,8 @@ namespace zk{
                 traceIdRule->id = "resp_headers";
                 traceIdRule->type = KEY_MAP;
                 traceIdRule->input = "string";
-                traceIdRule->value = "/traceparent";
+                traceIdRule->key = "/traceparent";
+                traceIdRule->value = "";
                 std::string traceParent = traceIdRule->extractValue(propsMap);
                 if(traceParent == "ZK_NULL" || traceParent == ""){
                     printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");

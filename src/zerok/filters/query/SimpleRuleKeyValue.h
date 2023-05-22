@@ -26,9 +26,12 @@ namespace zk {
                 }
 
                 const rapidjson::Value* result = pointer.Get(doc);
-                std::string foundValue = result->GetString();
-
-                return foundValue;
+                if (result != nullptr && result->IsString()) {
+                    std::string foundValue = result->GetString();
+                    return foundValue;
+                }else{
+                    return "ZK_NULL";
+                }
             }
 
             return "ZK_NULL";
