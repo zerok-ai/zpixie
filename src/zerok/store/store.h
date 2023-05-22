@@ -6,7 +6,7 @@
 #include "./db/memory.h"
 #include "src/zerok/filters/fetch/AsyncTask.h"
 #include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
-
+#include <cstdarg>
 
 
 namespace zk {
@@ -35,6 +35,7 @@ namespace zk {
             virtual bool connect() = 0;
             virtual void disconnect() = 0;
             virtual bool set(const std::string& key, const std::string& value) = 0;
+            virtual void addToSet(const std::string& key, ...) = 0;
             virtual std::string get(const std::string& key) = 0;
             // virtual bool del(const std::string& key) = 0;
             // virtual bool exists(const std::string& key) = 0;
@@ -101,6 +102,37 @@ namespace zk {
                     redisFree(redisConnection);
                     redisConnection = nullptr;
                 }
+            }
+
+            void addToSet(const std::string& key, ...) override{
+                printf("AVIN_DEBUG_STORE04_ store.addToSet\n");
+
+                va_list args;
+                va_start(args, key);
+
+                std::string finalArgs;
+                const char* arg = va_arg(args, const char*);
+                while (arg != nullptr) {
+                    if (finalArgs.length() > 0){
+                        finalArgs += " ";    
+                    }
+                    finalArgs += arg;
+                    arg = va_arg(args, const char*);
+                }
+                // std::cout << "DerivedClass finalArgs. " << finalArgs << std::endl;
+                va_end(args);
+                
+
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key.c_str(), finalArgs.c_str());
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    printf("AVIN_DEBUG_STORE05_ store.addToSet %s\n", reply ? reply->str : "Unknown error");
+                    freeReplyObject(reply);
+                    return false;
+                }else{
+                    printf("AVIN_DEBUG_STORE06_ store.addToSet success\n");
+                }
+                freeReplyObject(reply);
             }
 
             bool set(const std::string& key, const std::string& value) override {
