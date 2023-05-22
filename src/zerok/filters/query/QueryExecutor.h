@@ -82,7 +82,7 @@ namespace zk{
                 traceIdRule->type = KEY_MAP;
                 traceIdRule->input = "string";
                 traceIdRule->key = "/traceparent";
-                traceIdRule->value = "";
+                traceIdRule->value = "/traceparent";
                 std::string traceParent = traceIdRule->extractValue(propsMap);
                 if(traceParent == "ZK_NULL" || traceParent == ""){
                     printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
@@ -106,7 +106,7 @@ namespace zk{
                             bool evaluation = query->rule->evaluate(propsMap);
                             if(evaluation){
                                 printf("\nAVIN_DEBUG_STORE_apply04 applying value");
-                                zkStore->addToSet("key01", traceId.c_str());
+                                zkStore->addToSet("key01", traceId.c_str(), nullptr);
                                 //TODO: Extract the traceid and put it into 
                             }
                         }

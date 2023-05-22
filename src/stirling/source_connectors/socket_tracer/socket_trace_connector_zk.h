@@ -87,8 +87,6 @@ namespace px {
           (void)resp_message;
           // zk::ZkStore zkStore;
           // zkStore.connect();
-          LOG(INFO) << "AVIN_NEW01_DEBUG__ZkRulesExecutor::httpEvaluate ";
-          LOG(INFO) << "AVIN_DEBUG01__SocketTraceConnector::AppendMessage ";
           std::map<std::string, std::string> propsMap;
           propsMap["zk_req_type"] = "HTTP";
           propsMap["int_field"] = "35";
