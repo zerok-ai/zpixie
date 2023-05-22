@@ -35,7 +35,7 @@ namespace zk {
             virtual bool connect() = 0;
             virtual void disconnect() = 0;
             virtual bool set(const std::string& key, const std::string& value) = 0;
-            virtual void addToSet(const std::string& key, ...) = 0;
+            virtual void addToSet(const char* key, ...) = 0;
             virtual std::string get(const std::string& key) = 0;
             // virtual bool del(const std::string& key) = 0;
             // virtual bool exists(const std::string& key) = 0;
@@ -104,7 +104,7 @@ namespace zk {
                 }
             }
 
-            void addToSet(const std::string& key, ...) override{
+            void addToSet(const char* key, ...) override{
                 printf("AVIN_DEBUG_STORE04_ store.addToSet\n");
 
                 va_list args;
@@ -128,7 +128,6 @@ namespace zk {
                     // Handle error
                     printf("AVIN_DEBUG_STORE05_ store.addToSet %s\n", reply ? reply->str : "Unknown error");
                     freeReplyObject(reply);
-                    return false;
                 }else{
                     printf("AVIN_DEBUG_STORE06_ store.addToSet success\n");
                 }
