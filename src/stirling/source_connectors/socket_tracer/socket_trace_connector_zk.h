@@ -77,23 +77,18 @@ namespace px {
           std::thread::id threadId = std::this_thread::get_id();
           LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
           zk::ZkQueryExecutor::init();
+          zk::ZkQueryExecutor::initializeQueries();
         }
 
-        static void httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
+        static bool httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){
+          init();
           (void)req_message;
           (void)resp_message;
           // zk::ZkStore zkStore;
           // zkStore.connect();
           LOG(INFO) << "AVIN_NEW01_DEBUG__ZkRulesExecutor::httpEvaluate ";
           LOG(INFO) << "AVIN_DEBUG01__SocketTraceConnector::AppendMessage ";
-          const char* json = "{\"condition\":\"AND\",\"zk_request_type\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},\"rules\":[{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"int_field\",\"field\":\"int_field\",\"type\":\"integer\",\"input\":\"string\",\"operator\":\"equal\",\"value\":35},{\"id\":\"key_value_field\",\"field\":\"key_value_field\",\"key\":\"/value/value2/value3\",\"type\":\"key-map\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"HTTP\"},{\"id\":\"source\",\"field\":\"source\",\"type\":\"workload-identifier\",\"operator\":\"in\",\"value\":{\"service_name\":\"demo/sofa, demo2/invent\",\"ip\":\"10.43.3.4\",\"pod_name\":\"abc,zxy\"}}]}";
-          LOG(INFO) << "AVIN_DEBUG02__SocketTraceConnector::AppendMessage ";
-          zk::Query* query = zk::QueryBuilder::parseQuery(json);
-          LOG(INFO) << "AVIN_DEBUG03__SocketTraceConnector::AppendMessage ";
-          if(query != nullptr){
-            LOG(INFO) << "AVIN_DEBUG04__SocketTraceConnector::AppendMessage ";
-          }
           std::map<std::string, std::string> propsMap;
           propsMap["zk_req_type"] = "HTTP";
           propsMap["int_field"] = "35";
@@ -128,9 +123,9 @@ namespace px {
               myString += pair.first + ": " + pair.second + "@@@@";
           }
           LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
-          LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << query->rule->evaluate(propsMap);
-  
-
+          bool outcome = zk::ZkQueryExecutor::apply("HTTP", propsMap);
+          LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << zk::ZkQueryExecutor::apply("HTTP", propsMap);
+          return outcome;
         }
     };
   }

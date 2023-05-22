@@ -1,4 +1,5 @@
 #include "src/zerok/store/store.h"
+#include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
 #include <iostream>
 #include "./Query.h"
 #include "./QueryBuilder.h"
@@ -6,6 +7,7 @@
 #include <string>
 #include <map>
 #include <set>
+#include "../utils.h"
 
 
 namespace zk{
@@ -37,8 +39,8 @@ namespace zk{
         static void initializeQueries(){
             if(protocolToQueries.empty()){
                 //1 - Get filters JSON from redis
-                std::string filtersJson = zkStore->get("some_key");
-                // std::string filtersJson = "{\"rules\":[{\"version\":1684149787,\"workloads\":{\"mQHLY2dY\":{\"condition\":\"AND\",\"service\":\"demo/sofa\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rules\":[{\"id\":\"req_method\",\"field\":\"req_method\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"POST\"},{\"id\":\"req_path\",\"field\":\"req_path\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"ends_with\",\"value\":\"/exception\"}]}},\"filter_id\":\"0ceD7cx\",\"filters\":{\"type\":\"workload\",\"condition\":\"AND\",\"workloads\":[\"mQHLY2dY\"]}},{\"version\":1684149743,\"workloads\":{\"mQHfY2dY\":{\"condition\":\"AND\",\"service\":\"*/*\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rules\":[{\"condition\":\"AND\",\"rules\":[{\"id\":\"resp_status\",\"field\":\"resp_status\",\"type\":\"integer\",\"input\":\"integer\",\"operator\":\"not equal\",\"value\":200}]}]}},\"filter_id\":\"ic234Dcs\",\"filters\":{\"type\":\"workload\",\"condition\":\"OR\",\"workloads\":[\"mQHfY2dY\"]}}]}";
+                // std::string filtersJson = zkStore->get("some_key");
+                std::string filtersJson = "{\"rules\":[{\"version\":1684149787,\"workloads\":{\"mQHLY2dY\":{\"condition\":\"AND\",\"service\":\"demo/sofa\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rules\":[{\"id\":\"req_method\",\"field\":\"req_method\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"POST\"},{\"id\":\"req_path\",\"field\":\"req_path\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"ends_with\",\"value\":\"/exception\"}]}},\"filter_id\":\"0ceD7cx\",\"filters\":{\"type\":\"workload\",\"condition\":\"AND\",\"workloads\":[\"mQHLY2dY\"]}},{\"version\":1684149743,\"workloads\":{\"mQHfY2dY\":{\"condition\":\"AND\",\"service\":\"*/*\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rules\":[{\"condition\":\"AND\",\"rules\":[{\"id\":\"resp_status\",\"field\":\"resp_status\",\"type\":\"integer\",\"input\":\"integer\",\"operator\":\"not equal\",\"value\":200}]}]}},\"filter_id\":\"ic234Dcs\",\"filters\":{\"type\":\"workload\",\"condition\":\"OR\",\"workloads\":[\"mQHfY2dY\"]}}]}";
                 //2 - Since re-parsing, clear the local maps
                 //TODO: replace it with local maps being populated and then replace the class static maps with local maps
                 // relevantQueries.clear();
@@ -67,7 +69,7 @@ namespace zk{
 
         static void init(){
             printf("\nAVIN_DEBUG_STORE_INIT_01 initializing zk::zk-query-executor");
-            ZkQueryExecutor::zkStore = zk::ZkStoreProvider::instance();
+            zkStore = zk::ZkStoreProvider::instance();
             zkStore->connect();
             possibleIdentifiers.insert("*/*");
             possibleIdentifiers.insert("NS01/*");
@@ -76,6 +78,26 @@ namespace zk{
 
         static bool apply(std::string protocol, std::map<std::string, std::string> propsMap){
             if(protocol == "HTTP"){
+                SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
+                traceIdRule->id = "resp_headers";
+                traceIdRule->type = KEY_MAP;
+                traceIdRule->input = "string";
+                traceIdRule->value = "/traceparent";
+                std::string traceParent = traceIdRule->extractValue(propsMap);
+                if(traceParent == "ZK_NULL" || traceParent == ""){
+                    printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
+                    return false;
+                }
+                std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
+                if(splitString.size() <= 1){
+                    printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent);
+                    return false;
+                }
+                std::string traceId = splitString.at(1);
+                if(traceId == ""){
+                    printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
+                    return false;
+                }
                 //TODO: Check if trace id is present, if not return false
                 if(protocolToQueries.count(protocol) > 0){
                     std::vector<Query*> queries = protocolToQueries[protocol];
@@ -83,6 +105,8 @@ namespace zk{
                         for (const auto& query : queries) {
                             bool evaluation = query->rule->evaluate(propsMap);
                             if(evaluation){
+                                printf("\nAVIN_DEBUG_STORE_apply04 applying value");
+                                zkstore->addToSet("key01", traceId);
                                 //TODO: Extract the traceid and put it into 
                             }
                         }
@@ -97,5 +121,6 @@ namespace zk{
 
     std::set<std::string> ZkQueryExecutor::possibleIdentifiers;
     std::map<std::string, std::vector<Query*> > ZkQueryExecutor::protocolToQueries;
+    zk::ZkStore* ZkQueryExecutor::zkStore; 
 
 }
