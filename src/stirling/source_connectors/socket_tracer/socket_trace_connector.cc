@@ -1198,7 +1198,11 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   //Zerok Starts
   //HTTP Filters go here
-  ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+  bool passThrough = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+  if(!passThrough){
+    //Returning if 
+    return;
+  }
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);

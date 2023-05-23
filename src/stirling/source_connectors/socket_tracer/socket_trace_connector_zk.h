@@ -75,11 +75,12 @@ namespace px {
       public:
         static void init(){
           std::thread::id threadId = std::this_thread::get_id();
-          LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
+          // LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
           zk::ZkQueryExecutor::init();
           zk::ZkQueryExecutor::initializeQueries();
         }
 
+        //returns passthrough value - as in if the given record is allowed to be writtent o the db (apache arrow)
         static bool httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){
           init();
@@ -88,11 +89,14 @@ namespace px {
           // zk::ZkStore zkStore;
           // zkStore.connect();
           std::map<std::string, std::string> propsMap;
+          //TODO:ZEROK Remove the following debug values
+          //Debug values START
           propsMap["zk_req_type"] = "HTTP";
           propsMap["int_field"] = "35";
           propsMap["trace_role"] = "server";
           propsMap["remote_addr"] = "10.0.0.4";
           propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
+          //Debug values END 
 
           propsMap["time_"] = std::to_string(static_cast<long>(resp_message.timestamp_ns));
           propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
