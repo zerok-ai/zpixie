@@ -1239,6 +1239,10 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   using ::px::grpc::MethodInputOutput;
   using ::px::stirling::grpc::ParseReqRespBody;
 
+  if(true){
+    return;
+  }
+
   protocols::http2::HalfStream* req_stream;
   protocols::http2::HalfStream* resp_stream;
 
