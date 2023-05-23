@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <filesystem>
 #include <utility>
-#include <thread>
+// #include <thread>
 
 #include <absl/container/flat_hash_map.h>
 #include <absl/strings/match.h>
@@ -74,7 +74,7 @@ namespace px {
 
       public:
         static void init(){
-          std::thread::id threadId = std::this_thread::get_id();
+          // std::thread::id threadId = std::this_thread::get_id();
           // LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
           zk::ZkQueryExecutor::init();
           zk::ZkQueryExecutor::initializeQueries();
