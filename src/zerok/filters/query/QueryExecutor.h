@@ -87,7 +87,7 @@ namespace zk{
                 traceIdRule->value = "/traceparent";
                 std::string traceParent = traceIdRule->extractValue(propsMap);
                 if(traceParent == "ZK_NULL" || traceParent == ""){
-                    printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
+                    // printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
                     return false;
                 }
                 std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
@@ -126,5 +126,6 @@ namespace zk{
     std::set<std::string> ZkQueryExecutor::possibleIdentifiers;
     std::map<std::string, std::vector<Query*> > ZkQueryExecutor::protocolToQueries;
     zk::ZkStore* ZkQueryExecutor::zkStore; 
+    std::string ZkQueryExecutor::uuid; 
 
 }
