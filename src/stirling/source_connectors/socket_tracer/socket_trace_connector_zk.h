@@ -86,49 +86,52 @@ namespace px {
           init();
           (void)req_message;
           (void)resp_message;
-          // zk::ZkStore zkStore;
-          // zkStore.connect();
-          std::map<std::string, std::string> propsMap;
-          //TODO:ZEROK Remove the following debug values
-          //Debug values START
-          propsMap["zk_req_type"] = "HTTP";
-          propsMap["int_field"] = "35";
-          // propsMap["trace_role"] = "server";
-          propsMap["remote_addr"] = "10.0.0.4";
-          propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
-          //Debug values END 
+          
+          // std::map<std::string, std::string> propsMap;
+          // //TODO:ZEROK Remove the following debug values
+          // //Debug values START
+          // propsMap["zk_req_type"] = "HTTP";
+          // propsMap["int_field"] = "35";
+          // // propsMap["trace_role"] = "server";
+          // propsMap["remote_addr"] = "10.0.0.4";
+          // propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
+          // //Debug values END 
 
-          propsMap["time_"] = std::to_string(static_cast<long>(resp_message.timestamp_ns));
-          propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
-          // Note that there is a string copy here,
-          // But std::move is not allowed because we re-use conn object.
-          propsMap["remote_addr"] = conn_tracker.remote_endpoint().AddrStr();
-          propsMap["remote_port"] = std::to_string(conn_tracker.remote_endpoint().port());
-          int traceRoleInt = conn_tracker.role();
-          std::string traceRoleString = "";
-          if(traceRoleInt == 2){
-            traceRoleString = "server";
-          }else if(traceRoleInt == 1){
-            traceRoleString = "client";
-          }
-          propsMap["trace_role"] = traceRoleString;//std::to_string(conn_tracker.role());
-          propsMap["major_version"] = std::to_string(1);
-          propsMap["minor_version"] = std::to_string(resp_message.minor_version);
-          propsMap["content_type"] = std::to_string(static_cast<uint64_t>(content_type));
-          propsMap["req_headers"] = ToJSONString(req_message.headers);
-          propsMap["req_method"] = req_message.req_method;
-          propsMap["req_path"] = req_message.req_path;
-          propsMap["req_body_size"] = std::to_string(req_message.body_size);
-          propsMap["req_body"] = req_message.body;
-          propsMap["resp_headers"] = ToJSONString(resp_message.headers);
-          propsMap["resp_status"] = std::to_string(resp_message.resp_status);
-          propsMap["resp_message"] = resp_message.resp_message;
-          propsMap["resp_body_size"] = std::to_string(resp_message.body_size);
-          propsMap["resp_body"] = resp_message.body;
-          propsMap["latency"] = std::to_string(calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
-          return httpEvaluate(propsMap);
-          // bool outcome = zk::ZkQueryExecutor::apply("HTTP", propsMap);
-          // return outcome;
+          // propsMap["time_"] = std::to_string(static_cast<long>(resp_message.timestamp_ns));
+          // propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
+          // // Note that there is a string copy here,
+          // // But std::move is not allowed because we re-use conn object.
+          // propsMap["remote_addr"] = conn_tracker.remote_endpoint().AddrStr();
+          // propsMap["remote_port"] = std::to_string(conn_tracker.remote_endpoint().port());
+          // int traceRoleInt = conn_tracker.role();
+          // std::string traceRoleString = "";
+          // if(traceRoleInt == 2){
+          //   traceRoleString = "server";
+          // }else if(traceRoleInt == 1){
+          //   traceRoleString = "client";
+          // }
+          // propsMap["trace_role"] = traceRoleString;//std::to_string(conn_tracker.role());
+          // propsMap["major_version"] = std::to_string(1);
+          // propsMap["minor_version"] = std::to_string(resp_message.minor_version);
+          // propsMap["content_type"] = std::to_string(static_cast<uint64_t>(content_type));
+          // propsMap["req_headers"] = ToJSONString(req_message.headers);
+          // propsMap["req_method"] = req_message.req_method;
+          // propsMap["req_path"] = req_message.req_path;
+          // propsMap["req_body_size"] = std::to_string(req_message.body_size);
+          // propsMap["req_body"] = req_message.body;
+          // propsMap["resp_headers"] = ToJSONString(resp_message.headers);
+          // propsMap["resp_status"] = std::to_string(resp_message.resp_status);
+          // propsMap["resp_message"] = resp_message.resp_message;
+          // propsMap["resp_body_size"] = std::to_string(resp_message.body_size);
+          // propsMap["resp_body"] = resp_message.body;
+          // propsMap["latency"] = std::to_string(calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
+          // return httpEvaluate(propsMap);
+
+          return httpEvaluate(resp_message.timestamp_ns, upid, conn_tracker.remote_endpoint().AddrStr(), 
+            conn_tracker.remote_endpoint().port(), conn_tracker.role(), 1, resp_message.minor_version, 
+            ToJSONString(req_message.headers), content_type, req_message.req_method, req_message.req_path, 
+            resp_message.resp_status, resp_message.resp_message, req_message.body_size, req_message.body,
+            resp_message.body_size, resp_message.body, ToJSONString(resp_message.headers), calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
         }
 
         static bool httpEvaluate(std::map<std::string, std::string> propsMap){
@@ -140,6 +143,55 @@ namespace px {
           bool outcome = zk::ZkQueryExecutor::apply("HTTP", propsMap);
           // LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << zk::ZkQueryExecutor::apply("HTTP", propsMap);
           return outcome;
+        }
+
+        static bool httpEvaluate(uint64_t time, md::UPID upid, std::string remoteAddr, 
+            int remotePort, int traceRole, int majorVersion, int minorVersion, std::string reqHeadesJson, 
+            HTTPContentType content_type, std::string reqMethod, std::string reqPath, int64_t respStatus, 
+            std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
+            std::string respBody, std::string respHeadersJson, int64_t latency){
+              std::map<std::string, std::string> propsMap;
+
+              //TODO:ZEROK Remove the following debug values
+              //Debug values START
+              propsMap["zk_req_type"] = "HTTP";
+              propsMap["int_field"] = "35";
+              // propsMap["trace_role"] = "server";
+              propsMap["remote_addr"] = "10.0.0.4";
+              propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
+              //Debug values END 
+
+              propsMap["time_"] = std::to_string(static_cast<long>(time));
+              propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
+              // Note that there is a string copy here,
+              // But std::move is not allowed because we re-use conn object.
+              propsMap["remote_addr"] = remoteAddr;
+              propsMap["remote_port"] = std::to_string(remotePort);
+              int traceRoleInt = traceRole;
+              std::string traceRoleString = "";
+              if(traceRoleInt == 2){
+                traceRoleString = "server";
+              }else if(traceRoleInt == 1){
+                traceRoleString = "client";
+              }
+              propsMap["trace_role"] = traceRoleString;//std::to_string(conn_tracker.role());
+              propsMap["major_version"] = std::to_string(majorVersion);
+              propsMap["minor_version"] = std::to_string(minorVersion);
+              propsMap["req_headers"] = reqHeadesJson;
+              propsMap["content_type"] = std::to_string(static_cast<uint64_t>(content_type));
+              propsMap["req_method"] = reqMethod;
+              propsMap["req_path"] = reqPath;
+              propsMap["resp_status"] = std::to_string(respStatus);
+              propsMap["resp_message"] = respMessage;
+              propsMap["req_body_size"] = std::to_string(reqBodySize);
+              propsMap["req_body"] = reqBody;
+              propsMap["resp_body_size"] = std::to_string(respBodySize);
+              propsMap["resp_headers"] = respHeadersJson;
+              propsMap["resp_body"] = respBody;
+
+              propsMap["latency"] = std::to_string(latency);
+
+              return httpEvaluate(propsMap);
         }
 
         static bool httpEvaluate(int64_t resp_status, const ConnTracker& conn_tracker, protocols::http2::HalfStream* req_stream,
