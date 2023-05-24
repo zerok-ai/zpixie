@@ -127,13 +127,13 @@ namespace px {
           propsMap["resp_body"] = resp_message.body;
           propsMap["latency"] = std::to_string(calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
           ///////
-          std::string myString = "";
-          for (const auto& pair : propsMap) {
-              myString += pair.first + ": " + pair.second + "@@@@";
-          }
-          LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
+          // std::string myString = "";
+          // for (const auto& pair : propsMap) {
+          //     myString += pair.first + ": " + pair.second + "@@@@";
+          // }
+          // LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
           bool outcome = zk::ZkQueryExecutor::apply("HTTP", propsMap);
-          LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << zk::ZkQueryExecutor::apply("HTTP", propsMap);
+          // LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << zk::ZkQueryExecutor::apply("HTTP", propsMap);
           return outcome;
         }
     };

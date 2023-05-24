@@ -54,7 +54,7 @@ namespace zk {
                     std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
                     redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
                 }else{
-                    std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
                     // printf("AVIN_DEBUG_STORE00_ Already connected\n");
                 }
                 if (redisConnection == nullptr || redisConnection->err) {
@@ -173,7 +173,7 @@ namespace zk {
         public:
             static ZkStore* instance(){
                 if(zkStore != nullptr){
-                    std::cout << "\nAVIN_DEBUG_STORE_INIT_01 not_initializing zk::zk-store" << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_STORE_INIT_01 not_initializing zk::zk-store" << std::endl;
                     return zkStore;
                 }
                 std::cout << "\nAVIN_DEBUG_STORE_INIT_01 initializing zk::zk-store" << std::endl;
