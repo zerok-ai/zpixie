@@ -1239,9 +1239,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   using ::px::grpc::MethodInputOutput;
   using ::px::stirling::grpc::ParseReqRespBody;
 
-  if(true){
-    return;
-  }
+  // if(true){
+  //   return;
+  // }
 
   protocols::http2::HalfStream* req_stream;
   protocols::http2::HalfStream* resp_stream;
@@ -1275,39 +1275,64 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   //Zerok Starts
   //HTTP Filters go here
-  // bool passThrough = ZkRulesExecutor::httpEvaluate(resp_status, conn_tracker, req_stream, resp_stream, content_type, upid);
-  // if(!passThrough){
-  //   //Returning if 
-  //   return;
-  // }
+  uint64_t time = resp_stream->timestamp_ns; 
+  std::string remoteAddr = conn_tracker.remote_endpoint().AddrStr(); 
+  int remotePort = conn_tracker.remote_endpoint().port(); 
+  int traceRole = conn_tracker.role(); 
+  int majorVersion = 2; 
+  int minorVersion = 0;
+  std::string reqHeadesJson =  ToJSONString(req_stream->headers());
+  std::string reqMethod = req_stream->headers().ValueByKey(protocols::http2::headers::kMethod);
+  std::string reqPath = req_stream->headers().ValueByKey(":path");
+  int64_t respStatus = resp_status; 
+  std::string respMessage = "OK";
+  size_t reqBodySize = req_stream->original_data_size();
+  std::string reqBody = req_stream->ConsumeData();
+  size_t respBodySize = resp_stream->original_data_size(); 
+  std::string respBody = resp_stream->ConsumeData();
+  std::string respHeadersJson = ToJSONString(resp_stream->headers());
+  int64_t latency = CalculateLatency(req_stream->timestamp_ns, resp_stream->timestamp_ns);
+  /*
+  uint64_t time, md::UPID upid, std::string remoteAddr, 
+  int remotePort, int traceRole, int majorVersion, int minorVersion, std::string reqHeadesJson, 
+  HTTPContentType content_type, std::string reqMethod, std::string reqPath, int64_t respStatus, 
+  std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
+  std::string respBody, std::string respHeadersJson, int64_t latency
+  */
+  bool passThrough = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
+    minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
+    respBodySize, respBody, respHeadersJson, latency);
+  if(!passThrough){
+    //Returning if 
+    return;
+  }
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
-  r.Append<r.ColIndex("time_")>(resp_stream->timestamp_ns);
+  r.Append<r.ColIndex("time_")>(time);
   r.Append<r.ColIndex("upid")>(upid.value());
-  r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
-  r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
-  r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
-  r.Append<r.ColIndex("major_version")>(2);
+  r.Append<r.ColIndex("remote_addr")>(remoteAddr);
+  r.Append<r.ColIndex("remote_port")>(remotePort);
+  r.Append<r.ColIndex("trace_role")>(traceRole);
+  r.Append<r.ColIndex("major_version")>(majorVersion);
   // HTTP2 does not define minor version.
-  r.Append<r.ColIndex("minor_version")>(0);
-  r.Append<r.ColIndex("req_headers")>(ToJSONString(req_stream->headers()), kMaxHTTPHeadersBytes);
+  r.Append<r.ColIndex("minor_version")>(minorVersion);
+  r.Append<r.ColIndex("req_headers")>(reqHeadesJson, kMaxHTTPHeadersBytes);
   r.Append<r.ColIndex("content_type")>(static_cast<uint64_t>(content_type));
-  r.Append<r.ColIndex("resp_headers")>(ToJSONString(resp_stream->headers()), kMaxHTTPHeadersBytes);
-  r.Append<r.ColIndex("req_method")>(
-      req_stream->headers().ValueByKey(protocols::http2::headers::kMethod));
-  r.Append<r.ColIndex("req_path")>(req_stream->headers().ValueByKey(":path"));
-  r.Append<r.ColIndex("resp_status")>(resp_status);
+  r.Append<r.ColIndex("resp_headers")>(respHeadersJson, kMaxHTTPHeadersBytes);
+  r.Append<r.ColIndex("req_method")>(reqMethod);
+  r.Append<r.ColIndex("req_path")>(reqPath);
+  r.Append<r.ColIndex("resp_status")>(respStatus);
   // TODO(yzhao): Populate the following field from headers.
-  r.Append<r.ColIndex("resp_message")>("OK");
-  r.Append<r.ColIndex("req_body_size")>(req_stream->original_data_size());
+  r.Append<r.ColIndex("resp_message")>(respMessage);
+  r.Append<r.ColIndex("req_body_size")>(reqBodySize);
   // Do not apply truncation at this point, as the truncation was already done on serialized
   // protobuf message. This might result into longer text format data here, but the increase is
   // minimal.
-  r.Append<r.ColIndex("req_body")>(req_stream->ConsumeData());
-  r.Append<r.ColIndex("resp_body_size")>(resp_stream->original_data_size());
-  r.Append<r.ColIndex("resp_body")>(resp_stream->ConsumeData());
-  int64_t latency_ns = CalculateLatency(req_stream->timestamp_ns, resp_stream->timestamp_ns);
+  r.Append<r.ColIndex("req_body")>(reqBody);
+  r.Append<r.ColIndex("resp_body_size")>(respBodySize);
+  r.Append<r.ColIndex("resp_body")>(respBody);
+  int64_t latency_ns = latency;
   r.Append<r.ColIndex("latency")>(latency_ns);
   // TODO(yzhao): Remove once http2::Record::bpf_timestamp_ns is removed.
   LOG_IF_EVERY_N(WARNING, latency_ns < 0, 100)
