@@ -12,22 +12,18 @@
 namespace zk {
 
     void readerTask(){
-        std::cout << "\nAVIN_DEBUG_STORE_ASYNC01_reader task" << std::endl;
         std::string identifier = "abc01";
         zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
         std::string output = zkMemory->get(100);
-        std::cout << "\nAVIN_DEBUG_STORE_ASYNC02_found data " << output.c_str() << std::endl;
     }
 
     void writerTask(){
-        std::cout << "\nAVIN_DEBUG_STORE_ASYNC03_writer task" << std::endl;
         std::string identifier = "abc01";
         zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
         auto currentTime = std::chrono::high_resolution_clock::now();
         auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
         std::string timestampStr = std::to_string(nanoseconds);
         zkMemory->push(timestampStr);
-        // printf("\nAVIN_DEBUG_ASYNC04_wrote %s", timestampStr.c_str());
     }
 
     class ZkStore{
@@ -49,9 +45,8 @@ namespace zk {
         public:
             ZkRedis() : redisConnection(nullptr) {}
             bool connect() override {
-                // printf("AVIN_DEBUG_STORE00_ Trying to connect\n");
                 if(redisConnection == nullptr){
-                    std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
                     redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
                 }else{
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
@@ -60,11 +55,11 @@ namespace zk {
                 if (redisConnection == nullptr || redisConnection->err) {
                     if (redisConnection) {
                         // Handle connection error
-                        printf("AVIN_DEBUG_STORE01_ Connection error: %s\n", redisConnection->errstr);
+                        // printf("AVIN_DEBUG_STORE01_ Connection error: %s\n", redisConnection->errstr);
                         disconnect();
                     } else {
                         // Handle memory allocation error
-                        printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
+                        // printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
                     }
                     return false;
                 }else{
@@ -126,10 +121,7 @@ namespace zk {
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    printf("AVIN_DEBUG_STORE05_ store.addToSet %s\n", reply ? reply->str : "Unknown error");
                     freeReplyObject(reply);
-                }else{
-                    printf("AVIN_DEBUG_STORE06_ store.addToSet success\n");
                 }
                 freeReplyObject(reply);
             }
@@ -139,11 +131,8 @@ namespace zk {
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SET %s %s", key.c_str(), value.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    printf("AVIN_DEBUG_STORE05_ store.set %s\n", reply ? reply->str : "Unknown error");
                     freeReplyObject(reply);
                     return false;
-                }else{
-                    printf("AVIN_DEBUG_STORE06_ store.set success\n");
                 }
                 freeReplyObject(reply);
                 return true;
@@ -155,11 +144,11 @@ namespace zk {
                 // redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    printf("AVIN_DEBUG_STORE08_ store.get %s\n", reply ? reply->str : "Unknown error");
+                    // printf("AVIN_DEBUG_STORE08_ store.get %s\n", reply ? reply->str : "Unknown error");
                     freeReplyObject(reply);
                     return "";
                 }else{
-                    printf("AVIN_DEBUG_STORE09_ store.get success\n");
+                    // printf("AVIN_DEBUG_STORE09_ store.get success\n");
                 }
                 std::string value = reply->str;
                 freeReplyObject(reply);
@@ -173,19 +162,15 @@ namespace zk {
         public:
             static ZkStore* instance(){
                 if(zkStore != nullptr){
-                    // std::cout << "\nAVIN_DEBUG_STORE_INIT_01 not_initializing zk::zk-store" << std::endl;
                     return zkStore;
                 }
-                std::cout << "\nAVIN_DEBUG_STORE_INIT_01 initializing zk::zk-store" << std::endl;
                 ZkRedis* hiredisClient = new ZkRedis();
                 ZkStore* redisClient = hiredisClient;
                 ZkStoreProvider::zkStore = hiredisClient;
 
-                // std::cout << "\nAVIN_DEBUG_STORE_ASYNC00_reader task starting" << std::endl;
                 // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
                 // readerAsyncTask.Start();
 
-                // std::cout << "\nAVIN_DEBUG_STORE_ASYNC00_writer task starting" << std::endl;
                 // zk::AsyncTask writerAsyncTask(&writerTask, 200);
                 // writerAsyncTask.Start();
 

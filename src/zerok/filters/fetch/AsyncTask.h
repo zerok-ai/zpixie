@@ -39,7 +39,7 @@ namespace zk{
 
             ~AsyncTask() {
                 std::thread::id threadId = std::this_thread::get_id();
-                std::cout << "\nAVIN_DEBUG_STORE_ASYNC03_ shutting down " << threadId << std::endl;
+                // std::cout << "\nAVIN_DEBUG_STORE_ASYNC03_ shutting down " << threadId << std::endl;
                 Stop();
             }
 
@@ -64,7 +64,7 @@ namespace zk{
                 while (running_) {
                     function_();  // Invoke the function
                     std::thread::id threadId = std::this_thread::get_id();
-                    std::cout << "\nAVIN_DEBUG_STORE_ASYNC04_ task executing " << threadId << " interval is " << intervalMs_ << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_STORE_ASYNC04_ task executing " << threadId << " interval is " << intervalMs_ << std::endl;
                     std::unique_lock<std::mutex> lock(mutex_);
                     condition_.wait_for(lock, std::chrono::milliseconds(intervalMs_));
                     // std::this_thread::sleep_for(std::chrono::seconds(intervalMs_));
