@@ -93,7 +93,7 @@ namespace px {
           //Debug values START
           propsMap["zk_req_type"] = "HTTP";
           propsMap["int_field"] = "35";
-          propsMap["trace_role"] = "server";
+          // propsMap["trace_role"] = "server";
           propsMap["remote_addr"] = "10.0.0.4";
           propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
           //Debug values END 
@@ -104,7 +104,14 @@ namespace px {
           // But std::move is not allowed because we re-use conn object.
           propsMap["remote_addr"] = conn_tracker.remote_endpoint().AddrStr();
           propsMap["remote_port"] = std::to_string(conn_tracker.remote_endpoint().port());
-          propsMap["trace_role"] = std::to_string(conn_tracker.role());
+          int traceRoleInt = conn_tracker.role();
+          std::string traceRoleString = "";
+          if(traceRoleInt == 2){
+            traceRoleString = "server";
+          }else if(traceRoleInt == 1){
+            traceRoleString = "client";
+          }
+          propsMap["trace_role"] = traceRoleString;//std::to_string(conn_tracker.role());
           propsMap["major_version"] = std::to_string(1);
           propsMap["minor_version"] = std::to_string(resp_message.minor_version);
           propsMap["content_type"] = std::to_string(static_cast<uint64_t>(content_type));
