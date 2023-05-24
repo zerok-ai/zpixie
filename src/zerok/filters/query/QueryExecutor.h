@@ -13,6 +13,7 @@ namespace zk{
     class ZkQueryExecutor{
       private:
         static zk::ZkStore* zkStore;
+        static std::string uuid;
         static std::set<std::string> possibleIdentifiers;
         static std::map<std::string, std::vector<Query*> > protocolToQueries;
         // static std::vector<Query*> relevantQueries;
@@ -38,7 +39,7 @@ namespace zk{
         static void initializeQueries(){
             if(protocolToQueries.empty()){
                 //1 - Get filters JSON from redis
-                // std::string filtersJson = zkStore->get("some_key");
+                // std::string filtersJson = zkStore->get("filters");
                 std::string filtersJson = "{\"rules\":[{\"version\":1684149787,\"workloads\":{\"mQHLY2dY\":{\"condition\":\"AND\",\"service\":\"demo/sofa\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rules\":[{\"id\":\"req_method\",\"field\":\"req_method\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"POST\"},{\"id\":\"req_path\",\"field\":\"req_path\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"ends_with\",\"value\":\"/exception\"}]}},\"filter_id\":\"0ceD7cx\",\"filters\":{\"type\":\"workload\",\"condition\":\"AND\",\"workloads\":[\"mQHLY2dY\"]}},{\"version\":1684149743,\"workloads\":{\"mQHfY2dY\":{\"condition\":\"AND\",\"service\":\"*/*\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rules\":[{\"condition\":\"AND\",\"rules\":[{\"id\":\"resp_status\",\"field\":\"resp_status\",\"type\":\"integer\",\"input\":\"integer\",\"operator\":\"equals\",\"value\":200}]}]}},\"filter_id\":\"ic234Dcs\",\"filters\":{\"type\":\"workload\",\"condition\":\"OR\",\"workloads\":[\"mQHfY2dY\"]}}]}";
                 //2 - Since re-parsing, clear the local maps
                 //TODO: replace it with local maps being populated and then replace the class static maps with local maps
@@ -70,6 +71,7 @@ namespace zk{
             printf("\nAVIN_DEBUG_STORE_INIT_01 initializing zk::zk-query-executor");
             zkStore = zk::ZkStoreProvider::instance();
             zkStore->connect();
+            uuid = CommonUtils::generateUUID();
             possibleIdentifiers.insert("*/*");
             possibleIdentifiers.insert("NS01/*");
             possibleIdentifiers.insert("NS01/SVC01");
@@ -104,9 +106,11 @@ namespace zk{
                     if(!queries.empty()){
                         for (const auto& query : queries) {
                             bool evaluation = query->rule->evaluate(propsMap);
+                            int currentMinutes = CommonUtils::systemMinutes();
+                            std::string traceIdsSetKey = query->workloadId + "_" + uuid + "_" + std::to_string(currentMinutes/5);
                             if(evaluation){
-                                printf("\nAVIN_DEBUG_STORE_apply04 applying value");
-                                zkStore->addToSet("key01", traceId.c_str(), nullptr);
+                                printf("\nAVIN_DEBUG_STORE_apply04 applying value %s", traceIdsSetKey.c_str());
+                                zkStore->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
                                 //TODO: Extract the traceid and put it into 
                             }
                         }

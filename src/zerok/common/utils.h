@@ -3,7 +3,10 @@
 #include <string>
 #include <any>
 #include <vector>
+#include <iomanip>
+#include <random>
 #include <rapidjson/document.h>
+#include <chrono>
 // #include <any_cast>
 
 namespace zk {
@@ -37,6 +40,38 @@ namespace zk {
                 }
                 std::cout << "\n@Debug19";
                 return false;
+            }
+
+            static int systemMinutes(){
+                auto now = std::chrono::system_clock::now();
+
+                // Convert the time point to the current local time
+                std::time_t currentTime = std::chrono::system_clock::to_time_t(now);
+
+                // Convert the local time to a struct tm
+                std::tm* timeInfo = std::localtime(&currentTime);
+
+                // Extract the minutes from the struct tm
+                int minutes = timeInfo->tm_min;
+
+                return minutes;
+            }
+
+            static std::string generateUUID() {
+                std::random_device device;
+                std::mt19937 generator(device());
+                std::uniform_int_distribution<int> distribution(0, 15);
+
+                const std::string hex_chars = "0123456789abcdef";
+                std::string uuid;
+
+                for (int i = 0; i < 32; ++i) {
+                    uuid += hex_chars[distribution(generator)];
+                    if (i == 7 || i == 11 || i == 15 || i == 19)
+                        uuid += '-';
+                }
+
+                return uuid;
             }
 
             static std::vector<std::string> splitString(const std::string& str, const std::string& delimiter) {
