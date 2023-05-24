@@ -1239,9 +1239,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   using ::px::grpc::MethodInputOutput;
   using ::px::stirling::grpc::ParseReqRespBody;
 
-  // if(true){
-  //   return;
-  // }
+  if(true){
+    return;
+  }
 
   protocols::http2::HalfStream* req_stream;
   protocols::http2::HalfStream* resp_stream;
@@ -1275,11 +1275,11 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   //Zerok Starts
   //HTTP Filters go here
-  bool passThrough = ZkRulesExecutor::httpEvaluate(resp_status, conn_tracker, req_stream, resp_stream, content_type, upid);
-  if(!passThrough){
-    //Returning if 
-    return;
-  }
+  // bool passThrough = ZkRulesExecutor::httpEvaluate(resp_status, conn_tracker, req_stream, resp_stream, content_type, upid);
+  // if(!passThrough){
+  //   //Returning if 
+  //   return;
+  // }
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
