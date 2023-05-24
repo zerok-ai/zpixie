@@ -105,7 +105,7 @@ namespace zk {
             }
 
             void addToSet(const char* key, ...) override{
-                printf("AVIN_DEBUG_STORE04_ store.addToSet\n");
+                // printf("AVIN_DEBUG_STORE04_ store.addToSet\n");
 
                 va_list args;
                 va_start(args, key);
@@ -135,7 +135,7 @@ namespace zk {
             }
 
             bool set(const std::string& key, const std::string& value) override {
-                printf("AVIN_DEBUG_STORE04_ store.set\n");
+                // printf("AVIN_DEBUG_STORE04_ store.set\n");
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SET %s %s", key.c_str(), value.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
@@ -150,7 +150,7 @@ namespace zk {
             }
 
             std::string get(const std::string& key) override {
-                printf("AVIN_DEBUG_STORE07_ store.get\n");
+                // printf("AVIN_DEBUG_STORE07_ store.get\n");
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "GET %s", key.c_str()));
                 // redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
