@@ -87,46 +87,6 @@ namespace px {
           (void)req_message;
           (void)resp_message;
           
-          // std::map<std::string, std::string> propsMap;
-          // //TODO:ZEROK Remove the following debug values
-          // //Debug values START
-          // propsMap["zk_req_type"] = "HTTP";
-          // propsMap["int_field"] = "35";
-          // // propsMap["trace_role"] = "server";
-          // propsMap["remote_addr"] = "10.0.0.4";
-          // propsMap["key_value_field"] = "{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value2\":{\"id\":\"zk_req_type\",\"field\":\"zk_req_type\",\"type\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value3\":\"HTTP\"}}}";
-          // //Debug values END 
-
-          // propsMap["time_"] = std::to_string(static_cast<long>(resp_message.timestamp_ns));
-          // propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
-          // // Note that there is a string copy here,
-          // // But std::move is not allowed because we re-use conn object.
-          // propsMap["remote_addr"] = conn_tracker.remote_endpoint().AddrStr();
-          // propsMap["remote_port"] = std::to_string(conn_tracker.remote_endpoint().port());
-          // int traceRoleInt = conn_tracker.role();
-          // std::string traceRoleString = "";
-          // if(traceRoleInt == 2){
-          //   traceRoleString = "server";
-          // }else if(traceRoleInt == 1){
-          //   traceRoleString = "client";
-          // }
-          // propsMap["trace_role"] = traceRoleString;//std::to_string(conn_tracker.role());
-          // propsMap["major_version"] = std::to_string(1);
-          // propsMap["minor_version"] = std::to_string(resp_message.minor_version);
-          // propsMap["content_type"] = std::to_string(static_cast<uint64_t>(content_type));
-          // propsMap["req_headers"] = ToJSONString(req_message.headers);
-          // propsMap["req_method"] = req_message.req_method;
-          // propsMap["req_path"] = req_message.req_path;
-          // propsMap["req_body_size"] = std::to_string(req_message.body_size);
-          // propsMap["req_body"] = req_message.body;
-          // propsMap["resp_headers"] = ToJSONString(resp_message.headers);
-          // propsMap["resp_status"] = std::to_string(resp_message.resp_status);
-          // propsMap["resp_message"] = resp_message.resp_message;
-          // propsMap["resp_body_size"] = std::to_string(resp_message.body_size);
-          // propsMap["resp_body"] = resp_message.body;
-          // propsMap["latency"] = std::to_string(calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
-          // return httpEvaluate(propsMap);
-
           return httpEvaluate(resp_message.timestamp_ns, upid, conn_tracker.remote_endpoint().AddrStr(), 
             conn_tracker.remote_endpoint().port(), conn_tracker.role(), 1, resp_message.minor_version, 
             ToJSONString(req_message.headers), content_type, req_message.req_method, req_message.req_path, 
