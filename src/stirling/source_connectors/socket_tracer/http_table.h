@@ -97,6 +97,10 @@ constexpr DataElement kHTTPElements[] = {
          types::DataType::INT64,
          types::SemanticType::ST_BYTES,
          types::PatternType::METRIC_GAUGE},
+        {"trace_id", "Trace id from response headers",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
         canonical_data_elements::kLatencyNS,
 #ifndef NDEBUG
         canonical_data_elements::kPXInfo,

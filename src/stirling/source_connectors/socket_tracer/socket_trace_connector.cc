@@ -1225,6 +1225,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("resp_status")>(resp_message.resp_status);
   r.Append<r.ColIndex("resp_message")>(std::move(resp_message.resp_message));
   r.Append<r.ColIndex("resp_body_size")>(resp_message.body_size);
+  r.Append<r.ColIndex("trace_id")>("some-trace-id");
   r.Append<r.ColIndex("resp_body")>(std::move(resp_message.body), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
@@ -1332,6 +1333,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("req_body")>(reqBody);
   r.Append<r.ColIndex("resp_body_size")>(respBodySize);
   r.Append<r.ColIndex("resp_body")>(respBody);
+  r.Append<r.ColIndex("trace_id")>("some-trace-id");
   int64_t latency_ns = latency;
   r.Append<r.ColIndex("latency")>(latency_ns);
   // TODO(yzhao): Remove once http2::Record::bpf_timestamp_ns is removed.
