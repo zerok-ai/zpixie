@@ -78,6 +78,7 @@ namespace zk{
         }
 
         static std::string apply(std::string protocol, std::map<std::string, std::string> propsMap){
+            std::string traceId = "";
             if(protocol == "HTTP"){
                 SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
                 traceIdRule->id = "resp_headers";
@@ -97,7 +98,7 @@ namespace zk{
                     printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent.c_str());
                     return "ZK_NULL";
                 }
-                std::string traceId = splitString.at(1);
+                traceId = splitString.at(1);
                 if(traceId == ""){
                     printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
                     return "ZK_NULL";
