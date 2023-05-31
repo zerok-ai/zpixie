@@ -81,7 +81,7 @@ namespace px {
         }
 
         //returns passthrough value - as in if the given record is allowed to be writtent o the db (apache arrow)
-        static bool httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
+        static std::string httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){
           init();
           (void)req_message;
@@ -94,18 +94,18 @@ namespace px {
             resp_message.body_size, resp_message.body, ToJSONString(resp_message.headers), calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
         }
 
-        static bool httpEvaluate(std::map<std::string, std::string> propsMap){
+        static std::string httpEvaluate(std::map<std::string, std::string> propsMap){
           // std::string myString = "";
           // for (const auto& pair : propsMap) {
           //     myString += pair.first + ": " + pair.second + "@@@@";
           // }
           // LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
-          bool outcome = zk::ZkQueryExecutor::apply("HTTP", propsMap);
+          std::string traceId = zk::ZkQueryExecutor::apply("HTTP", propsMap);
           // LOG(INFO) << "AVIN_DEBUG06__SocketTraceConnector::AppendMessage query->rule->evaluate(propsMap) " << zk::ZkQueryExecutor::apply("HTTP", propsMap);
-          return outcome;
+          return traceId;
         }
 
-        static bool httpEvaluate(uint64_t time, md::UPID upid, std::string remoteAddr, 
+        static std::string httpEvaluate(uint64_t time, md::UPID upid, std::string remoteAddr, 
             int remotePort, int traceRole, int majorVersion, int minorVersion, std::string reqHeadesJson, 
             HTTPContentType content_type, std::string reqMethod, std::string reqPath, int64_t respStatus, 
             std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
@@ -154,7 +154,7 @@ namespace px {
               return httpEvaluate(propsMap);
         }
 
-        static bool httpEvaluate(int64_t resp_status, const ConnTracker& conn_tracker, protocols::http2::HalfStream* req_stream,
+        static std::string httpEvaluate(int64_t resp_status, const ConnTracker& conn_tracker, protocols::http2::HalfStream* req_stream,
           protocols::http2::HalfStream* resp_stream, HTTPContentType content_type, md::UPID upid){
           init();
           (void)req_stream;

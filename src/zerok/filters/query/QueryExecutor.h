@@ -77,7 +77,7 @@ namespace zk{
             possibleIdentifiers.insert("NS01/SVC01");
         }
 
-        static bool apply(std::string protocol, std::map<std::string, std::string> propsMap){
+        static std::string apply(std::string protocol, std::map<std::string, std::string> propsMap){
             if(protocol == "HTTP"){
                 SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
                 traceIdRule->id = "resp_headers";
@@ -88,19 +88,19 @@ namespace zk{
                 std::string traceParent = traceIdRule->extractValue(propsMap);
                 if(traceParent == "ZK_NULL" || traceParent == ""){
                     // printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
-                    return false;
+                    return "ZK_NULL";
                 }else{
                     printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present");
                 }
                 std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
                 if(splitString.size() <= 1){
                     printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent.c_str());
-                    return false;
+                    return "ZK_NULL";
                 }
                 std::string traceId = splitString.at(1);
                 if(traceId == ""){
                     printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
-                    return false;
+                    return "ZK_NULL";
                 }
                 std::cout << "\nAVIN_DEBUG_STORE_apply0102" << std::endl;
                 // printf("\nAVIN_DEBUG_STORE_apply0102");
@@ -136,7 +136,7 @@ namespace zk{
             }else{
                 //TODO: Check if trace id is present, if not return false
             }
-            return true;
+            return traceId;
         }
     };
 
