@@ -26,8 +26,8 @@ namespace zk {
     };
 
     static std::unordered_map<std::string, OperatorType> operatorTypeMap = {
-        {"equals", EQUALS},
-        {"not_equals", NOT_EQUALS},
+        {"equal", EQUALS},
+        {"not_equal", NOT_EQUALS},
         {"in", IN},
         {"not_in", NOT_IN},
     };

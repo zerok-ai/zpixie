@@ -34,11 +34,11 @@ namespace zk {
                 doc.Parse(jsonRule);
 
                 std::vector<Query*> vector;
-                rapidjson::Value& rulesDoc = doc["rules"];
-                int filtersSize = static_cast<int>(rulesDoc.Size());
-                for (int i = 0; i < filtersSize; i++) {
-                    rapidjson::Value& filterDoc = rulesDoc[i];
-                    rapidjson::Value& workloadsDoc = filterDoc["workloads"];
+                rapidjson::Value& scenariosDoc = doc["scenarios"];
+                int scenariosSize = static_cast<int>(scenariosDoc.Size());
+                for (int i = 0; i < scenariosSize; i++) {
+                    rapidjson::Value& scenarioDoc = scenariosDoc[i];
+                    rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
                     for (auto& member : workloadsDoc.GetObject()) {
                         const char* key = member.name.GetString();
                         rapidjson::Value& workloadDoc = workloadsDoc[key];
@@ -107,7 +107,8 @@ namespace zk {
                 traceRule->value = parsedQuery->traceRole;
                 andRule->rules.push_back(traceRule);
                 //////////
-                Rule* parsedRule = parse(doc);
+                rapidjson::Value& ruleDoc = doc["rule"];
+                Rule* parsedRule = parse(ruleDoc);
                 andRule->rules.push_back(parsedRule);
 
                 parsedQuery->rule = andRule;
@@ -237,7 +238,7 @@ namespace zk {
 
             static Rule* parseSimpleRule(rapidjson::Document& ruleDoc){
                 SimpleRule* rule;
-                FieldType fieldType = fieldTypeMap[ruleDoc["type"].GetString()];
+                FieldType fieldType = fieldTypeMap[ruleDoc["datatype"].GetString()];
                 switch(fieldType){
                     case STRING:
                         rule = new SimpleRuleString();
@@ -271,7 +272,7 @@ namespace zk {
 
             static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc){
                 SimpleRule* rule;
-                std::string typeString = ruleDoc["type"].GetString();
+                std::string typeString = ruleDoc["datatype"].GetString();
                 FieldType fieldType = fieldTypeMap[typeString];
                 switch(fieldType){
                     case STRING:
