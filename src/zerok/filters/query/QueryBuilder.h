@@ -107,7 +107,7 @@ namespace zk {
                 traceRule->value = parsedQuery->traceRole;
                 andRule->rules.push_back(traceRule);
                 //////////
-                rapidjson::Value& ruleDoc = doc["rule"];
+                const rapidjson::Value& ruleDoc = doc["rule"];
                 Rule* parsedRule = parse(ruleDoc);
                 andRule->rules.push_back(parsedRule);
 
