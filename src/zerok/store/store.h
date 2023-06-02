@@ -42,7 +42,7 @@ namespace zk {
         private:
             redisContext* redisConnection;
             int database = 0;
-            bool setOnce = false;
+            // bool setOnce = false;
 
         public:
             ZkRedis() : redisConnection(nullptr) {}
