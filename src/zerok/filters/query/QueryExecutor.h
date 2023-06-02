@@ -13,6 +13,8 @@ namespace zk{
     class ZkQueryExecutor{
       private:
         static zk::ZkStore* zkStore;
+        static zk::ZkStore* zkStoreReader;
+        static zk::ZkStore* zkStoreWriter;
         static std::string uuid;
         static std::set<std::string> possibleIdentifiers;
         static std::map<std::string, std::vector<Query*> > protocolToQueries;
@@ -74,6 +76,10 @@ namespace zk{
             // printf("\nAVIN_DEBUG_STORE_INIT_01 initializing zk::zk-query-executor");
             zkStore = zk::ZkStoreProvider::instance();
             zkStore->connect();
+            zkStoreReader = zk::ZkStoreProvider::instance(6);
+            zkStoreReader->connect();
+            zkStoreWriter = zk::ZkStoreProvider::instance(1);
+            zkStoreWriter->connect();
             uuid = CommonUtils::generateUUID();
             possibleIdentifiers.insert("*/*");
             possibleIdentifiers.insert("NS01/*");
@@ -130,9 +136,8 @@ namespace zk{
                             std::string traceIdsSetKey = query->workloadId + "_" + std::to_string(currentMinutes/5);
                             if(evaluation){
                                 std::cout << "\nAVIN_DEBUG_STORE_apply0105" << std::endl;
-                                // printf("\nAVIN_DEBUG_STORE_apply04 applying value");
-                                zkStore->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
-                                //TODO: Extract the traceid and put it into 
+                                // zkStore->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
+                                zkStoreWriter->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
                             }
                         }
                     }
@@ -147,6 +152,8 @@ namespace zk{
     std::set<std::string> ZkQueryExecutor::possibleIdentifiers;
     std::map<std::string, std::vector<Query*> > ZkQueryExecutor::protocolToQueries;
     zk::ZkStore* ZkQueryExecutor::zkStore; 
+    zk::ZkStore* ZkQueryExecutor::zkStoreReader; 
+    zk::ZkStore* ZkQueryExecutor::zkStoreWriter; 
     std::string ZkQueryExecutor::uuid; 
 
 }

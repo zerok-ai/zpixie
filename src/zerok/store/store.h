@@ -2,6 +2,7 @@
 #define STORE_H
 
 #include <iostream>
+#include <map>
 #include <string>
 #include "./db/memory.h"
 #include "src/zerok/filters/fetch/AsyncTask.h"
@@ -40,14 +41,21 @@ namespace zk {
     class ZkRedis : public ZkStore{
         private:
             redisContext* redisConnection;
+            int database = 0;
             bool setOnce = false;
 
         public:
             ZkRedis() : redisConnection(nullptr) {}
+            
+            ZkRedis(int databaseNum) : redisConnection(nullptr) {
+                database = databaseNum;
+            }
+
             bool connect() override {
                 if(redisConnection == nullptr){
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
                     redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
+                    select();
                 }else{
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
                     // printf("AVIN_DEBUG_STORE00_ Already connected\n");
@@ -62,33 +70,23 @@ namespace zk {
                         // printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
                     }
                     return false;
-                }else{
-                    // printf("AVIN_DEBUG_STORE03_ Connected\n");
-                    if (setOnce == false){
-                        // auto reply = redisCommand(redisConnection, "SET key02 value02");
-                        // if (reply != nullptr) {
-                        //     printf("AVIN_DEBUG_STORE044_ Set done - Reply not null\n");
-                        //     redisReply* replyObj = (redisReply*)reply;
-                        //     printf("AVIN_DEBUG_STORE046_ Set done - Casting done %d\n", replyObj->type);
-                        // }else{
-                        //     printf("AVIN_DEBUG_STORE045_ Set done - Reply null\n");
-                        // }
-
-                        setOnce = true;
-                        // printf("\nAVIN_DEBUG_ASYNC00_reader task starting");
-                        // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
-                        // readerAsyncTask.Start();
-
-                        // printf("\nAVIN_DEBUG_ASYNC00_writer task starting");
-                        // zk::AsyncTask writerAsyncTask(&writerTask, 200);
-                        // writerAsyncTask.Start();
-                    }else{
-                        // printf("AVIN_DEBUG_STORE045_ Already set once\n");
-                    }
-                    
-                    // printf("AVIN_DEBUG_STORE03333333333_ Set done\n");
                 }
-                // std::this_thread::sleep_for(std::chrono::milliseconds(100));
+                return true;
+            }
+
+            bool select() {
+                if(database == 0){
+                    return true;
+                }
+
+                // If you want to select a different database, use redisCommand to send the SELECT command
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "SELECT %d", database);
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    freeReplyObject(reply);
+                    return false;
+                }
+
+                freeReplyObject(reply);
                 return true;
             }
 
@@ -158,6 +156,7 @@ namespace zk {
 
     class ZkStoreProvider {
         private:
+            static std::map<int, ZkStore*> storeProvider;
             static ZkStore* zkStore;
         public:
             static ZkStore* instance(){
@@ -176,8 +175,20 @@ namespace zk {
 
                 return redisClient;
             }
+
+            static ZkStore* instance(int database){
+                if(storeProvider.find(database) != storeProvider.end()){
+                    return storeProvider[database];
+                }
+                ZkRedis* hiredisClient = new ZkRedis(database);
+                ZkStore* redisClient = hiredisClient;
+                storeProvider[database] = redisClient;
+
+                return redisClient;
+            }
     };
     ZkStore* ZkStoreProvider::zkStore = nullptr;
+    std::map<int, ZkStore*> ZkStoreProvider::storeProvider;
 }
 
 #endif // STORE_H
