@@ -137,7 +137,8 @@ namespace zk{
                             if(evaluation){
                                 std::cout << "\nAVIN_DEBUG_STORE_apply0105" << std::endl;
                                 // zkStore->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
-                                zkStoreWriter->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
+                                // zkStoreWriter->addToSet(traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
+                                zkStoreWriter->addToSetWithExpiry(7200, traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
                             }
                         }
                     }

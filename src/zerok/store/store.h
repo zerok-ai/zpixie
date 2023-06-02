@@ -33,6 +33,7 @@ namespace zk {
             virtual void disconnect() = 0;
             virtual bool set(const std::string& key, const std::string& value) = 0;
             virtual void addToSet(const char* key, ...) = 0;
+            virtual void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) = 0;
             virtual std::string get(const std::string& key) = 0;
             // virtual bool del(const std::string& key) = 0;
             // virtual bool exists(const std::string& key) = 0;
@@ -97,12 +98,31 @@ namespace zk {
                 }
             }
 
-            void addToSet(const char* key, ...) override{
-                // printf("AVIN_DEBUG_STORE04_ store.addToSet\n");
+            void expire(const char* key, const int expiryaInSeconds){
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXPIRE %s %d", key, expiryaInSeconds);
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    freeReplyObject(reply);
+                }
+                freeReplyObject(reply);
+            }
 
+            void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) override {
                 va_list args;
                 va_start(args, key);
+                addToSet(key, args);
+                va_end(args);
+                expire(key, expiryaInSeconds);
+            }
 
+            void addToSet(const char* key, ...) override{
+                va_list args;
+                va_start(args, key);
+                addToSet(key, args);
+                va_end(args);
+            }
+
+            void addToSet(const char* key, va_list args) {
                 std::string finalArgs;
                 const char* arg = va_arg(args, const char*);
                 while (arg != nullptr) {
@@ -113,8 +133,6 @@ namespace zk {
                     arg = va_arg(args, const char*);
                 }
                 // std::cout << "DerivedClass finalArgs. " << finalArgs << std::endl;
-                va_end(args);
-                
 
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
