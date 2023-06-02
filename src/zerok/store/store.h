@@ -108,11 +108,31 @@ namespace zk {
             }
 
             void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) override {
+                startTransaction();
                 va_list args;
                 va_start(args, key);
                 addToSet(key, args);
                 va_end(args);
                 expire(key, expiryaInSeconds);
+                endTransaction();
+            }
+
+            void startTransaction(){
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "MULTI");
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    freeReplyObject(reply);
+                }
+                freeReplyObject(reply);
+            }
+
+            void endTransaction(){
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXEC");
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    freeReplyObject(reply);
+                }
+                freeReplyObject(reply);
             }
 
             void addToSet(const char* key, ...) override{
