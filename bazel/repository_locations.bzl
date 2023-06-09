@@ -206,6 +206,11 @@ REPOSITORY_LOCATIONS = dict(
         strip_prefix = "rapidjson-f56928de85d56add3ca6ae7cf7f119a42ee1585b",
         urls = ["https://github.com/Tencent/rapidjson/archive/f56928de85d56add3ca6ae7cf7f119a42ee1585b.tar.gz"],
     ),
+    com_github_redis_hiredis = dict(
+        sha256 = "fe6d21741ec7f3fc9df409d921f47dfc73a4d8ff64f4ac6f1d95f951bf7f53d6",
+        strip_prefix = "hiredis-1.1.0",
+        urls = ["https://github.com/redis/hiredis/archive/refs/tags/v1.1.0.tar.gz"],
+    ),
     com_github_thoughtspot_threadstacks = dict(
         sha256 = "e54d4c3cd5af3cc136cc952c1ef77cd90b41133cd61140d8488e14c6d6f795e9",
         strip_prefix = "threadstacks-94adbe26c4aaf9ca945fd7936670d40ec6f228fb",

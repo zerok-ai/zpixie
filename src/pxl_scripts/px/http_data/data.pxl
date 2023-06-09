@@ -43,7 +43,7 @@ def http_data(start_time: str, source_filter: str, destination_filter: str, num_
     # Order columns.
     df = df['time_', 'source', 'destination', 'latency', 'major_version', 'req_path',
             'req_method', 'req_headers', 'req_body', 'req_body_size', 'resp_status',
-            'resp_message', 'resp_headers', 'resp_body', 'resp_body_size']
+            'resp_message', 'resp_headers', 'resp_body', 'resp_body_size', 'trace_id']
 
     return df
 

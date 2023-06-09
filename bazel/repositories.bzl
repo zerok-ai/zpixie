@@ -154,6 +154,7 @@ def _cc_deps():
     _bazel_repo("com_github_serge1_elfio", build_file = "//bazel/external:elfio.BUILD")
     _bazel_repo("com_github_derrickburns_tdigest", build_file = "//bazel/external:tdigest.BUILD")
     _bazel_repo("com_github_tencent_rapidjson", build_file = "//bazel/external:rapidjson.BUILD")
+    _bazel_repo("com_github_redis_hiredis", build_file = "//bazel/external:hiredis.BUILD")
     _bazel_repo("com_github_vinzenz_libpypa", build_file = "//bazel/external:libpypa.BUILD")
     _bazel_repo("com_google_double_conversion", build_file = "//bazel/external:double_conversion.BUILD")
     _bazel_repo("com_github_google_sentencepiece", build_file = "//bazel/external:sentencepiece.BUILD", patches = ["//bazel/external:sentencepiece.patch"], patch_args = ["-p1"])
