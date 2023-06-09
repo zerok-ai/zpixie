@@ -79,5 +79,9 @@ namespace zk {
             virtual bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const = 0;
             virtual bool evaluateIn(std::map<std::string, std::string> propsMap) const = 0;
             virtual bool evaluateNotIn(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateLessThan(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const = 0;
     };
 }

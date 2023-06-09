@@ -30,6 +30,10 @@ namespace zk {
         {"not_equal", NOT_EQUALS},
         {"in", IN},
         {"not_in", NOT_IN},
+        {"greater_than", GREATER_THAN},
+        {"greater_than_equal", GREATER_THAN_EQUALS},
+        {"less_than_equal", LESS_THAN_EQUALS},
+        {"less_than", LESS_THAN},
     };
 
     static std::unordered_map<std::string, FieldType> fieldTypeMap = {
