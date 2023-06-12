@@ -114,7 +114,7 @@ namespace zk{
                         std::map<std::string, std::vector<Query*> > scenarioToQueries = queryTypeStringPair.second;
                         for (const auto& scenario : scenarioToQueries) {
                             std::string scenarioId = scenario.first;
-                            std::vector<Query*> queries = queryTypeStringPair.second;
+                            std::vector<Query*> queries = scenario.second;
                             for (const auto& query : queries) {
                                 if(protocolToQueries.count(queryTypeString) <= 0){
                                     protocolToQueries[queryTypeString] = {};
@@ -164,8 +164,8 @@ namespace zk{
                 if(!storeInitializedOnce){
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
-                    zkStore = zk::ZkStoreProvider::instance();
-                    zkStore->connect();
+                    // zkStore = zk::ZkStoreProvider::instance();
+                    // zkStore->connect();
                     zkStoreReader = zk::ZkStoreProvider::instance(6);
                     zkStoreReader->connect();
                     zkStoreWriter = zk::ZkStoreProvider::instance(1);

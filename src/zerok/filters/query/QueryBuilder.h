@@ -42,6 +42,23 @@ namespace zk {
                 }
                 return vector;
             }
+
+            static std::vector<Query*> extractQueriesFromScenario(const char* jsonRule){
+                rapidjson::Document scenarioDoc;
+                scenarioDoc.Parse(jsonRule);
+                
+                std::vector<Query*> vector;
+                rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
+                for (auto& member : workloadsDoc.GetObject()) {
+                    const char* key = member.name.GetString();
+                    rapidjson::Value& workloadDoc = workloadsDoc[key];
+                    Query* query = parseWorkload(key, workloadDoc);
+                    std::string keyString(key);
+                    query->workloadId = keyString;
+                    vector.push_back(query);
+                }
+                return vector;
+            }
             
             static std::vector<Query*> parseScenarios(const char* jsonRule){
                 rapidjson::Document doc;
