@@ -66,6 +66,7 @@ namespace zk{
                     std::vector<std::string> changedScenarios = identifyChangedScenarios();
                     //2 - for each such scenario, get the scenairo json from redis
                     for (const auto& scenairo : changedScenarios) {
+                        printf("\nAVIN_DEBUG_QUERY_init01 ScenarioId processed - %s", scenairo.c_str());
                         //2.5 - Clear the queries corresponding to the scenario from protocolToScenarioToQueries for all the query types
                         for (const auto& queryTypeStringPair : protocolToScenarioToQueries) {
                             std::string queryTypeString = queryTypeStringPair.first;
