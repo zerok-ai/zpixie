@@ -29,7 +29,21 @@ namespace zk {
 
                 return randomString;
             }
-            static std::vector<Query*> parseQueries(const char* jsonRule){
+            static std::vector<Query*> extractQueriesFromScenario(rapidjson::Value& scenarioDoc){
+                std::vector<Query*> vector;
+                rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
+                for (auto& member : workloadsDoc.GetObject()) {
+                    const char* key = member.name.GetString();
+                    rapidjson::Value& workloadDoc = workloadsDoc[key];
+                    Query* query = parseWorkload(key, workloadDoc);
+                    std::string keyString(key);
+                    query->workloadId = keyString;
+                    vector.push_back(query);
+                }
+                return vector;
+            }
+            
+            static std::vector<Query*> parseScenarios(const char* jsonRule){
                 rapidjson::Document doc;
                 doc.Parse(jsonRule);
 
@@ -38,16 +52,18 @@ namespace zk {
                 int scenariosSize = static_cast<int>(scenariosDoc.Size());
                 for (int i = 0; i < scenariosSize; i++) {
                     rapidjson::Value& scenarioDoc = scenariosDoc[i];
-                    rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
-                    for (auto& member : workloadsDoc.GetObject()) {
-                        const char* key = member.name.GetString();
-                        rapidjson::Value& workloadDoc = workloadsDoc[key];
-                        // Query* query = parseWorkload(key, workloadDoc);
-                        Query* query = parseQuery(workloadDoc);
-                        std::string keyString(key);
-                        query->workloadId = keyString;
-                        vector.push_back(query);
-                    }
+                    std::vector<Query*> queriesFromOneScenario = extractQueriesFromScenario(scenarioDoc);
+                    vector.insert(vector.end(), queriesFromOneScenario.begin(), queriesFromOneScenario.end());
+                    // rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
+                    // for (auto& member : workloadsDoc.GetObject()) {
+                    //     const char* key = member.name.GetString();
+                    //     rapidjson::Value& workloadDoc = workloadsDoc[key];
+                    //     // Query* query = parseWorkload(key, workloadDoc);
+                    //     Query* query = parseQuery(workloadDoc);
+                    //     std::string keyString(key);
+                    //     query->workloadId = keyString;
+                    //     vector.push_back(query);
+                    // }
                 }
                 return vector;
             }

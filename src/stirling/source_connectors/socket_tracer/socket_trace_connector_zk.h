@@ -77,7 +77,7 @@ namespace px {
           // std::thread::id threadId = std::this_thread::get_id();
           // LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
           zk::ZkQueryExecutor::init();
-          zk::ZkQueryExecutor::initializeQueries();
+          // zk::ZkQueryExecutor::initializeQueries();
         }
 
         //returns passthrough value - as in if the given record is allowed to be writtent o the db (apache arrow)

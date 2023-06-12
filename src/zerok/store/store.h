@@ -8,6 +8,7 @@
 #include "src/zerok/filters/fetch/AsyncTask.h"
 #include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
 #include <cstdarg>
+#include <map>
 
 
 namespace zk {
@@ -35,6 +36,10 @@ namespace zk {
             virtual void addToSet(const char* key, ...) = 0;
             virtual void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) = 0;
             virtual std::string get(const std::string& key) = 0;
+            virtual std::vector<std::string> hkeys(const std::string& key) = 0;
+            virtual std::string hget(const std::string& key) = 0;
+            // virtual std::vector<std::string> hgetall(const std::string& key) = 0;
+            virtual std::map<std::string, std::string> hgetall(const std::string& key) = 0;
             // virtual bool del(const std::string& key) = 0;
             // virtual bool exists(const std::string& key) = 0;
     };
@@ -189,6 +194,48 @@ namespace zk {
                 std::string value = reply->str;
                 freeReplyObject(reply);
                 return value;
+            }
+
+            std::vector<std::string> hkeys(const std::string& key) override{
+                redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HKEYS %s", key.c_str()));
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    freeReplyObject(reply);
+                    return std::vector<std::string>();
+                }
+                std::vector<std::string> keys;
+                for (int i = 0; i < reply->elements; i++) {
+                    keys.push_back(reply->element[i]->str);
+                }
+                freeReplyObject(reply);
+                return keys;
+            }
+
+            std::string hget(const std::string& key) override{
+                redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HGET %s", key.c_str()));
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    freeReplyObject(reply);
+                    return "";
+                }
+                std::string value = reply->str;
+                freeReplyObject(reply);
+                return value;
+            }
+
+            std::map<std::string, std::string> hgetall(const std::string& key) override{
+                redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HGETALL %s", key.c_str()));
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    // Handle error
+                    freeReplyObject(reply);
+                    return std::map<std::string, std::string>();
+                }
+                std::map<std::string, std::string> values;
+                for (int i = 0; i < reply->elements; i += 2) {
+                    values[reply->element[i]->str] = reply->element[i + 1]->str;
+                }
+                freeReplyObject(reply);
+                return values;
             }
     };
 
