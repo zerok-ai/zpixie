@@ -28,7 +28,7 @@ namespace zk{
                 auto currentTime = std::chrono::high_resolution_clock::now();
                 auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
                 long currentTimestampInMilliseconds = nanoseconds/1000000;
-                if(lastTimestampInMilliseconds == 0L){
+                if(lastTimestampInMilliseconds == 0){
                     lastTimestampInMilliseconds = currentTimestampInMilliseconds;
                     std::cout << "\nAVIN_DEBUG_QUERY_check01" << std::endl;
                     return true;
@@ -228,7 +228,7 @@ namespace zk{
     std::string ZkQueryManager::uuid;
     std::map<std::string, std::map<std::string, std::vector<Query*> > > ZkQueryManager::protocolToScenarioToQueries;
     bool ZkQueryManager::storeInitializedOnce; 
-    long ZkQueryManager::lastTimestampInMilliseconds;
+    long ZkQueryManager::lastTimestampInMilliseconds = 0;
     long ZkQueryManager::ttlForRedisCheckInMilliseconds;
     std::map<std::string, int > ZkQueryManager::queryToVersion;
 }
