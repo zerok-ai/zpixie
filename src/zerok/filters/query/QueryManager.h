@@ -40,7 +40,7 @@ namespace zk{
                 }
                 std::cout << "\nAVIN_DEBUG_QUERY_check03" << std::endl;
                 // printf("\nAVIN_DEBUG_QUERY_check03 ");
-                return true;
+                return false;
             }
 
             static std::vector<std::string> identifyChangedScenarios(){
