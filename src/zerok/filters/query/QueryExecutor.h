@@ -59,8 +59,6 @@ namespace zk{
         // }
 
         static void init(){
-            std::cout << "\nAVIN_DEBUG_QUERY_executor_init " << std::endl;
-            // printf("\nAVIN_DEBUG_QUERY_executor_init ");
             ZkQueryManager::refresh();
             // if(!storeInitializedOnce){
                 // storeInitializedOnce = true;

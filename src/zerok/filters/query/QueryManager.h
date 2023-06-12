@@ -38,8 +38,6 @@ namespace zk{
                     std::cout << "\nAVIN_DEBUG_QUERY_check02" << std::endl;
                     return true;
                 }
-                std::cout << "\nAVIN_DEBUG_QUERY_check03" << std::endl;
-                // printf("\nAVIN_DEBUG_QUERY_check03 ");
                 return false;
             }
 
