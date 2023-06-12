@@ -68,6 +68,18 @@ namespace zk {
                     case NOT_IN:
                         return evaluateNotIn(propsMap);
                     
+                    case GREATER_THAN:
+                        return evaluateGreaterThan(propsMap);
+                    
+                    case GREATER_THAN_EQUALS:
+                        return evaluateGreaterThanEquals(propsMap);
+                    
+                    case LESS_THAN:
+                        return evaluateLessThan(propsMap);
+                    
+                    case LESS_THAN_EQUALS:
+                        return evaluateLessThanEquals(propsMap);
+                    
                     default:
                         break;
                 }
