@@ -204,7 +204,7 @@ namespace zk {
                     return std::vector<std::string>();
                 }
                 std::vector<std::string> keys;
-                for (int i = 0; i < reply->elements; i++) {
+                for (int i = 0; static_cast<size_t>(i) < reply->elements; i++) {
                     keys.push_back(reply->element[i]->str);
                 }
                 freeReplyObject(reply);
@@ -231,7 +231,7 @@ namespace zk {
                     return std::map<std::string, std::string>();
                 }
                 std::map<std::string, std::string> values;
-                for (int i = 0; i < reply->elements; i += 2) {
+                for (int i = 0; static_cast<size_t>(i) < reply->elements; i += 2) {
                     values[reply->element[i]->str] = reply->element[i + 1]->str;
                 }
                 freeReplyObject(reply);
