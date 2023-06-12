@@ -35,6 +35,7 @@ namespace zk{
                 }
 
                 if(currentTimestampInMilliseconds - lastTimestampInMilliseconds > ttlForRedisCheckInMilliseconds){
+                    lastTimestampInMilliseconds = currentTimestampInMilliseconds;
                     std::cout << "\nAVIN_DEBUG_QUERY_check02" << std::endl;
                     return true;
                 }
