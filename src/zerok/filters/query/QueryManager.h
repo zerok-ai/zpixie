@@ -180,7 +180,8 @@ namespace zk{
 
             static void init(){
                 if(!storeInitializedOnce){
-                    printf("\nAVIN_DEBUG_QUERY_init00 ");
+                    std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
+                    // printf("\nAVIN_DEBUG_QUERY_init00 ");
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
                     // zkStore = zk::ZkStoreProvider::instance();

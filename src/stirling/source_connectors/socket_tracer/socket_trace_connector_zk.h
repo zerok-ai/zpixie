@@ -77,7 +77,8 @@ namespace px {
           // std::thread::id threadId = std::this_thread::get_id();
           // LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
           zk::ZkQueryExecutor::init();
-          printf("\nAVIN_DEBUG_QUERY_zk_init ");
+          std::cout << "\nAVIN_DEBUG_QUERY_zk_init " << std::endl;
+          // printf("\nAVIN_DEBUG_QUERY_zk_init ");
           // zk::ZkQueryExecutor::initializeQueries();
         }
 
