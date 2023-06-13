@@ -71,8 +71,14 @@ namespace zk{
                 if(isTtlExpiredPassed()){
                     std::cout << "\nAVIN_DEBUG_QUERY_init01" << std::endl;
                     // printf("\nAVIN_DEBUG_QUERY_init01 ");
-                    //1 - identify changed scenarios
+                    //1 - Identify changed scenarios
                     std::vector<std::string> changedScenarios = identifyChangedScenarios();
+
+                    //1.5 - Check for the size of changedScenarios and return if it is 0
+                    if(changedScenarios.size() == 0){
+                        return;
+                    }
+
                     //2 - for each such scenario, get the scenairo json from redis
                     for (const auto& scenairo : changedScenarios) {
                         std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << std::endl;
