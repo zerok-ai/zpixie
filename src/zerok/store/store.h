@@ -60,7 +60,7 @@ namespace zk {
             bool connect() override {
                 if(redisConnection == nullptr){
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
-                    redisConnection = redisConnect("redis.redis.svc.cluster.local", 6379);
+                    redisConnection = redisConnect("redis.zk-client.svc.cluster.local", 6379);
                     select();
                 }else{
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
