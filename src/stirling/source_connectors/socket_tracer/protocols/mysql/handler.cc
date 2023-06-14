@@ -237,7 +237,15 @@ StatusOr<ParseState> HandleResultsetResponse(DequeView<Packet> resp_packets, Rec
   if (multi_resultset) {
     absl::StrAppend(&entry->resp.msg, ", ");
   }
-  absl::StrAppend(&entry->resp.msg, "Resultset rows = ", results.size());
+
+  //ZEROK: Returning mysql raw queries in the resultrest response instead of just the number of rows
+  // absl::StrAppend(&entry->resp.msg, "Resultset rows = ", results.size());
+  std::string resultsString = "";
+	for (auto & element : results) {
+		resultsString = resultsString + element.msg + " | ";
+	}
+	absl::StrAppend(&entry->resp.msg, "Resultset rows = ", resultsString);
+
 
   // Check for another resultset in case this is a multi-resultset.
   if (MoreResultsExist(last_packet)) {

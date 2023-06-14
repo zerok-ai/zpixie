@@ -157,12 +157,13 @@ class DataTable : public NotCopyable {
         DCHECK(std::to_string(val.val) == tablet_id_);
       }
 
+      //ZEROK: Removing TRUCATED message from string when it overflows from pixie limit
       if constexpr (std::is_same_v<TDataType, types::StringValue>) {
         if (val.size() > max_string_bytes) {
-          val.resize(max_string_bytes);
-          val.append(kTruncatedMsg);
+          // val.resize(max_string_bytes);
+          // val.append(kTruncatedMsg);
         }
-        val.shrink_to_fit();
+        // val.shrink_to_fit();
       }
 
       tablet_.records[TIndex]->Append(std::move(val));
