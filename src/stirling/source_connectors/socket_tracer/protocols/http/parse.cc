@@ -25,8 +25,9 @@
 #include <string>
 #include <utility>
 
+//ZEROK: Increasing max limit for HTTP body size to 100MB
 DEFINE_uint32(http_body_limit_bytes,
-              gflags::Uint32FromEnv("PX_STIRLING_HTTP_BODY_LIMIT_BYTES", 1024),
+              gflags::Uint32FromEnv("PX_STIRLING_HTTP_BODY_LIMIT_BYTES", 100*1024),
               "The amount of an HTTP body that will be returned on a parse");
 
 namespace px {
