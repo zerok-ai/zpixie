@@ -31,7 +31,7 @@
 #include "src/stirling/source_connectors/socket_tracer/protocols/http2/grpc.h"
 #include "src/stirling/source_connectors/socket_tracer/protocols/http2/testing/greeter_server.h"
 #include "src/stirling/source_connectors/socket_tracer/protocols/http2/testing/proto/greet.grpc.pb.h"
-#include "src/stirling/source_connectors/socket_tracer/testing/container_images.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/py_grpc_hello_world_container.h"
 #include "src/stirling/source_connectors/socket_tracer/testing/socket_trace_bpf_test_fixture.h"
 #include "src/stirling/source_connectors/socket_tracer/uprobe_manager.h"
 #include "src/stirling/testing/common.h"
@@ -193,7 +193,8 @@ INSTANTIATE_TEST_SUITE_P(SecurityModeTest, GRPCTraceTest,
                              TestParams{"1_17", false, true}, TestParams{"1_17", false, false},
                              TestParams{"1_18", false, true}, TestParams{"1_18", true, false},
                              TestParams{"1_19", false, false}, TestParams{"1_19", true, true},
-                             TestParams{"1_20", true, true}, TestParams{"1_20", true, false}));
+                             TestParams{"1_20", true, true}, TestParams{"1_20", true, false},
+                             TestParams{"boringcrypto", true, true}));
 
 class PyGRPCTraceTest : public testing::SocketTraceBPFTestFixture</* TClientSideTracing */ false> {
  protected:

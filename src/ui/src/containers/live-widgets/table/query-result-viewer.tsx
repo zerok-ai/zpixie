@@ -23,8 +23,8 @@ import { Theme } from '@mui/material/styles';
 import { createStyles, makeStyles } from '@mui/styles';
 
 import { ROW_RETENTION_LIMIT, VizierTable } from 'app/api';
-import { CompleteColumnDef, LiveDataTable } from 'app/containers/live-data-table/live-data-table';
 import { WidgetDisplay } from 'app/containers/live/vis';
+import { CompleteColumnDef, LiveDataTable } from 'app/containers/live-data-table/live-data-table';
 import { ResultsContext, useLatestRowCount } from 'app/context/results-context';
 import { Arguments } from 'app/utils/args-utils';
 
@@ -122,7 +122,7 @@ export interface QueryResultTableProps {
 }
 
 export const QueryResultTable = React.memo<QueryResultTableProps>(({
-  display, table, propagatedArgs, customGutters = [], setExternalControls,
+  display, table, propagatedArgs, customGutters, setExternalControls,
 }) => {
   const classes = useStyles();
   const { streaming } = React.useContext(ResultsContext);
@@ -163,28 +163,39 @@ export const QueryResultTable = React.memo<QueryResultTableProps>(({
     classes.tableSummaryExtern, classes.externalControls,
   ]);
 
-  return (
+  // To reduce how many components update when scrolling
+  const defaultSummary = React.useMemo(() => {
+    if (setExternalControls) return null;
+    return (
+      <div className={classes.tableSummary}>
+        <TableSummary
+          visibleStart={visibleStart}
+          visibleStop={visibleStop}
+          numRows={numRows}
+          isOverload={isOverload}
+        />
+      </div>
+    );
+  }, [setExternalControls, classes.tableSummary, visibleStart, visibleStop, numRows, isOverload]);
+
+  // This gets memoized too, since scrolling should _only_ be updating the innermost <List /> and the summary.
+  // Without this, the entire context stack in between the two wastes as much as 8ms per scroll event changing nothing.
+  return React.useMemo(() => (
     <div className={classes.root}>
       <div className={classes.table}>
         <LiveDataTable
           table={table}
-          gutterColumns={[display.gutterColumn, ...customGutters].filter(g => g)}
+          gutterColumns={[display.gutterColumn, ...(customGutters ?? [])].filter(g => g)}
           propagatedArgs={propagatedArgs}
           onRowsRendered={onRowsRendered}
           setExternalControls={setExternalControls ? globalControlsRef : null}
         />
       </div>
-      {!setExternalControls && (
-        <div className={classes.tableSummary}>
-          <TableSummary
-            visibleStart={visibleStart}
-            visibleStop={visibleStop}
-            numRows={numRows}
-            isOverload={isOverload}
-          />
-        </div>
-      )}
+      {defaultSummary}
     </div>
-  );
+  ), [
+    classes.root, classes.table, defaultSummary, customGutters, display.gutterColumn, globalControlsRef,
+    onRowsRendered, propagatedArgs, setExternalControls, table,
+  ]);
 });
 QueryResultTable.displayName = 'QueryResultTable';

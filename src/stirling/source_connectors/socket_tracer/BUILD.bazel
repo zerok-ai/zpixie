@@ -183,7 +183,8 @@ pl_cc_bpf_test(
         "//src/common/exec:cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:curl_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nginx_openssl_1_1_1_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -203,7 +204,6 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/exec:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
         "//src/stirling/testing:cc_library",
         "//src/stirling/testing/demo_apps/go_http:go_http_fixture",
     ],
@@ -224,7 +224,7 @@ pl_cc_bpf_test(
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/protocols/test_output_generator:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:thrift_mux_server_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -248,7 +248,8 @@ pl_cc_bpf_test(
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/protocols/test_output_generator:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:mysql_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:python_mysql_connector_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -269,7 +270,7 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:cassandra_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -291,7 +292,8 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:golang_sqlx_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:postgresql_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -306,21 +308,20 @@ pl_cc_bpf_test(
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_client:golang_1_18_grpc_client",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_client:golang_1_19_grpc_client",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_client:golang_1_20_grpc_client",
+        "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_client:golang_boringcrypto_grpc_client",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_server:golang_1_16_grpc_server_with_certs",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_server:golang_1_17_grpc_server_with_certs",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_server:golang_1_18_grpc_server_with_certs",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_server:golang_1_19_grpc_server_with_certs",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_server:golang_1_20_grpc_server_with_certs",
+        "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/go_grpc_server:golang_boringcrypto_grpc_server_with_certs",
     ],
     flaky = True,
     shard_count = 3,
     tags = [
-        "requires_bpf",
         "cpu:16",
-        # This test runs Go gRPC client & server, which causes other tests to attach & detach
-        # uprobes and slowed down significantly.
-        "exclusive",
         "no_asan",
+        "requires_bpf",
     ],
     deps = [
         ":cc_library",
@@ -328,7 +329,7 @@ pl_cc_bpf_test(
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing:cc_library",
         "//src/stirling/source_connectors/socket_tracer/protocols/http2/testing/proto:greet_pl_cc_proto",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:py_grpc_hello_world_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -339,19 +340,27 @@ pl_cc_bpf_test(
     srcs = ["http2_trace_bpf_test.cc"],
     flaky = True,
     tags = [
-        "requires_bpf",
         "cpu:16",
-        # This test runs Go gRPC client & server, which causes other tests to attach & detach
-        # uprobes, slowing them down significantly.
-        "exclusive",
         "no_asan",
+        "requires_bpf",
     ],
     deps = [
         ":cc_library",
         "//src/common/exec:cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_17_grpc_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_17_grpc_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_18_grpc_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_18_grpc_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_19_grpc_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_19_grpc_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_20_grpc_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_20_grpc_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_boringcrypto_grpc_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_boringcrypto_grpc_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:product_catalog_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:product_catalog_service_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -372,7 +381,7 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:dns_server_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -391,7 +400,8 @@ pl_cc_bpf_test(
         "//src/common/exec:cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:redis_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:redis_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -409,7 +419,8 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nats_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nats_server_container",
     ],
 )
 
@@ -427,7 +438,8 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:kafka_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:zookeeper_container",
     ],
 )
 
@@ -446,7 +458,15 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:curl_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nginx_openssl_1_1_0_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nginx_openssl_1_1_1_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nginx_openssl_3_0_8_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:node_12_3_1_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:node_14_18_1_alpine_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:node_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:python_3_10_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:ruby_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -465,7 +485,7 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:thrift_mux_server_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -484,7 +504,8 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:nginx_openssl_1_1_0_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:ruby_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -496,7 +517,6 @@ pl_cc_bpf_test(
     flaky = True,
     tags = [
         "cpu:16",
-        "exclusive",
         "no_asan",
         "requires_bpf",
     ],
@@ -505,7 +525,16 @@ pl_cc_bpf_test(
         "//src/common/exec:cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_17_tls_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_17_tls_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_18_tls_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_18_tls_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_19_tls_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_19_tls_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_20_tls_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_1_20_tls_server_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_boringcrypto_tls_client_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:go_boringcrypto_tls_server_container",
         "//src/stirling/testing:cc_library",
     ],
 )
@@ -519,6 +548,8 @@ pl_cc_bpf_test(
         ":cc_library",
         "//src/common/testing/test_utils:cc_library",
         "//src/stirling/source_connectors/socket_tracer/testing:cc_library",
-        "//src/stirling/source_connectors/socket_tracer/testing:container_images",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:rabbitmq_consumer_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:rabbitmq_container",
+        "//src/stirling/source_connectors/socket_tracer/testing/container_images:rabbitmq_producer_container",
     ],
 )

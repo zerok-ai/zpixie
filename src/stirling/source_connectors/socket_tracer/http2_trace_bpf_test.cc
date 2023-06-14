@@ -21,7 +21,18 @@
 
 #include "src/common/exec/subprocess.h"
 #include "src/stirling/core/output.h"
-#include "src/stirling/source_connectors/socket_tracer/testing/container_images.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_17_grpc_client_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_17_grpc_server_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_18_grpc_client_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_18_grpc_server_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_19_grpc_client_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_19_grpc_server_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_20_grpc_client_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_1_20_grpc_server_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_boringcrypto_grpc_client_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/go_boringcrypto_grpc_server_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/product_catalog_client_container.h"
+#include "src/stirling/source_connectors/socket_tracer/testing/container_images/product_catalog_service_container.h"
 #include "src/stirling/source_connectors/socket_tracer/testing/protocol_checkers.h"
 #include "src/stirling/source_connectors/socket_tracer/testing/socket_trace_bpf_test_fixture.h"
 #include "src/stirling/testing/common.h"
@@ -80,8 +91,14 @@ struct Go1_20GRPCClientServerContainers {
   using ClientContainer = ::px::stirling::testing::Go1_20_GRPCClientContainer;
 };
 
+struct GoBoringCryptoGRPCClientServerContainers {
+  using ServerContainer = ::px::stirling::testing::GoBoringCryptoGRPCServerContainer;
+  using ClientContainer = ::px::stirling::testing::GoBoringCryptoGRPCClientContainer;
+};
+
 typedef ::testing::Types<Go1_17GRPCClientServerContainers, Go1_18GRPCClientServerContainers,
-                         Go1_19GRPCClientServerContainers, Go1_20GRPCClientServerContainers>
+                         Go1_19GRPCClientServerContainers, Go1_20GRPCClientServerContainers,
+                         GoBoringCryptoGRPCClientServerContainers>
     GoVersions;
 TYPED_TEST_SUITE(HTTP2TraceTest, GoVersions);
 

@@ -20,6 +20,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -28,6 +29,9 @@
 #include <absl/container/flat_hash_set.h>
 
 #include "src/common/base/base.h"
+#include "src/common/event/event.h"
+#include "src/common/event/real_time_system.h"
+#include "src/common/event/time_system.h"
 #include "src/shared/k8s/metadatapb/metadata.pb.h"
 #include "src/shared/metadata/k8s_objects.h"
 #include "src/shared/metadata/pids.h"
@@ -40,6 +44,13 @@ using K8sMetadataObjectUPtr = std::unique_ptr<K8sMetadataObject>;
 using ContainerInfoUPtr = std::unique_ptr<ContainerInfo>;
 using PIDInfoUPtr = std::unique_ptr<PIDInfo>;
 using AgentID = sole::uuid;
+
+using UIDAndStart = std::pair<UID, int64_t>;
+struct SortByStart {
+  bool operator()(const UIDAndStart& lhs, const UIDAndStart& rhs) const {
+    return lhs.second < rhs.second;
+  }
+};
 
 /**
  * This class contains all kubernetes relate metadata.
@@ -103,7 +114,8 @@ class K8sMetadataState : NotCopyable {
   using DeploymentByNameMap = K8sEntityByNameMap;
   using NamespacesByNameMap = K8sEntityByNameMap;
   using ContainersByNameMap = absl::flat_hash_map<std::string, CID>;
-  using PodsByPodIpMap = absl::flat_hash_map<std::string, UID>;
+  using PodsByPodIPMap = absl::flat_hash_map<std::string, UID>;
+  using PodsByIPAndStartTime = absl::flat_hash_map<std::string, std::set<UIDAndStart, SortByStart>>;
   using ServicesByServiceIpMap = absl::flat_hash_map<std::string, UID>;
 
   void set_service_cidr(CIDRBlock cidr) {
@@ -140,7 +152,15 @@ class K8sMetadataState : NotCopyable {
    * @param pod_ip string of the pod ip.
    * @return the pod_id or empty string if the pod does not exist.
    */
-  UID PodIDByIP(std::string_view pod_ip) const;
+  [[deprecated("switch to PodIDByIPAtTime instead")]] UID PodIDByIP(std::string_view pod_ip) const;
+
+  /**
+   * PodIDByIPAtTime returns the PodID for the pod with the given IP at the given timestamp.
+   * @param pod_ip string of the pod IP.
+   * @param timestamp_ns time at which this request occured.
+   * @return the pod_id or empty string if the pod does not exist.
+   */
+  UID PodIDByIPAtTime(std::string_view pod_ip, int64_t timestamp_ns) const;
 
   /**
    * ServiceIDByClusterIP returns the ServiceID for the service with the given Cluster IP.
@@ -251,7 +271,7 @@ class K8sMetadataState : NotCopyable {
   Status HandleReplicaSetUpdate(const ReplicaSetUpdate& update);
   Status HandleDeploymentUpdate(const DeploymentUpdate& update);
 
-  Status CleanupExpiredMetadata(int64_t retention_time_ns);
+  Status CleanupExpiredMetadata(int64_t now, int64_t retention_time_ns);
 
   absl::flat_hash_map<CID, ContainerInfoUPtr>& containers_by_id() { return containers_by_id_; }
   std::string DebugString(int indent_level = 0) const;
@@ -304,7 +324,13 @@ class K8sMetadataState : NotCopyable {
   /**
    * Mapping of Pods by host ip.
    */
-  PodsByPodIpMap pods_by_ip_;
+  PodsByPodIPMap pods_by_ip_;
+
+  /**
+   * Mapping of Pods by host ip, to a set of UID,start_time pairs
+   * sorted by start_time.
+   */
+  PodsByIPAndStartTime pods_by_ip_and_start_time_;
 
   /**
    * Mapping of Services by Cluster IP.
@@ -315,13 +341,9 @@ class K8sMetadataState : NotCopyable {
 class AgentMetadataState : NotCopyable {
  public:
   AgentMetadataState() = delete;
-  explicit AgentMetadataState(uint32_t asid, uint32_t pid)
-      : AgentMetadataState(/* hostname */ "unknown", asid, pid, sole::uuid(),
-                           /* pod_name */ "unknown", sole::uuid(), "", "") {}
-
   AgentMetadataState(std::string_view hostname, uint32_t asid, uint32_t pid, AgentID agent_id,
                      std::string_view pod_name, sole::uuid vizier_id, std::string_view vizier_name,
-                     std::string_view vizier_namespace)
+                     std::string_view vizier_namespace, event::TimeSystem* time_system)
       : hostname_(std::string(hostname)),
         pod_name_(std::string(pod_name)),
         asid_(asid),
@@ -330,6 +352,7 @@ class AgentMetadataState : NotCopyable {
         vizier_id_(vizier_id),
         vizier_name_(std::string(vizier_name)),
         vizier_namespace_(std::string(vizier_namespace)),
+        time_system_(time_system),
         k8s_metadata_state_(new K8sMetadataState()) {}
 
   const std::string& hostname() const { return hostname_; }
@@ -386,6 +409,12 @@ class AgentMetadataState : NotCopyable {
 
   std::string DebugString(int indent_level = 0) const;
 
+  int64_t current_time() const {
+    return std::chrono::duration_cast<std::chrono::nanoseconds>(
+               time_system_->SystemTime().time_since_epoch())
+        .count();
+  }
+
  private:
   /**
    * Tracks the time that this K8s metadata object was created. The object should be periodically
@@ -409,6 +438,8 @@ class AgentMetadataState : NotCopyable {
   sole::uuid vizier_id_;
   std::string vizier_name_;
   std::string vizier_namespace_;
+
+  event::TimeSystem* time_system_;
 
   std::unique_ptr<K8sMetadataState> k8s_metadata_state_;
 

@@ -33,7 +33,7 @@ pl_go_overrides()
 
 go_download_sdk(
     name = "go_sdk",
-    version = "1.20.4",
+    version = "1.20.5",
 )
 
 go_rules_dependencies()
@@ -231,11 +231,24 @@ go_download_sdk(
 
 go_download_sdk(
     name = "go_sdk_1_19",
-    version = "1.19.9",
+    version = "1.19.10",
 )
 
 go_download_sdk(
     name = "go_sdk_1_20",
+    version = "1.20.5",
+)
+
+# The go_sdk_boringcrypto SDK is used for testing boringcrypto specific functionality (TLS tracing).
+# This SDK is used for specific test cases and is not meant to be used wholesale for a particular go
+# version.
+#
+# rules_go doesn't support using multiple SDKs with the same version and differing
+# GOEXPERIMENTs. This can use the same version as our latest go version once
+# https://github.com/bazelbuild/rules_go/issues/3582 is addressed.
+go_download_sdk(
+    name = "go_sdk_boringcrypto",
+    experiments = ["boringcrypto"],
     version = "1.20.4",
 )
 

@@ -7,7 +7,7 @@
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/pixie_run.svg?style=social&label=Follow%20%40pixie_run)](https://twitter.com/pixie_run)
 [![Mentioned in Awesome Kubernetes](https://awesome.re/mentioned-badge.svg)](https://github.com/ramitsurana/awesome-kubernetes)
 [![Mentioned in Awesome Go](https://awesome.re/mentioned-badge.svg)](https://github.com/avelino/awesome-go)
-[![Build Status](https://jenkins.px.dev/buildStatus/icon?job=pixie-oss%2Fbuild-and-test-all)](https://jenkins.px.dev/job/pixie-oss/job/build-and-test-all/)
+[![Build Status](https://github.com/pixie-io/pixie/actions/workflows/build_and_test.yaml/badge.svg?branch=main)](https://github.com/pixie-io/pixie/actions/workflows/build_and_test.yaml)
 [![codecov](https://codecov.io/gh/pixie-io/pixie/branch/main/graph/badge.svg?token=UG7P3QE5PQ)](https://codecov.io/gh/pixie-io/pixie)
 [![FOSSA Status](https://app.fossa.com/api/projects/custom%2B26327%2Fgithub.com%2Fpixie-io%2Fpixie.svg?type=shield)](https://app.fossa.com/projects/custom%2B26327%2Fgithub.com%2Fpixie-io%2Fpixie?ref=badge_shield)
 [![Artifact HUB](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/pixie-operator)](https://artifacthub.io/packages/olm/community-operators/pixie-operator)
@@ -177,10 +177,10 @@ Pixie is a community-driven project; we welcome your contribution! For code cont
 ## Latest Releases
 We version separate components of Pixie separately, so what Github shows as the "latest" release will only be the latest for one of the components.
 We maintain links to the latest releases for all components here:
-- [CLI v0.8.0](https://github.com/pixie-io/pixie/releases/tag/release/cli/v0.8.0)<!--cli-latest-release-->
-- [Cloud v0.1.1](https://github.com/pixie-io/pixie/releases/tag/release/cloud/v0.1.1) <!--cloud-latest-release-->
-- [Vizier v0.13.4](https://github.com/pixie-io/pixie/releases/tag/release/vizier/v0.13.4)<!--vizier-latest-release-->
-<!--operator-latest-release-->
+- [CLI v0.8.2](https://github.com/pixie-io/pixie/releases/tag/release/cli/v0.8.2)<!--cli-latest-release-->
+- [Cloud v0.1.5](https://github.com/pixie-io/pixie/releases/tag/release/cloud/v0.1.5)<!--cloud-latest-release-->
+- [Vizier v0.13.6](https://github.com/pixie-io/pixie/releases/tag/release/vizier/v0.13.6)<!--vizier-latest-release-->
+- [Operator v0.1.1](https://github.com/pixie-io/pixie/releases/tag/release/operator/v0.1.1)<!--operator-latest-release-->
 
 ## Changelog
 

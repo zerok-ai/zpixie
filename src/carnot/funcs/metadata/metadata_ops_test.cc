@@ -28,6 +28,8 @@
 #include "src/carnot/udf/test_utils.h"
 #include "src/common/base/base.h"
 #include "src/common/base/inet_utils.h"
+#include "src/common/event/event.h"
+#include "src/common/testing/event/simulated_time_system.h"
 #include "src/common/testing/testing.h"
 #include "src/shared/k8s/metadatapb/test_proto.h"
 #include "src/shared/metadata/pids.h"
@@ -50,10 +52,11 @@ class MetadataOpsTest : public ::testing::Test {
   void SetUp() override {
     agent_id_ = sole::uuid4();
     vizier_id_ = sole::uuid4();
+    time_system_ = std::make_unique<event::SimulatedTimeSystem>();
     metadata_state_ = std::make_shared<px::md::AgentMetadataState>(
         /* hostname */ "myhost",
         /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier",
-        "myviziernamespace");
+        "myviziernamespace", time_system_.get());
     // Apply updates to metadata state.
     updates_ =
         std::make_unique<moodycamel::BlockingConcurrentQueue<std::unique_ptr<ResourceUpdate>>>();
@@ -84,6 +87,7 @@ class MetadataOpsTest : public ::testing::Test {
   }
   sole::uuid agent_id_;
   sole::uuid vizier_id_;
+  std::unique_ptr<event::SimulatedTimeSystem> time_system_;
   std::shared_ptr<px::md::AgentMetadataState> metadata_state_;
   std::unique_ptr<moodycamel::BlockingConcurrentQueue<std::unique_ptr<ResourceUpdate>>> updates_;
   md::TestAgentMetadataFilter md_filter_;
@@ -713,6 +717,25 @@ TEST_F(MetadataOpsTest, ip_to_pod_id_test) {
   EXPECT_EQ(udf.Exec(function_ctx.get(), "127.0.0.2"), "");
 }
 
+TEST_F(MetadataOpsTest, ip_to_pod_id_at_time_test) {
+  auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
+
+  IPToPodIDAtTimeUDF udf;
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.1.1.1", 4), "");
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.1.1.1", 8), "1_uid");
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.1.1.1", 100), "1_uid");
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.2.1.2", 4), "");
+
+  updates_->enqueue(px::metadatapb::testutils::CreateReusedIPUpdatePB());
+  EXPECT_OK(px::md::ApplyK8sUpdates(11, metadata_state_.get(), &md_filter_, updates_.get()));
+
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.1.1.1", 4), "");
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.1.1.1", 8), "1_uid");
+  // Now a new pod 101_uid is using this IP address and has a start_time of 100
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.1.1.1", 100), "101_uid");
+  EXPECT_EQ(udf.Exec(function_ctx.get(), "1.2.1.2", 4), "");
+}
+
 TEST_F(MetadataOpsTest, ip_to_service_id_test) {
   auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
   IPToServiceIDUDF udf;
@@ -1268,10 +1291,7 @@ TEST_F(MetadataOpsTest, in_value_or_array_test) {
 }
 
 TEST_F(MetadataOpsTest, vizier_id_test) {
-  auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
-      /* hostname */ "myhost",
-      /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier", "myviziernamespace");
-  auto function_ctx = std::make_unique<FunctionContext>(metadata_state, nullptr);
+  auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
   auto udf_tester = px::carnot::udf::UDFTester<VizierIDUDF>(std::move(function_ctx));
   udf_tester.ForInput().Expect(vizier_id_.str());
 }
@@ -1280,52 +1300,38 @@ TEST_F(MetadataOpsTest, empty_vizier_id_test) {
   auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
       /* hostname */ "myhost",
       /* asid */ 1, /* pid */ 123, agent_id_, "mypod", sole::uuid(), "myvizier",
-      "myviziernamespace");
+      "myviziernamespace", time_system_.get());
   auto function_ctx = std::make_unique<FunctionContext>(metadata_state, nullptr);
   auto udf_tester = px::carnot::udf::UDFTester<VizierIDUDF>(std::move(function_ctx));
   udf_tester.ForInput().Expect("00000000-0000-0000-0000-000000000000");
 }
 
 TEST_F(MetadataOpsTest, vizier_name_test) {
-  auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
-      /* hostname */ "myhost",
-      /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier", "myviziernamespace");
-  auto function_ctx = std::make_unique<FunctionContext>(metadata_state, nullptr);
+  auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
   auto udf_tester = px::carnot::udf::UDFTester<VizierNameUDF>(std::move(function_ctx));
   udf_tester.ForInput().Expect("myvizier");
 }
 
 TEST_F(MetadataOpsTest, vizier_namespace_test) {
-  auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
-      /* hostname */ "myhost",
-      /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier", "myviziernamespace");
-  auto function_ctx = std::make_unique<FunctionContext>(metadata_state, nullptr);
+  auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
   auto udf_tester = px::carnot::udf::UDFTester<VizierNamespaceUDF>(std::move(function_ctx));
   udf_tester.ForInput().Expect("myviziernamespace");
 }
 
 TEST_F(MetadataOpsTest, basic_upid_test) {
-  auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
-      /* hostname */ "myhost",
-      /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier", "myviziernamespace");
-  auto function_ctx = std::make_unique<FunctionContext>(metadata_state, nullptr);
+  auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
   auto udf_tester = px::carnot::udf::UDFTester<CreateUPIDUDF>(std::move(function_ctx));
   udf_tester.ForInput(100, 23123).Expect(md::UPID(1, 100, 23123).value());
 }
 
 TEST_F(MetadataOpsTest, basic_upid_with_asid_test) {
-  auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
-      /* hostname */ "myhost",
-      /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier", "myviziernamespace");
-  auto function_ctx = std::make_unique<FunctionContext>(metadata_state, nullptr);
+  auto function_ctx = std::make_unique<FunctionContext>(metadata_state_, nullptr);
   auto udf_tester = px::carnot::udf::UDFTester<CreateUPIDWithASIDUDF>(std::move(function_ctx));
   udf_tester.ForInput(2, 100, 23123).Expect(md::UPID(2, 100, 23123).value());
 }
 
 TEST_F(MetadataOpsTest, get_cidrs) {
-  auto metadata_state = std::make_shared<px::md::AgentMetadataState>(
-      /* hostname */ "myhost",
-      /* asid */ 1, /* pid */ 123, agent_id_, "mypod", vizier_id_, "myvizier", "myviziernamespace");
+  auto metadata_state = metadata_state_->CloneToShared();
   px::CIDRBlock pod_cidr;
   std::string pod_cidr_str("10.0.0.20/32");
   ASSERT_OK(px::ParseCIDRBlock(pod_cidr_str, &pod_cidr));

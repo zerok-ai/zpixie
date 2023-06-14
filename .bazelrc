@@ -121,9 +121,6 @@ build:qemu-bpf --sandbox_fake_username
 build:qemu-bpf --//bazel/cc_toolchains:libc_version=glibc2_36
 build:qemu-bpf --//bazel/test_runners:test_runner=qemu_with_kernel
 build:qemu-bpf --run_under="bazel/test_runners/qemu_with_kernel/test_runner.sh"
-# TODO(ddelnano): Temporary until https://github.com/pixie-io/pixie/issues/1347
-# is addressed. This is to limit the size of the change needed to fix
-build:qemu-bpf --copt -DPL_BPF_TESTING
 test:qemu-bpf --test_timeout=180,600,1800,3600
 
 # Build for GCC.
@@ -136,6 +133,8 @@ build:gcc --copt -Wno-error=maybe-uninitialized
 build:gcc --build_tag_filters=-no_gcc,-qemu_interactive
 build:gcc --test_tag_filters=-no_gcc,-requires_root,-requires_bpf,-disabled,-qemu_interactive
 build:gcc --//bazel/cc_toolchains:compiler=gcc
+# TODO(#1462): Investigate why tcmalloc breaks linking of go binaries.
+build:gcc --define tcmalloc=disabled
 test:gcc --config=tmp-sandbox
 
 
@@ -228,19 +227,19 @@ coverage --define PL_COVERAGE=true
 coverage --copt -DPL_COVERAGE
 coverage --test_tag_filters=-requires_root,-requires_bpf,-no_coverage,-disabled,-no_gcc
 
+
+try-import %workspace%/bes.bazelrc
 # jenkins.bazelrc is copied from ci/jenkins.bazelrc by Jenkins workers during the build.
 # The intention is to avoid polluting configurations of bazel for developers.
 try-import %workspace%/jenkins.bazelrc
 # github.bazelrc is copied from ci/github/bazelrc by the github action workers during the build.
 try-import %workspace%/github.bazelrc
 
-# Put your own configurations into user.bazelrc, which is ignored by git.
-try-import %workspace%/user.bazelrc
-
 # Import a machine specific bazelrc. This can be used to enable caching.
 try-import /etc/bazelrc
 
-try-import %workspace%/bes.bazelrc
+# Put your own configurations into user.bazelrc, which is ignored by git.
+try-import %workspace%/user.bazelrc
 
 # Tensorflow requires this option
 common --experimental_repo_remote_exec
@@ -250,3 +249,22 @@ test --flaky_test_attempts=//src/stirling/source_connectors/socket_tracer/.*bpf_
 
 # Disable XNNPACK for tensorflow lite. There's currently an ASAN issue with XNNPACK, so disable for now.
 build --define=tflite_with_xnnpack=false
+
+build:remote --remote_executor=grpcs://remote.buildbuddy.io
+build:remote --host_platform=//bazel:remote_exec_platform
+build:remote --extra_execution_platforms=//bazel:remote_exec_platform
+build:remote --bes_results_url=https://app.buildbuddy.io/invocation/
+build:remote --bes_backend=grpcs://remote.buildbuddy.io
+build:remote --remote_cache=grpcs://remote.buildbuddy.io
+build:remote --experimental_remote_downloader=grpcs://remote.buildbuddy.io
+build:remote --remote_timeout=1h
+build:remote --remote_retries=5
+build:remote --spawn_strategy=remote,local
+build:remote --experimental_remote_cache_compression
+build:remote --jobs=100
+test:remote --jobs=100
+build:remote --nolegacy_important_outputs
+build:remote --build_metadata=VISIBILITY=PUBLIC
+coverage:remote --strategy=CoverageReport=local,remote
+coverage:remote --experimental_fetch_all_coverage_outputs
+coverage:remote --experimental_split_coverage_postprocessing

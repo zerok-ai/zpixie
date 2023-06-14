@@ -36,12 +36,6 @@ def _gcr_io_image(name, digest, repo):
 
 def base_images():
     _gcr_io_image(
-        "nginx_base",
-        "sha256:204a9a8e65061b10b92ad361dd6f406248404fe60efd5d6a8f2595f18bb37aad",
-        "pixie-oss/pixie-dev-public/docker-deps/library/nginx",
-    )
-
-    _gcr_io_image(
         # This should be 1.21.4.1-7 but that version hasn't been tagged yet. So picking the versionless build.
         # 1.21.4.1-6 uses alpine:3.15.7 with some open CVEs.
         # As of writing this, alpine-apk-amd64 maps to a future 1.21.4.1-7 release based on alpine:3.15.8 with no known CVEs.
@@ -158,8 +152,10 @@ def stirling_test_images():
         "pixie-oss/pixie-dev-public/docker-deps/library/nginx",
     )
 
+    # NGINX with OpenSSL 3.0.8, for OpenSSL tracing tests.
+    # nginx:1.23.3-alpine-slim
     _gcr_io_image(
-        "nginx_alpine_openssl_3_0_7_base_image",
+        "nginx_alpine_openssl_3_0_8_base_image",
         "sha256:3eb380b81387e9f2a49cb6e5e18db016e33d62c37ea0e9be2339e9f0b3e26170",
         "pixie-oss/pixie-dev-public/docker-deps/library/nginx",
     )
@@ -180,10 +176,10 @@ def stirling_test_images():
     )
 
     # Ruby container, for OpenSSL tracing tests.
-    # ruby:3.0.0-buster
+    # ruby:3.0.0-slim-buster
     _gcr_io_image(
         "ruby_base_image",
-        "sha256:beeed8e63b1ae4a1492f4be9cd40edc6bdb1009b94228438f162d0d05e10c8fd",
+        "sha256:47eeeb05f545b5a7d18a84c16d585ed572d38379ebb7106061f800f5d9abeb38",
         "pixie-oss/pixie-dev-public/docker-deps/library/ruby",
     )
 
@@ -196,10 +192,10 @@ def stirling_test_images():
     )
 
     # Postgres server, for PGSQL tracing tests.
-    # postgres:13.2
+    # postgres:13.2-alpine
     _gcr_io_image(
         "postgres_base_image",
-        "sha256:661dc59f4a71e689c51d4823963baa56b8fcc8daa5b16cf740cad236fa5ffe74",
+        "sha256:3335d0494b62ae52f0c18a1e4176a83991c9d3727fe67d8b1907b569de2f6175",
         "pixie-oss/pixie-dev-public/docker-deps/library/postgres",
     )
 
@@ -248,20 +244,20 @@ def stirling_test_images():
         "pixie-oss/pixie-dev-public/docker-deps/confluentinc/cp-zookeeper",
     )
 
-    # Tag: node:12.3.1
+    # Tag: node:12.3.1-stretch-slim
     # Arch: linux/amd64
     # This is the oldest tag on docker hub that can be pulled. Older tags cannot be pulled because
     # of server error on docker hub, which presumably is because of they are too old.
     _gcr_io_image(
         "node_12_3_1_linux_amd64_image",
-        "sha256:ade8d367d98b5074a8c3a4e2d74bd657b578d4a500090d66c2da33801ec4b58d",
+        "sha256:86acb148010d15bc63200493000bb8fc70ea052f7da2a80d34d7741110378eb3",
         "pixie-oss/pixie-dev-public/docker-deps/node",
     )
 
     # Tag: node:14.18.1-alpine
     # Arch: linux/amd64
     _gcr_io_image(
-        "node_14_18_1_alpine_amd64_image",
+        "node_14_18_1_alpine_linux_amd64_image",
         "sha256:1b50792b5ed9f78fe08f24fbf57334cc810410af3861c5c748de055186bf082c",
         "pixie-oss/pixie-dev-public/docker-deps/node",
     )

@@ -21,9 +21,11 @@ import * as React from 'react';
 import { ApolloProvider } from '@apollo/client/react';
 
 import { AuthContext } from 'app/common/auth-context';
+import { SetStateFunc } from 'app/context/common';
 import { WithChildren } from 'app/utils/react-boilerplate';
 
-import { PixieAPIClientAbstract, PixieAPIClient } from './api';
+import { PixieAPIClient, PixieAPIClientAbstract } from './api-client';
+import { PixieAPIManager } from './api-manager';
 import { PixieAPIClientOptions } from './api-options';
 
 export const PixieAPIContext = React.createContext<PixieAPIClientAbstract>(null);
@@ -31,22 +33,42 @@ PixieAPIContext.displayName = 'PixieAPIContext';
 
 export type PixieAPIContextProviderProps = WithChildren<PixieAPIClientOptions>;
 
+declare global {
+  interface Window {
+    setApiContextUpdatesFromOutsideReact?: SetStateFunc<number>;
+  }
+}
+
 export const PixieAPIContextProvider: React.FC<PixieAPIContextProviderProps> = React.memo(({ children, ...opts }) => {
-  const [pixieClient, setPixieClient] = React.useState<PixieAPIClient>(null);
   const { authToken } = React.useContext(AuthContext);
 
+  // PixieAPIManager exists outside of React's scope. If it replaces its instance, we'll never know.
+  // By putting a setState function somewhere that PixieAPIManager can reach, we can force the update from there.
+  // This is not a typical or conventional thing to need to do, so please don't do this anywhere else.
+  const [updateFromOutsideReact, setUpdateFromOutsideReact] = React.useState(0);
   React.useEffect(() => {
-    setPixieClient(PixieAPIClient.create({ ...opts, authToken }));
+    // Technically this means PixieAPIContextProvider has to be singleton - and it already is, in practice.
+    if (!window.setApiContextUpdatesFromOutsideReact) {
+      window.setApiContextUpdatesFromOutsideReact = setUpdateFromOutsideReact;
+    }
     return () => {
-      setPixieClient(null);
+      delete window.setApiContextUpdatesFromOutsideReact;
     };
-    // Destructuring the options instead of checking directly because the identity of the object changes every render.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [opts.uri, opts.onUnauthorized, authToken]);
+  }, []);
+  React.useEffect(() => { /* Just need to update this context, nothing more */ }, [updateFromOutsideReact]);
 
-  return !pixieClient ? null : (
-    <PixieAPIContext.Provider value={pixieClient}>
-      <ApolloProvider client={pixieClient.getCloudClient().graphQL}>
+  // PixieAPIManager already reinitializes the API client when options change, making this context just a wrapper.
+  React.useEffect(() => { PixieAPIManager.uri = opts.uri; }, [opts.uri]);
+  React.useEffect(() => { PixieAPIManager.authToken = authToken; }, [authToken]);
+  React.useEffect(() => { PixieAPIManager.onUnauthorized = opts.onUnauthorized; }, [opts.onUnauthorized]);
+
+  const instance = PixieAPIManager.instance as PixieAPIClient;
+  const gqlClient = instance.getCloudClient().graphQL;
+  React.useEffect(() => { /* Similar to the above trick, must re-render to update ApolloProvider */ }, [gqlClient]);
+
+  return !instance ? null : (
+    <PixieAPIContext.Provider value={instance}>
+      <ApolloProvider client={instance.getCloudClient().graphQL}>
         { children }
       </ApolloProvider>
     </PixieAPIContext.Provider>

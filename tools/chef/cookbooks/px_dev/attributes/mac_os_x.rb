@@ -34,9 +34,9 @@ default['codecov']['sha256'] =
   '8d3709d957c7115610e764621569728be102d213fee15bc1d1aa9d465eb2c258'
 
 default['golang']['download_path'] =
-  'https://go.dev/dl/go1.20.4.darwin-amd64.tar.gz'
+  'https://go.dev/dl/go1.20.5.darwin-amd64.tar.gz'
 default['golang']['sha256'] =
-  '242b099b5b9bd9c5d4d25c041216bc75abcdf8e0541aec975eeabcbce61ad47f'
+  '79715ca5b8becd120703ac9af5d1da749e095d2b9bf830c4f3af4b15b2cb049d'
 
 default['golangci-lint']['download_path'] =
   'https://github.com/golangci/golangci-lint/releases/download/v1.51.1/golangci-lint-1.51.1-darwin-amd64.tar.gz'
@@ -44,9 +44,9 @@ default['golangci-lint']['sha256'] =
   'fba08acc4027f69f07cef48fbff70b8a7ecdfaa1c2aba9ad3fb31d60d9f5d4bc'
 
 default['nodejs']['download_path'] =
-  'https://nodejs.org/dist/v16.13.2/node-v16.13.2-darwin-x64.tar.gz'
+  'https://nodejs.org/dist/v18.16.0/node-v18.16.0-darwin-x64.tar.gz'
 default['nodejs']['sha256'] =
-  '900a952bb77533d349e738ff8a5179a4344802af694615f36320a888b49b07e6'
+  'cd520da6e2e89fab881c66a3e9aff02cb0d61d68104b1d6a571dd71bef920870'
 
 default['prototool']['download_path'] =
   'https://github.com/uber/prototool/releases/download/v1.10.0/prototool-Darwin-x86_64'

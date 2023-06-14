@@ -71,7 +71,7 @@ constexpr char kPod1UpdatePbTxt[] = R"(
   container_names: "container0"
   container_names: "container1"
   qos_class: QOS_CLASS_GUARANTEED
-  phase: RUNNING
+  phase: TERMINATED
   conditions: {
     type: READY
     status: CONDITION_STATUS_TRUE
@@ -89,7 +89,7 @@ constexpr char kPod2UpdatePbTxt[] = R"(
   name: "pod2"
   namespace: "ns0"
   labels: "{\"k1\":\"v1\"}"
-  start_timestamp_ns: 101
+  start_timestamp_ns: 107
   stop_timestamp_ns: 0
   container_ids: "container0_uid"
   container_ids: "container1_uid"
@@ -519,6 +519,57 @@ TEST(K8sMetadataStateTest, HandleDeploymentUpdate) {
   EXPECT_EQ(ConditionStatus::kTrue, info->conditions()[DeploymentConditionType::kReplicaFailure]);
 }
 
+TEST(K8sMetadataStateTest, ReusedIPs) {
+  K8sMetadataState state;
+
+  K8sMetadataState::PodUpdate pod_update;
+  ASSERT_TRUE(TextFormat::MergeFromString(kPod0UpdatePbTxt, &pod_update));
+
+  K8sMetadataState::PodUpdate terminated_ip_pod_update;
+  ASSERT_TRUE(TextFormat::MergeFromString(kPod1UpdatePbTxt, &terminated_ip_pod_update));
+
+  K8sMetadataState::PodUpdate running_ip_pod_update;
+  ASSERT_TRUE(TextFormat::MergeFromString(kPod2UpdatePbTxt, &running_ip_pod_update));
+
+  EXPECT_OK(state.HandlePodUpdate(pod_update));
+  EXPECT_OK(state.HandlePodUpdate(terminated_ip_pod_update));
+  EXPECT_OK(state.HandlePodUpdate(running_ip_pod_update));
+
+  ASSERT_EQ("pod0_uid", state.PodIDByIPAtTime("1.2.3.4", 102));
+  ASSERT_EQ("", state.PodIDByIPAtTime("1.2.3.4", 99));
+  ASSERT_EQ("pod1_uid", state.PodIDByIPAtTime("1.2.3.5", 101));
+  ASSERT_EQ("pod2_uid", state.PodIDByIPAtTime("1.2.3.5", 107));
+  ASSERT_EQ("", state.PodIDByIPAtTime("1.2.3.4", 99));
+
+  int64_t large_retention_time = 30;
+  ASSERT_OK(state.CleanupExpiredMetadata(terminated_ip_pod_update.start_timestamp_ns(),
+                                         large_retention_time));
+
+  ASSERT_EQ("pod0_uid", state.PodIDByIPAtTime("1.2.3.4", 102));
+  ASSERT_EQ("pod1_uid", state.PodIDByIPAtTime("1.2.3.5", 101));
+  ASSERT_EQ("pod2_uid", state.PodIDByIPAtTime("1.2.3.5", 107));
+
+  // Validate that the last running pod for an IP doesn't get cleaned up even
+  // if it's past expiration.
+  int64_t large_time_since_start = 100;
+  int64_t small_retention_time = 3;
+  ASSERT_OK(state.CleanupExpiredMetadata(
+      running_ip_pod_update.start_timestamp_ns() + large_time_since_start, small_retention_time));
+
+  ASSERT_EQ("pod0_uid", state.PodIDByIPAtTime("1.2.3.4", 102));  // still running
+  ASSERT_EQ("", state.PodIDByIPAtTime("1.2.3.5", 101));
+  ASSERT_EQ("pod2_uid", state.PodIDByIPAtTime("1.2.3.5", 107));  // still running
+
+  pod_update.set_phase(px::shared::k8s::metadatapb::PodPhase::TERMINATED);
+  EXPECT_OK(state.HandlePodUpdate(pod_update));
+
+  // Trigger cleanup with the same params to check the terminated pod.
+  ASSERT_OK(state.CleanupExpiredMetadata(
+      running_ip_pod_update.start_timestamp_ns() + large_time_since_start, small_retention_time));
+  ASSERT_EQ("", state.PodIDByIPAtTime("1.2.3.4", 102));          // now terminated
+  ASSERT_EQ("pod2_uid", state.PodIDByIPAtTime("1.2.3.5", 107));  // still running
+}
+
 TEST(K8sMetadataStateTest, CleanupExpiredMetadata) {
   K8sMetadataState state;
 
@@ -547,43 +598,11 @@ TEST(K8sMetadataStateTest, CleanupExpiredMetadata) {
   EXPECT_OK(state.HandlePodUpdate(running_ip_pod_update));
   EXPECT_OK(state.HandleServiceUpdate(service_update));
 
-  int64_t current_time = CurrentTimeNS();
-
-  // All the pod updates above have stop times, which means they have all stopped.
-  // Since their stop_times are close to 0, they all effectively expired years ago
-  // relative to CurrentTimeNS().
-  // Check these assumptions.
-  {
-    const PodInfo* pod_info = state.PodInfoByID("pod0_uid");
-    ASSERT_NE(pod_info, nullptr);
-    ASSERT_GT(pod_info->stop_time_ns(), 0);
-    ASSERT_LT(pod_info->stop_time_ns(), current_time);
-
-    const PodInfo* pod_info1 = state.PodInfoByID("pod1_uid");
-    ASSERT_NE(pod_info1, nullptr);
-    ASSERT_GT(pod_info1->stop_time_ns(), 0);
-    ASSERT_LT(pod_info1->stop_time_ns(), current_time);
-
-    const ServiceInfo* service_info = state.ServiceInfoByID("service0_uid");
-    ASSERT_NE(service_info, nullptr);
-    ASSERT_GT(service_info->stop_time_ns(), 0);
-    ASSERT_LT(service_info->stop_time_ns(), current_time);
-
-    const NamespaceInfo* ns_info = state.NamespaceInfoByID("ns0_uid");
-    ASSERT_NE(ns_info, nullptr);
-    ASSERT_GT(ns_info->stop_time_ns(), 0);
-    ASSERT_LT(ns_info->stop_time_ns(), current_time);
-
-    const ContainerInfo* container_info = state.ContainerInfoByID("container0_uid");
-    ASSERT_NE(container_info, nullptr);
-    ASSERT_GT(container_info->stop_time_ns(), 0);
-    ASSERT_LT(container_info->stop_time_ns(), current_time);
-  }
+  int64_t current_time = 150ULL;
 
   // In this test, we give an expiry window that is large to make sure they live on.
-  // Then we give them an expiry time that is short
-  int64_t long_retention_time = 2 * current_time;
-  ASSERT_OK(state.CleanupExpiredMetadata(long_retention_time));
+  int64_t long_retention_time = current_time;
+  ASSERT_OK(state.CleanupExpiredMetadata(current_time, long_retention_time));
 
   {
     const PodInfo* pod_info = state.PodInfoByID("pod0_uid");
@@ -608,8 +627,9 @@ TEST(K8sMetadataStateTest, CleanupExpiredMetadata) {
     ASSERT_NE(container_info, nullptr);
   }
 
-  int64_t zero_retention_time = 0;
-  ASSERT_OK(state.CleanupExpiredMetadata(zero_retention_time));
+  // Now we give them an expiry time that is short
+  int64_t short_retention_time = 1ULL;
+  ASSERT_OK(state.CleanupExpiredMetadata(current_time, short_retention_time));
 
   {
     const PodInfo* pod_info = state.PodInfoByID("pod0_uid");
