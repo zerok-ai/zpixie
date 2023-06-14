@@ -16,7 +16,7 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-set -e
+set -x
 
 namespace="plc"
 
@@ -25,24 +25,23 @@ export LC_ALL=C
 
 kubectl create secret generic -n "${namespace}" \
   cloud-auth-secrets \
-  --from-literal=jwt-signing-key="$(< /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)"
+  --from-literal=jwt-signing-key="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)"
 
 kubectl create secret generic -n "${namespace}" \
   pl-hydra-secrets \
-  --from-literal=SECRETS_SYSTEM="$(< /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)" \
-  --from-literal=OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT="$(< /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)" \
-  --from-literal=CLIENT_SECRET="$(< /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)"
+  --from-literal=SECRETS_SYSTEM="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)" \
+  --from-literal=OIDC_SUBJECT_IDENTIFIERS_PAIRWISE_SALT="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)" \
+  --from-literal=CLIENT_SECRET="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 64 | head -n 1)"
 
 kubectl create secret generic -n "${namespace}" \
   pl-db-secrets \
   --from-literal=PL_POSTGRES_USERNAME="pl" \
-  --from-literal=PL_POSTGRES_PASSWORD="$(< /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 24 | head -n 1)" \
-  --from-literal=database-key="$(< /dev/urandom tr -dc 'a-zA-Z0-9#$%&().' | fold -w 24 | head -n 1)"
+  --from-literal=PL_POSTGRES_PASSWORD="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 24 | head -n 1)" \
+  --from-literal=database-key="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 24 | head -n 1)"
 
 kubectl create secret generic -n "${namespace}" \
   cloud-session-secrets \
-  --from-literal=session-key="$(< /dev/urandom tr -dc 'a-zA-Z0-9' | fold -w 24 | head -n 1)"
-
+  --from-literal=session-key="$(openssl rand -hex 256 | tr -dc 'a-zA-Z0-9' | fold -w 24 | head -n 1)"
 SERVICE_TLS_CERTS="$(mktemp -d)"
 pushd "${SERVICE_TLS_CERTS}" || exit 1
 
