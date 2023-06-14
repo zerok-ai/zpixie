@@ -32,6 +32,7 @@ using PProfHisto = absl::flat_hash_map<std::string, uint64_t>;
 
 // https://github.com/google/pprof/blob/main/proto/profile.proto
 PProfProfile CreatePProfProfile(const uint32_t period_ms, const PProfHisto& histo);
+PProfHisto DeserializePProfProfile(const PProfProfile& pprof);
 
 }  // namespace shared
 }  // namespace px
