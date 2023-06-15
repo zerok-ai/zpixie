@@ -79,7 +79,7 @@ namespace zk{
             std::string traceId = "";
             if(protocol == "HTTP"){
                 SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
-                traceIdRule->id = "resp_headers";
+                traceIdRule->id = "req_headers";
                 traceIdRule->type = KEY_MAP;
                 traceIdRule->input = "string";
                 traceIdRule->key = "/traceparent";
