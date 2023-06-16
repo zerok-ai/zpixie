@@ -279,14 +279,14 @@ namespace zk {
                         break;
                     case INTEGER:
                         rule = new SimpleRuleInteger();
-                        std::cout << "\nAVIN_DEBUG_STORE_apply010404" << ruleDoc["value"].GetString() << std::endl;
-                        const char* foundValue = nullptr;
-                        foundValue = ruleDoc["value"].GetString();
-                        std::cout << "\nAVIN_DEBUG_STORE_apply010405" << foundValue << std::endl;
-                        //convert ch* value foundValue to int
-                        int foundValueInt = std::atoi(foundValue);
-
-                        ((SimpleRuleInteger*)rule)->value = foundValueInt;
+                        // std::cout << "\nAVIN_DEBUG_STORE_apply010404" << ruleDoc["value"].GetString() << std::endl;
+                        // const char* foundValue = nullptr;
+                        // foundValue = ruleDoc["value"].GetString();
+                        // std::cout << "\nAVIN_DEBUG_STORE_apply010405" << foundValue << std::endl;
+                        // //convert ch* value foundValue to int
+                        // int foundValueInt = std::atoi(foundValue);
+                        // ((SimpleRuleInteger*)rule)->value = foundValueInt;
+                        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
                         break;
                     case KEY_MAP:
                         rule = new SimpleRuleKeyValue();
