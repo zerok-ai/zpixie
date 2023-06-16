@@ -279,7 +279,7 @@ namespace zk {
                         break;
                     case INTEGER:
                         rule = new SimpleRuleInteger();
-                        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+                        ((SimpleRuleInteger*)rule)->value = std::stoi(ruleDoc["value"].GetString());
                         break;
                     case KEY_MAP:
                         rule = new SimpleRuleKeyValue();
