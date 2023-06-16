@@ -280,7 +280,7 @@ namespace zk {
                     case INTEGER:
                         rule = new SimpleRuleInteger();
                         std::cout << "\nAVIN_DEBUG_STORE_apply010404" << ruleDoc["value"].GetString() << std::endl;
-                        char* foundValue = nullptr;
+                        const char* foundValue = nullptr;
                         foundValue = ruleDoc["value"].GetString();
                         std::cout << "\nAVIN_DEBUG_STORE_apply010405" << foundValue << std::endl;
                         //convert ch* value foundValue to int
