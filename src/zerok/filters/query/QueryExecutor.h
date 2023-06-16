@@ -120,6 +120,7 @@ namespace zk{
                         // printf("\nAVIN_DEBUG_STORE_apply0104");
                         for (const auto& query : queries) {
                             bool evaluation = query->rule->evaluate(propsMap);
+                            std::cout << "\nAVIN_DEBUG_STORE_apply010401 " << evaluation << std::endl;
                             int currentMinutes = CommonUtils::systemMinutes();
                             // std::string traceIdsSetKey = query->workloadId + "_" + uuid + "_" + std::to_string(currentMinutes/5);
                             std::string traceIdsSetKey = query->workloadId + "_" + std::to_string(currentMinutes/5);
