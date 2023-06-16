@@ -294,7 +294,6 @@ namespace zk {
                         break;
                     case WORKLOAD_IDENTIFIER:
                         return parseWorkloadIdentifierRule(ruleDoc);
-                        break;
 
                     default:
                         break;
