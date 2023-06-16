@@ -43,7 +43,7 @@ namespace zk {
         bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
                 int foundValue = std::stoi(propsMap[id]);
-                std::cout << "\nAVIN_DEBUG_STORE_apply01403" << foundValue << std::endl;
+                std::cout << "\nAVIN_DEBUG_STORE_apply01403" << foundValue << " ::value " << value << std::endl;
                 return foundValue > value;
             }
             return false;
