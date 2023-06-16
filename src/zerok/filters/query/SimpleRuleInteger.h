@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 #include "SimpleRuleDefault.h"
 
 namespace zk {
@@ -42,6 +43,7 @@ namespace zk {
         bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
                 int foundValue = std::stoi(propsMap[id]);
+                std::cout << "\nAVIN_DEBUG_STORE_apply01403" << foundValue << std::endl;
                 return foundValue > value;
             }
             return false;
