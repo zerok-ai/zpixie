@@ -301,7 +301,6 @@ namespace zk {
                     if (ruleDoc["value"].IsString()) {
                         std::string value = ruleDoc["value"].GetString();
                         int valueInt = std::stoi(value);
-                        std::cout << "\nAVIN_DEBUG_STORE_build010403 Value: " << value << " valueInt: " << valueInt << std::endl;
                         ((SimpleRuleInteger*)rule)->value = valueInt;
                     }
                 }else if(fieldType == KEY_MAP){
