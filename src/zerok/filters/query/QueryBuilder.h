@@ -296,14 +296,14 @@ namespace zk {
                     ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
                 }else if(fieldType == INTEGER){
                     rule = new SimpleRuleInteger();
-                    ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+                    // ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
 
                     if (ruleDoc["value"].IsString()) {
                         std::string value = ruleDoc["value"].GetString();
                         int valueInt = std::stoi(value);
                         std::cout << "\nAVIN_DEBUG_STORE_build010403 Value: " << value << " valueInt: " << valueInt << std::endl;
+                        ((SimpleRuleInteger*)rule)->value = valueInt;
                     }
-
                 }else if(fieldType == KEY_MAP){
                     rule = new SimpleRuleKeyValue();
                     ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
