@@ -7,7 +7,6 @@
 #include "SimpleRuleInteger.h"
 #include "SimpleRuleString.h"
 #include "SimpleRuleKeyValue.h"
-// #include "src/zerok/store/store.h"
 #include <iostream>
 #include <random>
 #include <string>
@@ -71,16 +70,6 @@ namespace zk {
                     rapidjson::Value& scenarioDoc = scenariosDoc[i];
                     std::vector<Query*> queriesFromOneScenario = extractQueriesFromScenario(scenarioDoc);
                     vector.insert(vector.end(), queriesFromOneScenario.begin(), queriesFromOneScenario.end());
-                    // rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
-                    // for (auto& member : workloadsDoc.GetObject()) {
-                    //     const char* key = member.name.GetString();
-                    //     rapidjson::Value& workloadDoc = workloadsDoc[key];
-                    //     // Query* query = parseWorkload(key, workloadDoc);
-                    //     Query* query = parseQuery(workloadDoc);
-                    //     std::string keyString(key);
-                    //     query->workloadId = keyString;
-                    //     vector.push_back(query);
-                    // }
                 }
                 return vector;
             }
@@ -97,24 +86,24 @@ namespace zk {
                 return query;
             }
 
-            static Query* parseQuery(const char* jsonRule){
-                rapidjson::Document doc;
-                doc.Parse(jsonRule);
-                Query* parsedQuery;
-                parsedQuery = new Query();
-                std::string protocolString = doc["protocol"].GetString();
-                std::string traceRoleString = doc["trace_role"].GetString();
-                std::string serviceString = doc["service"].GetString();
-                std::vector<std::string> splits = CommonUtils::splitString(serviceString, "/");
-                std::string ns = splits.at(0);
-                std::string service = splits.at(1);
-                parsedQuery->traceRole = traceRoleString;
-                parsedQuery->queryType = queryTypeMap[protocolString];
-                parsedQuery->ns = ns;
-                parsedQuery->service = service;
-                parsedQuery->rule = parse(doc);
-                return parsedQuery;
-            }
+            // static Query* parseQuery(const char* jsonRule){
+            //     rapidjson::Document doc;
+            //     doc.Parse(jsonRule);
+            //     Query* parsedQuery;
+            //     parsedQuery = new Query();
+            //     std::string protocolString = doc["protocol"].GetString();
+            //     std::string traceRoleString = doc["trace_role"].GetString();
+            //     std::string serviceString = doc["service"].GetString();
+            //     std::vector<std::string> splits = CommonUtils::splitString(serviceString, "/");
+            //     std::string ns = splits.at(0);
+            //     std::string service = splits.at(1);
+            //     parsedQuery->traceRole = traceRoleString;
+            //     parsedQuery->queryType = queryTypeMap[protocolString];
+            //     parsedQuery->ns = ns;
+            //     parsedQuery->service = service;
+            //     parsedQuery->rule = parse(doc);
+            //     return parsedQuery;
+            // }
 
             static Query* parseQuery(const rapidjson::Value& doc){
                 Query* parsedQuery;
@@ -149,17 +138,17 @@ namespace zk {
             }
 
         private:
-            static Rule* parse(rapidjson::Document& doc){
-                Rule* parsedRule;
-                bool isCompositeRule = doc.HasMember("condition");
-                if(isCompositeRule){
-                    parsedRule = parseCompositeRule(doc);
-                }else{
-                    parsedRule = parseSimpleRule(doc);
-                }
+            // static Rule* parse(rapidjson::Document& doc){
+            //     Rule* parsedRule;
+            //     bool isCompositeRule = doc.HasMember("condition");
+            //     if(isCompositeRule){
+            //         parsedRule = parseCompositeRule(doc);
+            //     }else{
+            //         parsedRule = parseSimpleRule(doc);
+            //     }
 
-                return parsedRule;
-            }
+            //     return parsedRule;
+            // }
 
             static Rule* parse(const rapidjson::Value& doc){
                 Rule* parsedRule;
@@ -173,20 +162,20 @@ namespace zk {
                 return parsedRule;
             }
 
-            static Rule* parseCompositeRule(rapidjson::Document& compositeRuleDoc){
-                CompositeRule* rule = new CompositeRule();
-                std::string conditionString = compositeRuleDoc["condition"].GetString();
-                rule->condition = conditionTypeMap[conditionString];
-                const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
-                std::vector<Rule*> vector;
-                int rulesDocSize = static_cast<int>(rulesDoc.Size());
-                for (int i = 0; i < rulesDocSize; i++) {
-                    Rule* rule = parse(rulesDoc[i]);
-                    vector.push_back(rule);
-                }
-                rule->rules = vector;
-                return rule;
-            }
+            // static Rule* parseCompositeRule(rapidjson::Document& compositeRuleDoc){
+            //     CompositeRule* rule = new CompositeRule();
+            //     std::string conditionString = compositeRuleDoc["condition"].GetString();
+            //     rule->condition = conditionTypeMap[conditionString];
+            //     const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
+            //     std::vector<Rule*> vector;
+            //     int rulesDocSize = static_cast<int>(rulesDoc.Size());
+            //     for (int i = 0; i < rulesDocSize; i++) {
+            //         Rule* rule = parse(rulesDoc[i]);
+            //         vector.push_back(rule);
+            //     }
+            //     rule->rules = vector;
+            //     return rule;
+            // }
 
             static Rule* parseCompositeRule(const rapidjson::Value& compositeRuleDoc){
                 CompositeRule* rule = new CompositeRule();
@@ -202,34 +191,34 @@ namespace zk {
                 return rule;
             }
 
-            static Rule* parseWorkloadIdentifierRule(rapidjson::Document& ruleDoc){
-                (void)ruleDoc; // Cast to void to suppress the warning/error
-                CompositeRule* rule = nullptr;
-                // rule->condition = ConditionType::OR;
+            // static Rule* parseWorkloadIdentifierRule(rapidjson::Document& ruleDoc){
+            //     (void)ruleDoc; // Cast to void to suppress the warning/error
+            //     CompositeRule* rule = nullptr;
+            //     // rule->condition = ConditionType::OR;
                 
-                // rapidjson::Value value = ruleDoc["value"];
-                // std::string sourceOrDestination = ruleDoc["id"].GetString();
+            //     // rapidjson::Value value = ruleDoc["value"];
+            //     // std::string sourceOrDestination = ruleDoc["id"].GetString();
 
-                // //TraceRule
-                // SimpleRuleString* traceRule;
-                // traceRule->id = "trace_role";
-                // traceRule->type = STRING;
-                // traceRule->input = STRING;
-                // traceRule->value = "server";
-                // rule->rules.push_back(traceRule);
+            //     // //TraceRule
+            //     // SimpleRuleString* traceRule;
+            //     // traceRule->id = "trace_role";
+            //     // traceRule->type = STRING;
+            //     // traceRule->input = STRING;
+            //     // traceRule->value = "server";
+            //     // rule->rules.push_back(traceRule);
 
-                // if(value.HasMember("ip")){
-                //     SimpleRuleString* ipRule;
-                //     ipRule->id = "remote_addr";
-                //     ipRule->type = STRING;
-                //     ipRule->input = STRING;
-                //     ipRule->value = "10.0.0.4";
-                //     //remote_addr
-                //     rule->rules.push_back(ipRule);
-                // }
+            //     // if(value.HasMember("ip")){
+            //     //     SimpleRuleString* ipRule;
+            //     //     ipRule->id = "remote_addr";
+            //     //     ipRule->type = STRING;
+            //     //     ipRule->input = STRING;
+            //     //     ipRule->value = "10.0.0.4";
+            //     //     //remote_addr
+            //     //     rule->rules.push_back(ipRule);
+            //     // }
 
-                return rule;
-            }
+            //     return rule;
+            // }
 
             static Rule* parseWorkloadIdentifierRule(const rapidjson::Value& ruleDoc){
                 CompositeRule* rule = new CompositeRule();
@@ -269,76 +258,67 @@ namespace zk {
                 return rule;
             }
 
-            static Rule* parseSimpleRule(rapidjson::Document& ruleDoc){
-                SimpleRule* rule;
-                FieldType fieldType = fieldTypeMap[ruleDoc["datatype"].GetString()];
-                switch(fieldType){
-                    case STRING:
-                        rule = new SimpleRuleString();
-                        ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
-                        break;
-                    case INTEGER:
-                        rule = new SimpleRuleInteger();
-                        // std::cout << "\nAVIN_DEBUG_STORE_apply010404" << ruleDoc["value"].GetString() << std::endl;
-                        // const char* foundValue = nullptr;
-                        // foundValue = ruleDoc["value"].GetString();
-                        // std::cout << "\nAVIN_DEBUG_STORE_apply010405" << foundValue << std::endl;
-                        // //convert ch* value foundValue to int
-                        // int foundValueInt = std::atoi(foundValue);
-                        // ((SimpleRuleInteger*)rule)->value = foundValueInt;
-                        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
-                        break;
-                    case KEY_MAP:
-                        rule = new SimpleRuleKeyValue();
-                        ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
-                        break;
-                    case WORKLOAD_IDENTIFIER:
-                        return parseWorkloadIdentifierRule(ruleDoc);
+            // static Rule* parseSimpleRule(rapidjson::Document& ruleDoc){
+            //     SimpleRule* rule = nullptr;
+            //     FieldType fieldType = fieldTypeMap[ruleDoc["datatype"].GetString()];
 
-                    default:
-                        break;
+            //     if (fieldType == STRING){
+            //         rule = new SimpleRuleString();
+            //         ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
+            //     }else if(fieldType == INTEGER){
+            //         rule = new SimpleRuleInteger();
+            //         ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+            //     }else if(fieldType == KEY_MAP){
+            //         rule = new SimpleRuleKeyValue();
+            //         ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
+            //     }else if(fieldType == WORKLOAD_IDENTIFIER){
+            //         return parseWorkloadIdentifierRule(ruleDoc);
+            //     }else{
+            //         return rule;
+            //     }
+
+            //     rule->id = ruleDoc["id"].GetString();
+            //     rule->type = fieldType;
+            //     if (ruleDoc.HasMember("key")){
+            //         rule->key = ruleDoc["key"].GetString();
+            //     }
+                
+            //     rule->operatorType = operatorTypeMap[ruleDoc["operator"].GetString()];
+            //     return rule;
+            // }
+
+            static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc){
+                SimpleRule* rule = nullptr;
+                FieldType fieldType = fieldTypeMap[ruleDoc["datatype"].GetString()];
+
+                if (fieldType == STRING){
+                    rule = new SimpleRuleString();
+                    ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
+                }else if(fieldType == INTEGER){
+                    rule = new SimpleRuleInteger();
+                    ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+
+                    if (ruleDoc["value"].IsString()) {
+                        std::string value = ruleDoc["value"].GetString();
+                        int valueInt = std::stoi(value);
+                        std::cout << "\nAVIN_DEBUG_STORE_build010403 Value: " << value << " valueInt: " << valueInt << std::endl;
+                    }
+
+                }else if(fieldType == KEY_MAP){
+                    rule = new SimpleRuleKeyValue();
+                    ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
+                }else if(fieldType == WORKLOAD_IDENTIFIER){
+                    return parseWorkloadIdentifierRule(ruleDoc);
+                }else{
+                    return rule;
                 }
-                // rule->field = ruleDoc["field"].GetString();
+
                 rule->id = ruleDoc["id"].GetString();
                 rule->type = fieldType;
                 if (ruleDoc.HasMember("key")){
                     rule->key = ruleDoc["key"].GetString();
                 }
                 
-                rule->operatorType = operatorTypeMap[ruleDoc["operator"].GetString()];
-                return rule;
-            }
-
-            static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc){
-                SimpleRule* rule;
-                std::string typeString = ruleDoc["datatype"].GetString();
-                FieldType fieldType = fieldTypeMap[typeString];
-                switch(fieldType){
-                    case STRING:
-                        rule = new SimpleRuleString();
-                        ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
-                        break;
-                    case INTEGER:
-                        rule = new SimpleRuleInteger();
-                        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
-                        break;
-                    case KEY_MAP:
-                        rule = new SimpleRuleKeyValue();
-                        ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
-                        break;
-                    case WORKLOAD_IDENTIFIER:
-                        return parseWorkloadIdentifierRule(ruleDoc);
-                        break;
-
-                    default:
-                        break;
-                }
-                // rule->field = ruleDoc["field"].GetString();
-                rule->id = ruleDoc["id"].GetString();
-                rule->type = fieldType;
-                if (ruleDoc.HasMember("key")){
-                    rule->key = ruleDoc["key"].GetString();
-                }
                 rule->operatorType = operatorTypeMap[ruleDoc["operator"].GetString()];
                 return rule;
             }
