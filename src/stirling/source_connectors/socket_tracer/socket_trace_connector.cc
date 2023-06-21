@@ -1198,11 +1198,12 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   //Zerok Starts
   //HTTP Filters go here
-  std::string traceId = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
-  if(traceId == "ZK_NULL"){
-    //Returning if 
+  std::vector<std::string> tracesInfo = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+  if(tracesInfo.size() == 0){
     return;
   }
+  std::string traceId = tracesInfo[0];
+  std::string spanId = tracesInfo[1];
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
@@ -1226,6 +1227,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("resp_message")>(std::move(resp_message.resp_message));
   r.Append<r.ColIndex("resp_body_size")>(resp_message.body_size);
   r.Append<r.ColIndex("trace_id")>(traceId);
+  r.Append<r.ColIndex("span_id")>(spanId);
   r.Append<r.ColIndex("resp_body")>(std::move(resp_message.body), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
@@ -1300,13 +1302,14 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
   std::string respBody, std::string respHeadersJson, int64_t latency
   */
-  std::string traceId = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
+  std::venctor<std::string> tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
     minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
     respBodySize, respBody, respHeadersJson, latency);
-  if(traceId == "ZK_NULL"){
-    //Returning if 
+  if(tracesInfo.size() == 0){
     return;
   }
+  std::string traceId = tracesInfo[0];
+  std::string spanId = tracesInfo[0];
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
@@ -1334,6 +1337,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("resp_body_size")>(respBodySize);
   r.Append<r.ColIndex("resp_body")>(respBody);
   r.Append<r.ColIndex("trace_id")>(traceId);
+  r.Append<r.ColIndex("span_id")>(spanId);
   int64_t latency_ns = latency;
   r.Append<r.ColIndex("latency")>(latency_ns);
   // TODO(yzhao): Remove once http2::Record::bpf_timestamp_ns is removed.

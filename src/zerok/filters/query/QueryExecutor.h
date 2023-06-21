@@ -7,6 +7,7 @@
 #include <random>
 #include <string>
 #include <map>
+#include <vector>
 #include <set>
 #include "src/zerok/common/utils.h"
 
@@ -17,8 +18,10 @@ namespace zk{
             ZkQueryManager::refresh();
         }
 
-        static std::string apply(std::string protocol, std::map<std::string, std::string> propsMap){
+        static std::vector<std::string> apply(std::string protocol, std::map<std::string, std::string> propsMap){
             std::string traceId = "";
+            std::string spanId = "";
+            std::vector<std::string> toReturn = {};
             if(protocol == "HTTP"){
                 SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
                 traceIdRule->id = "req_headers";
@@ -29,20 +32,23 @@ namespace zk{
                 std::string traceParent = traceIdRule->extractValue(propsMap);
                 if(traceParent == "ZK_NULL" || traceParent == ""){
                     // printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
-                    return "ZK_NULL";
+                    return toReturn;
                 }else{
                     printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present");
                 }
                 std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
                 if(splitString.size() <= static_cast<size_t>(1)){
                     printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent.c_str());
-                    return "ZK_NULL";
+                    return toReturn;
                 }
                 traceId = splitString.at(1);
                 if(traceId == ""){
                     printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
-                    return "ZK_NULL";
+                    return toReturn;
                 }
+                spanId = splitString.at(2);
+                toReturn.push_back(traceId);
+                toReturn.push_back(spanId);
                 std::cout << "\nAVIN_DEBUG_STORE_apply0102" << std::endl;
                 //TODO: Check if trace id is present, if not return false
                 if(ZkQueryManager::protocolToQueries.count(protocol) > 0){
@@ -72,7 +78,7 @@ namespace zk{
             }else{
                 //TODO: Check if trace id is present, if not return false
             }
-            return traceId;
+            return toReturn;
         }
     };
 
