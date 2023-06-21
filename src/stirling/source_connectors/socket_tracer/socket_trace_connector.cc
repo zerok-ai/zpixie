@@ -1302,7 +1302,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
   std::string respBody, std::string respHeadersJson, int64_t latency
   */
-  std::venctor<std::string> tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
+  std::vector<std::string> tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
     minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
     respBodySize, respBody, respHeadersJson, latency);
   if(tracesInfo.size() == 0){
