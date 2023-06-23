@@ -1205,6 +1205,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   }
   std::string traceId = tracesInfo.getTraceId();
   std::string spanId = tracesInfo.getSpanId();
+  std::string workloadIds = tracesInfo.getWorkloadIdsString();
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
@@ -1229,6 +1230,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("resp_body_size")>(resp_message.body_size);
   r.Append<r.ColIndex("trace_id")>(traceId);
   r.Append<r.ColIndex("span_id")>(spanId);
+  r.Append<r.ColIndex("workload_ids")>(workloadIds);
   r.Append<r.ColIndex("resp_body")>(std::move(resp_message.body), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
@@ -1311,6 +1313,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   }
   std::string traceId = tracesInfo.getTraceId();
   std::string spanId = tracesInfo.getSpanId();
+  std::string workloadIds = tracesInfo.getWorkloadIdsString();
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
@@ -1339,6 +1342,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("resp_body")>(respBody);
   r.Append<r.ColIndex("trace_id")>(traceId);
   r.Append<r.ColIndex("span_id")>(spanId);
+  r.Append<r.ColIndex("workload_ids")>(workloadIds);
   int64_t latency_ns = latency;
   r.Append<r.ColIndex("latency")>(latency_ns);
   // TODO(yzhao): Remove once http2::Record::bpf_timestamp_ns is removed.

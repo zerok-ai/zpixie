@@ -105,6 +105,10 @@ constexpr DataElement kHTTPElements[] = {
          types::DataType::STRING,
          types::SemanticType::ST_NONE,
          types::PatternType::STRUCTURED},
+        {"workload_ids", "Comma separated workload ids of evaluated scenarios",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
         canonical_data_elements::kLatencyNS,
 #ifndef NDEBUG
         canonical_data_elements::kPXInfo,

@@ -75,6 +75,7 @@ namespace zk{
                             // std::string traceIdsSetKey = query->workloadId + "_" + uuid + "_" + std::to_string(currentMinutes/5);
                             std::string traceIdsSetKey = query->workloadId + "_" + std::to_string(currentMinutes/5);
                             if(evaluation){
+                                zkTraceInfo.addWorkloadId(query->workloadId);
                                 std::cout << "\nAVIN_DEBUG_STORE_apply0105" << std::endl;
                                 ZkQueryManager::zkStoreWriter->addToSetWithExpiry(900, traceIdsSetKey.c_str(), traceId.c_str(), nullptr);
                             }
