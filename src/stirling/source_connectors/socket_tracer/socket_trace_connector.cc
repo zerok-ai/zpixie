@@ -48,6 +48,7 @@
 #include "src/stirling/source_connectors/socket_tracer/protocols/http2/grpc.h"
 #include "src/stirling/utils/linux_headers.h"
 #include "src/stirling/utils/proc_path_tools.h"
+#include "src/zerok/filters/query/ZkTraceInfo.h"
 #include "src/stirling/source_connectors/socket_tracer/socket_trace_connector_zk.h"
 
 // 50 X less often than the normal sampling frequency. Based on the conn_stats_table.h's
@@ -1198,12 +1199,12 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   //Zerok Starts
   //HTTP Filters go here
-  std::vector<std::string> tracesInfo = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
-  if(tracesInfo.size() == 0){
+  zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+  if(!tracesInfo.isValid()){
     return;
   }
-  std::string traceId = tracesInfo[0];
-  std::string spanId = tracesInfo[1];
+  std::string traceId = tracesInfo.getTraceId();
+  std::string spanId = tracesInfo.getSpanId();
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
@@ -1302,14 +1303,14 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
   std::string respBody, std::string respHeadersJson, int64_t latency
   */
-  std::vector<std::string> tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
+  zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
     minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
     respBodySize, respBody, respHeadersJson, latency);
-  if(tracesInfo.size() == 0){
+  if(!tracesInfo.isValid()){
     return;
   }
-  std::string traceId = tracesInfo[0];
-  std::string spanId = tracesInfo[1];
+  std::string traceId = tracesInfo.getTraceId();
+  std::string spanId = tracesInfo.getSpanId();
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
