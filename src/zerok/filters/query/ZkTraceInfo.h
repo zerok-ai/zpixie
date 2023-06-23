@@ -64,12 +64,14 @@ namespace zk {
             //method to get the string representation of the workloadIds with comma separated values
             std::string getWorkloadIdsString(){
                 std::string workloadIdsString = "";
-                for(auto i = 0; i < workloadIds.size(); i++){
-                    workloadIdsString += workloadIds[i];
-                    if(i != workloadIds.size() - 1){
+                for (const auto& workloadId : workloadIds){
+                    //if workloadIdsString is empty, then don't add comma
+                    if (workloadIdsString != ""){
                         workloadIdsString += ",";
                     }
+                    workloadIdsString += workloadId;
                 }
+
                 return workloadIdsString;
             }
 
