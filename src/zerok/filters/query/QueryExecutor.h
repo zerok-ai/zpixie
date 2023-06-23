@@ -31,10 +31,15 @@ namespace zk{
                 traceIdRule->value = "/traceparent";
                 std::string traceParent = traceIdRule->extractValue(propsMap);
                 if(traceParent == "ZK_NULL" || traceParent == ""){
-                    // printf("\nAVIN_DEBUG_STORE_apply01 no traceparent header");
-                    return toReturn;
+                    traceIdRule->key = "/Traceparent";
+                    traceParent = traceIdRule->extractValue(propsMap);
+                    if(traceParent == "ZK_NULL" || traceParent == ""){
+                        return toReturn;
+                    }else{
+                        printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
+                    }
                 }else{
-                    printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present");
+                    printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
                 }
                 std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
                 if(splitString.size() <= static_cast<size_t>(1)){

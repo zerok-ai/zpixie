@@ -1309,7 +1309,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     return;
   }
   std::string traceId = tracesInfo[0];
-  std::string spanId = tracesInfo[0];
+  std::string spanId = tracesInfo[1];
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
