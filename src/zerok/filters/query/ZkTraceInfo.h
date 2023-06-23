@@ -64,7 +64,7 @@ namespace zk {
             //method to get the string representation of the workloadIds with comma separated values
             std::string getWorkloadIdsString(){
                 std::string workloadIdsString = "";
-                for(int i = 0; i < workloadIds.size(); i++){
+                for(auto i = 0; i < workloadIds.size(); i++){
                     workloadIdsString += workloadIds[i];
                     if(i != workloadIds.size() - 1){
                         workloadIdsString += ",";
@@ -78,9 +78,9 @@ namespace zk {
                 return traceId != "" && traceId != "ZK_NULL" && spanId != "" && spanId != "ZK_NULL";
             }
 
-            std::string toString(){
-                return "TraceId: " + traceId + " SpanId: " + spanId + " WorkloadIds: " + workloadIds;
-            }
+            // std::string toString(){
+            //     return "TraceId: " + traceId + " SpanId: " + spanId + " WorkloadIds: " + workloadIds;
+            // }
 
             bool operator==(const ZkTraceInfo& other) const{
                 return traceId == other.traceId && spanId == other.spanId && workloadIds == other.workloadIds;
