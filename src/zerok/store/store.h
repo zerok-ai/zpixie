@@ -107,6 +107,7 @@ namespace zk {
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXPIRE %s %d", key, expiryaInSeconds);
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
+                    std::cout << "\nAVIN_DEBUG Reply error expire: " << reply->type << std::endl;
                     freeReplyObject(reply);
                 }
                 freeReplyObject(reply);
@@ -126,6 +127,7 @@ namespace zk {
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "MULTI");
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
+                    std::cout << "\nAVIN_DEBUG Reply error startTransaction: " << reply->type << std::endl;
                     freeReplyObject(reply);
                 }
                 freeReplyObject(reply);
@@ -135,6 +137,7 @@ namespace zk {
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXEC");
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
+                    std::cout << "\nAVIN_DEBUG Reply error endTransaction: " << reply->type << std::endl;
                     freeReplyObject(reply);
                 }
                 freeReplyObject(reply);
@@ -162,6 +165,7 @@ namespace zk {
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
+                    std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
                     freeReplyObject(reply);
                 }
                 freeReplyObject(reply);
