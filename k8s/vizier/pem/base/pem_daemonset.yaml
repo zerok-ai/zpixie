@@ -134,6 +134,9 @@ spec:
           readOnly: true
         - name: certs
           mountPath: /certs
+        - mountPath: /opt/zk-client-db-configmap.yaml
+          name: zk-client-db-configmap
+          subPath: zk-client-db-configmap.yaml
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -149,3 +152,6 @@ spec:
       - name: certs
         secret:
           secretName: service-tls-certs
+      - name: zk-client-db-configmap
+        configMap:
+          name: zk-client-db-configmap
