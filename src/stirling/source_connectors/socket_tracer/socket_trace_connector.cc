@@ -1205,7 +1205,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string spanId = "";
   std::string workloadIds = "";
   if(!tracesInfo.isValid()){
-    if(!ZkConfig::isAllowAllCalls()){
+    if(!zk::ZkConfig::isAllowAllCalls()){
       return;
     }
   }else{
@@ -1320,7 +1320,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string spanId = "";
   std::string workloadIds = "";
   if(!tracesInfo.isValid()){
-    if(!ZkConfig::isAllowAllCalls()){
+    if(!zk::ZkConfig::isAllowAllCalls()){
       return;
     }
   }else{
