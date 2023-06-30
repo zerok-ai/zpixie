@@ -4,17 +4,17 @@ namespace zk {
     class ZkServiceConfig{
         private:
             bool allowAllCalls;
-            bool initilaized;
+            bool initialized;
         
         public:
             ZkServiceConfig(){
                 allowAllCalls = false;
-                initilaized = false;
+                initialized = false;
             }
 
             ZkServiceConfig(bool allowAllCalls){
                 this->allowAllCalls = allowAllCalls;
-                this->initilaized = true;
+                this->initialized = true;
             }
 
             void setAllowAllCalls(bool allowAllCalls){
@@ -25,12 +25,12 @@ namespace zk {
                 return allowAllCalls;
             }
 
-            void setInitilaized(bool initilaized){
-                this->initilaized = initilaized;
+            void setInitialized(bool initialized){
+                this->initialized = initialized;
             }
 
-            bool isInitilaized(){
-                return initilaized;
+            bool isInitialized(){
+                return initialized;
             }
 
     };
