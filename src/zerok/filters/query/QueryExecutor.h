@@ -11,11 +11,11 @@
 #include <vector>
 #include <set>
 #include "src/zerok/common/utils.h"
-//////
-#include <iostream>
-#include <fstream>
-#include <yamlcpp/yaml.h>
-//////
+// //////
+// #include <iostream>
+// #include <fstream>
+// #include <yaml-cpp/yaml.h>
+// //////
 
 namespace zk{
     class ZkQueryExecutor{
@@ -24,27 +24,27 @@ namespace zk{
             ZkQueryManager::refresh();
 
             ///////
-            std::ifstream inputFile("/opt/zk-client-db-configmap.yaml"); // Open the file
+            // std::ifstream inputFile("/opt/zk-client-db-configmap.yaml"); // Open the file
 
-            if (!inputFile) {
-                std::cerr << "Failed to open the file." << std::endl;
-            }
-
-            // std::string line = "";
-            // while (std::getline(inputFile, line)) {
-            //     // Process each line of the file
-            //     std::cout << line << std::endl;
+            // if (!inputFile) {
+            //     std::cerr << "Failed to open the file." << std::endl;
             // }
 
-            // Parse the YAML file
-            YAML::Node yamlNode = YAML::Load(inputFile);
+            // // std::string line = "";
+            // // while (std::getline(inputFile, line)) {
+            // //     // Process each line of the file
+            // //     std::cout << line << std::endl;
+            // // }
 
-            // Access data from the YAML structure
-            std::string value = yamlNode["key"].as<std::string>();
-            std::cout << "Value: " << value << std::endl;
+            // // Parse the YAML file
+            // YAML::Node yamlNode = YAML::Load(inputFile);
+
+            // // Access data from the YAML structure
+            // std::string value = yamlNode["key"].as<std::string>();
+            // std::cout << "Value: " << value << std::endl;
 
 
-            inputFile.close(); // Close the file
+            // inputFile.close(); // Close the file
 
             ///////
 

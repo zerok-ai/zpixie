@@ -9,6 +9,8 @@
 #include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
 #include <cstdarg>
 #include <map>
+#include "src/zerok/common/ZkConfigProvider.h"
+#include "src/zerok/common/ZkRedisConfig.h"
 
 
 namespace zk {
@@ -59,8 +61,9 @@ namespace zk {
 
             bool connect() override {
                 if(redisConnection == nullptr){
+                    zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
-                    redisConnection = redisConnect("redis.zk-client.svc.cluster.local", 6379);
+                    redisConnection = redisConnect(zkRedisConfig.getHost(), zkRedisConfig.getPort());
                     select();
                 }else{
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;

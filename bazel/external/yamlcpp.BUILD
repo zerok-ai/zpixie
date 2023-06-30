@@ -22,7 +22,7 @@ licenses(["notice"])
 exports_files(["license.txt"])
 
 cc_library(
-    name = "yamlcpp",
+    name = "yaml-cpp",
     srcs = [],
     hdrs = glob(["include/**/*.h"]),
     includes = ["include"],

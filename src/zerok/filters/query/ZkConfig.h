@@ -1,17 +1,13 @@
 #pragma once
 
+#include "src/zerok/common/ZkConfigProvider.h"
+
 namespace zk {
     class ZkConfig{
-        private:
-            static bool allowAllCalls;
-        
         public:
-
             static bool isAllowAllCalls(){
-                return allowAllCalls;
+                return zk::ZkConfigProvider::getZkConfig()->isAllowAllCalls();
             }
 
     };
-
-    bool ZkConfig::allowAllCalls = false;
 }
