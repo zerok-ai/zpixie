@@ -11,6 +11,7 @@
 #include <vector>
 #include <set>
 #include "src/zerok/common/utils.h"
+#include "src/zerok/common/ZkConfigProvider.h"
 // //////
 // #include <iostream>
 // #include <fstream>
@@ -21,6 +22,7 @@ namespace zk{
     class ZkQueryExecutor{
       public:
         static void init(){
+            zk::ZkConfigProvider::init();
             ZkQueryManager::refresh();
 
             ///////

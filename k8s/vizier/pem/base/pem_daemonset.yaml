@@ -137,6 +137,9 @@ spec:
         - mountPath: /opt/zk-client-db-configmap.yaml
           name: zk-client-db-configmap
           subPath: zk-client-db-configmap.yaml
+        - mountPath: /opt/zpixie-configmap.yaml
+          name: zpixie-configmap
+          subPath: zpixie-configmap.yaml
       securityContext:
         seccompProfile:
           type: RuntimeDefault
@@ -155,3 +158,6 @@ spec:
       - name: zk-client-db-configmap
         configMap:
           name: zk-client-db-configmap
+      - name: zpixie-configmap
+        configMap:
+          name: zpixie-configmap

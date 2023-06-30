@@ -14,6 +14,10 @@ namespace zk {
                 this->allowAllCalls = allowAllCalls;
             }
 
+            void setAllowAllCalls(bool allowAllCalls){
+                this->allowAllCalls = allowAllCalls;
+            }
+
             bool isAllowAllCalls(){
                 return allowAllCalls;
             }
