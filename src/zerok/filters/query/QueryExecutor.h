@@ -11,12 +11,43 @@
 #include <vector>
 #include <set>
 #include "src/zerok/common/utils.h"
+//////
+#include <iostream>
+#include <fstream>
+#include <yamlcpp/yaml.h>
+//////
 
 namespace zk{
     class ZkQueryExecutor{
       public:
         static void init(){
             ZkQueryManager::refresh();
+
+            ///////
+            std::ifstream inputFile("/opt/zk-client-db-configmap.yaml"); // Open the file
+
+            if (!inputFile) {
+                std::cerr << "Failed to open the file." << std::endl;
+            }
+
+            // std::string line = "";
+            // while (std::getline(inputFile, line)) {
+            //     // Process each line of the file
+            //     std::cout << line << std::endl;
+            // }
+
+            // Parse the YAML file
+            YAML::Node yamlNode = YAML::Load(inputFile);
+
+            // Access data from the YAML structure
+            std::string value = yamlNode["key"].as<std::string>();
+            std::cout << "Value: " << value << std::endl;
+
+
+            inputFile.close(); // Close the file
+
+            ///////
+
         }
 
         static ZkTraceInfo apply(std::string protocol, std::map<std::string, std::string> propsMap){

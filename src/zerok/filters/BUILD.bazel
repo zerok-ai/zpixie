@@ -39,6 +39,7 @@ pl_cc_library(
         "@com_github_tencent_rapidjson//:rapidjson",
         # "@rapidjson//:rapidjson",
         "@com_github_redis_hiredis//:hiredis",
+        "@com_github_jbeder_yamlcpp//:yamlcpp",
         # "@hiredis//:hiredis",
         "//src/zerok/store:cc_library",
         "//src/zerok/common:cc_library",
