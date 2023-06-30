@@ -145,17 +145,19 @@ namespace zk {
                 initialized = true;
                 ZkRedisConfig* localZkRedisConfig = parseRedisConfig("/opt/zk-client-db-configmap.yaml");
                 if(localZkRedisConfig != nullptr){
-                    std::cout << "localZkRedisConfig parsed" << std::endl;
-                    zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
+                    std::cout << "AVIN_DEBUG_ localZkRedisConfig parsed" << localZkRedisConfig->getHost() << std::endl;
+                    zkRedisConfig = ZkRedisConfig(localZkRedisConfig->getHost(), localZkRedisConfig->getPort(), localZkRedisConfig->getReadTimeout());
                 }else{
-                    zkRedisConfig = *localZkRedisConfig;
+                    std::cout << "AVIN_DEBUG_ localZkRedisConfig not parsed" << std::endl;
+                    zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
                 }
                 ZkServiceConfig* localZkServiceConfig = parseZkServiceConfig("/opt/zpixie-configmap.yaml");
                 if(localZkServiceConfig != nullptr){
-                    std::cout << "localZkServiceConfig parsed" << std::endl;
-                    zkConfig = ZkServiceConfig(false);
-                }else{
+                    std::cout << "AVIN_DEBUG_ localZkServiceConfig parsed" << std::endl;
                     zkConfig = *localZkServiceConfig;
+                }else{
+                    std::cout << "AVIN_DEBUG_ localZkServiceConfig not parsed" << std::endl;
+                    zkConfig = ZkServiceConfig(false);
                 }
                 
             }

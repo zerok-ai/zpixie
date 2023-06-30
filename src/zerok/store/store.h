@@ -62,7 +62,7 @@ namespace zk {
             bool connect() override {
                 if(redisConnection == nullptr){
                     zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
-                    // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting\n" << std::endl;
+                    std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
                     redisConnection = redisConnect(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort());
                     select();
                 }else{
