@@ -15,17 +15,14 @@ namespace zk {
             static ZkServiceConfig zkConfig;
             static ZkRedisConfig zkRedisConfig;
             
-            static ZkServiceConfig* parseZkServiceConfig(const std::string& filename) {
+            static ZkServiceConfig parseZkServiceConfig(const std::string& filename) {
                 std::cout << "AVIN_DEBUG_ Found parsing service config: " << std::endl;
-                ZkServiceConfig* localZkServiceConfig = nullptr;
+                ZkServiceConfig localZkServiceConfig = ZkServiceConfig();
                 std::ifstream file(filename);
                 if (!file.is_open()) {
                     std::cout << "AVIN_DEBUG_ Service Config Failed to open file: " << filename << std::endl;
                     return localZkServiceConfig;
                 }
-
-                ZkServiceConfig zkConfig = ZkServiceConfig();
-                localZkServiceConfig = &zkConfig;
 
                 std::string line;
                 std::string currentKey;
@@ -53,7 +50,8 @@ namespace zk {
 
                     // Store key-value pairs
                     if (key == "allowNonTraced") {
-                        localZkServiceConfig->setAllowAllCalls(value == "true" || value == "1" || value == "TRUE");
+                        localZkServiceConfig.setAllowAllCalls(value == "true" || value == "1" || value == "TRUE");
+                        localZkServiceConfig.setInitialized(true);
                         std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
                     } 
                 }
@@ -63,9 +61,9 @@ namespace zk {
             }
 
             // Parse the YAML-like file and extract the 'redis' section
-            static ZkRedisConfig* parseRedisConfig(const std::string& filename) {
+            static ZkRedisConfig parseRedisConfig(const std::string& filename) {
                 std::cout << "AVIN_DEBUG_ Found parsing redis config: " << std::endl;
-                ZkRedisConfig* localZkRedisConfig = nullptr;
+                ZkRedisConfig localZkRedisConfig = ZkRedisConfig("ZK_NULL", 0, 0);
                 std::ifstream file(filename);
                 if (!file.is_open()) {
                     std::cout << "AVIN_DEBUG_ Redis Config Failed to open file: " << filename << std::endl;
@@ -95,8 +93,6 @@ namespace zk {
 
                     if (value.empty()){
                         if (key == "redis") {
-                            ZkRedisConfig zkRedisConfigInstance = ZkRedisConfig();
-                            localZkRedisConfig = &zkRedisConfigInstance;
                             inRedisSection = true;
                             continue;
                         }else{
@@ -111,15 +107,15 @@ namespace zk {
 
                         // Store key-value pairs
                         if (key == "host") {
-                            localZkRedisConfig->setHost(value);
+                            localZkRedisConfig.setHost(value);
                             std::cout << "AVIN_DEBUG_ Found host: " << value << std::endl;
                         } else if (key == "port") {
                             int port = std::stoi(value);
-                            localZkRedisConfig->setPort(port);
+                            localZkRedisConfig.setPort(port);
                             std::cout << "AVIN_DEBUG_ Found port: " << value << std::endl;
                         } else if (key == "readTimeout") {
                             int readTimeout = std::stoi(value);
-                            localZkRedisConfig->setReadTimeout(readTimeout);
+                            localZkRedisConfig.setReadTimeout(readTimeout);
                             std::cout << "AVIN_DEBUG_ Found readTimeout: " << value << std::endl;
                         }
                     }
@@ -143,18 +139,18 @@ namespace zk {
                     return;
                 }
                 initialized = true;
-                ZkRedisConfig* localZkRedisConfig = parseRedisConfig("/opt/zk-client-db-configmap.yaml");
-                if(localZkRedisConfig != nullptr){
-                    std::cout << "AVIN_DEBUG_ localZkRedisConfig parsed" << localZkRedisConfig->getHost() << std::endl;
-                    zkRedisConfig = ZkRedisConfig(localZkRedisConfig->getHost(), localZkRedisConfig->getPort(), localZkRedisConfig->getReadTimeout());
+                ZkRedisConfig localZkRedisConfig = parseRedisConfig("/opt/zk-client-db-configmap.yaml");
+                if(localZkRedisConfig.getHost() != "ZK_NULL"){
+                    std::cout << "AVIN_DEBUG_ localZkRedisConfig parsed" << localZkRedisConfig.getHost() << std::endl;
+                    zkRedisConfig = ZkRedisConfig(localZkRedisConfig.getHost(), localZkRedisConfig.getPort(), localZkRedisConfig.getReadTimeout());
                 }else{
                     std::cout << "AVIN_DEBUG_ localZkRedisConfig not parsed" << std::endl;
                     zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
                 }
-                ZkServiceConfig* localZkServiceConfig = parseZkServiceConfig("/opt/zpixie-configmap.yaml");
-                if(localZkServiceConfig != nullptr){
+                ZkServiceConfig localZkServiceConfig = parseZkServiceConfig("/opt/zpixie-configmap.yaml");
+                if(localZkServiceConfig.isInitialized()){
                     std::cout << "AVIN_DEBUG_ localZkServiceConfig parsed" << std::endl;
-                    zkConfig = *localZkServiceConfig;
+                    zkConfig = ZkServiceConfig(localZkServiceConfig.isAllowAllCalls());
                 }else{
                     std::cout << "AVIN_DEBUG_ localZkServiceConfig not parsed" << std::endl;
                     zkConfig = ZkServiceConfig(false);
