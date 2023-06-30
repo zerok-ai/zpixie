@@ -213,7 +213,7 @@ REPOSITORY_LOCATIONS = dict(
     ),
     com_github_jbeder_yamlcpp = dict(
         sha256 = "e643119f1d629a77605f02096cc3ac211922d48e3db12249b06a3db810dd8756",
-        strip_prefix = "yaml-cpp-0.6.0",
+        strip_prefix = "yaml-cpp-yaml-cpp-0.6.0",
         urls = ["https://github.com/jbeder/yaml-cpp/archive/refs/tags/yaml-cpp-0.6.0.tar.gz"],
     ),
     com_github_thoughtspot_threadstacks = dict(
