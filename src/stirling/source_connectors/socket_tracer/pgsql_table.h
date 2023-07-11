@@ -73,7 +73,7 @@ constexpr int kPGSQLRespIdx = kPGSQLTable.ColIndex("resp");
 constexpr int kPGSQLReqCmdIdx = kPGSQLTable.ColIndex("req_cmd");
 constexpr int kPGSQLTraceIdIdx = kHTTPTable.ColIndex("trace_id");
 constexpr int kPGSQLSpanIdIdx = kHTTPTable.ColIndex("span_id");
-constexpr int kPGSQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_id");
+constexpr int kPGSQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_ids");
 constexpr int kPGSQLLatencyIdx = kPGSQLTable.ColIndex("latency");
 
 }  // namespace stirling

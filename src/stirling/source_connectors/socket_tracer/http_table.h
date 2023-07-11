@@ -140,7 +140,7 @@ constexpr int kHTTPRespBodyIdx = kHTTPTable.ColIndex("resp_body");
 constexpr int kHTTPRespBodySizeIdx = kHTTPTable.ColIndex("resp_body_size");
 constexpr int kHTTPTraceIdIdx = kHTTPTable.ColIndex("trace_id");
 constexpr int kHTTPSpanIdIdx = kHTTPTable.ColIndex("span_id");
-constexpr int kHTTPWorkloadIdIdx = kHTTPTable.ColIndex("workload_id");
+constexpr int kHTTPWorkloadIdIdx = kHTTPTable.ColIndex("workload_ids");
 constexpr int kHTTPLatencyIdx = kHTTPTable.ColIndex("latency");
 
 }  // namespace stirling

@@ -90,7 +90,7 @@ constexpr int kMySQLRespStatusIdx = kMySQLTable.ColIndex("resp_status");
 constexpr int kMySQLRespBodyIdx = kMySQLTable.ColIndex("resp_body");
 constexpr int kMySQLTraceIdIdx = kHTTPTable.ColIndex("trace_id");
 constexpr int kMySQLSpanIdIdx = kHTTPTable.ColIndex("span_id");
-constexpr int kMySQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_id");
+constexpr int kMySQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_ids");
 constexpr int kMySQLLatencyIdx = kMySQLTable.ColIndex("latency");
 
 }  // namespace stirling
