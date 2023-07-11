@@ -1395,7 +1395,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   /* extract value of key traceparent from comment in entry.req.msg */
   std::string traceParent = extractTraceparentValue(entry.req.msg);
-  zk::ZkTraceInfo tracesInfo = ZkTraceInfo(traceParent);
+  zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
@@ -1485,7 +1485,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   /* extract value of key traceparent from comment in entry.req.msg */
   std::string traceParent = extractTraceparentValue(entry.req.payload);
-  zk::ZkTraceInfo tracesInfo = ZkTraceInfo(traceParent);
+  zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";

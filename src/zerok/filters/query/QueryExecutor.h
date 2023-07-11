@@ -76,7 +76,7 @@ namespace zk{
                     printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
                 }
                 zkTraceInfo.fromTraceParent(traceParent);
-                if(zkTraceInfo.getTraceId() == "" || zkTraceInfo.getSpanId()){
+                if(zkTraceInfo.getTraceId() == "" || zkTraceInfo.getSpanId() == ""){
                     printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
                     return zkTraceInfo;
                 }
