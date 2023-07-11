@@ -1367,11 +1367,49 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 #endif
 }
 
+std::string extractTraceparentValue(const std::string& queryString) {
+    std::string traceparentValue;
+
+    std::size_t traceparentStart = queryString.find("traceparent:");
+    if (traceparentStart == std::string::npos) {
+        return traceparentValue;
+    }
+
+    traceparentStart += strlen("traceparent:");
+
+    std::size_t traceparentEnd = queryString.find(",", traceparentStart);
+    if (traceparentEnd == std::string::npos) {
+        return traceparentValue;
+    }
+
+    traceparentValue = queryString.substr(traceparentStart, traceparentEnd - traceparentStart);
+    return traceparentValue;
+}
+
+
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mysql::Record entry, DataTable* data_table) {
   md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
                 conn_tracker.conn_id().upid.start_time_ticks);
+
+  /* extract value of key traceparent from comment in entry.req.msg */
+  std::string traceParent = extractTraceparentValue(entry.req.msg)
+  zk::ZkTraceInfo tracesInfo = ZkTraceInfo(traceParent);
+  std::string traceId = "";
+  std::string spanId = "";
+  std::string workloadIds = "";
+
+  if(!tracesInfo.isValid()){
+    if(!zk::ZkConfig::isAllowAllCalls()){
+      return;
+    }
+  }else{
+    traceId = tracesInfo.getTraceId();
+    spanId = tracesInfo.getSpanId();
+    workloadIds = tracesInfo.getWorkloadIdsString();
+  }
+
 
   DataTable::RecordBuilder<&kMySQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
@@ -1383,6 +1421,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("req_body")>(std::move(entry.req.msg), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("resp_status")>(static_cast<uint64_t>(entry.resp.status));
   r.Append<r.ColIndex("resp_body")>(std::move(entry.resp.msg), FLAGS_max_body_bytes);
+  r.Append<r.ColIndex("trace_id")>(traceId);
+  r.Append<r.ColIndex("span_id")>(spanId);
+  r.Append<r.ColIndex("workload_ids")>(workloadIds);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(entry.req.timestamp_ns, entry.resp.timestamp_ns));
 #ifndef NDEBUG
@@ -1442,6 +1483,23 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
                 conn_tracker.conn_id().upid.start_time_ticks);
 
+  /* extract value of key traceparent from comment in entry.req.msg */
+  std::string traceParent = extractTraceparentValue(entry.req.payload)
+  zk::ZkTraceInfo tracesInfo = ZkTraceInfo(traceParent);
+  std::string traceId = "";
+  std::string spanId = "";
+  std::string workloadIds = "";
+
+  if(!tracesInfo.isValid()){
+    if(!zk::ZkConfig::isAllowAllCalls()){
+      return;
+    }
+  }else{
+    traceId = tracesInfo.getTraceId();
+    spanId = tracesInfo.getSpanId();
+    workloadIds = tracesInfo.getWorkloadIdsString();
+  }
+
   DataTable::RecordBuilder<&kPGSQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
@@ -1450,6 +1508,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
   r.Append<r.ColIndex("req")>(std::move(entry.req.payload));
   r.Append<r.ColIndex("resp")>(std::move(entry.resp.payload));
+  r.Append<r.ColIndex("trace_id")>(traceId);
+  r.Append<r.ColIndex("span_id")>(spanId);
+  r.Append<r.ColIndex("workload_ids")>(workloadIds);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(entry.req.timestamp_ns, entry.resp.timestamp_ns));
   r.Append<r.ColIndex("req_cmd")>(ToString(entry.req.tag, /* is_req */ true));

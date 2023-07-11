@@ -44,6 +44,18 @@ static constexpr DataElement kPGSQLElements[] = {
          types::DataType::STRING,
          types::SemanticType::ST_NONE,
          types::PatternType::GENERAL},
+        {"trace_id", "Trace id from request headers",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
+        {"span_id", "Span id from request headers",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
+        {"workload_ids", "Comma separated workload ids of evaluated scenarios",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
         canonical_data_elements::kLatencyNS,
 #ifndef NDEBUG
         canonical_data_elements::kPXInfo,
@@ -59,6 +71,9 @@ constexpr int kPGSQLUPIDIdx = kPGSQLTable.ColIndex("upid");
 constexpr int kPGSQLReqIdx = kPGSQLTable.ColIndex("req");
 constexpr int kPGSQLRespIdx = kPGSQLTable.ColIndex("resp");
 constexpr int kPGSQLReqCmdIdx = kPGSQLTable.ColIndex("req_cmd");
+constexpr int kPGSQLTraceIdIdx = kHTTPTable.ColIndex("trace_id");
+constexpr int kPGSQLSpanIdIdx = kHTTPTable.ColIndex("span_id");
+constexpr int kPGSQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_id");
 constexpr int kPGSQLLatencyIdx = kPGSQLTable.ColIndex("latency");
 
 }  // namespace stirling

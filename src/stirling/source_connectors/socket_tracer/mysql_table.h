@@ -59,6 +59,19 @@ static constexpr DataElement kMySQLElements[] = {
          types::SemanticType::ST_NONE,
          types::PatternType::GENERAL},
         canonical_data_elements::kLatencyNS,
+        {"trace_id", "Trace id from request headers",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
+        {"span_id", "Span id from request headers",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
+        {"workload_ids", "Comma separated workload ids of evaluated scenarios",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
+        canonical_data_elements::kLatencyNS,
 #ifndef NDEBUG
         canonical_data_elements::kPXInfo,
 #endif
@@ -75,6 +88,9 @@ constexpr int kMySQLReqCmdIdx = kMySQLTable.ColIndex("req_cmd");
 constexpr int kMySQLReqBodyIdx = kMySQLTable.ColIndex("req_body");
 constexpr int kMySQLRespStatusIdx = kMySQLTable.ColIndex("resp_status");
 constexpr int kMySQLRespBodyIdx = kMySQLTable.ColIndex("resp_body");
+constexpr int kMySQLTraceIdIdx = kHTTPTable.ColIndex("trace_id");
+constexpr int kMySQLSpanIdIdx = kHTTPTable.ColIndex("span_id");
+constexpr int kMySQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_id");
 constexpr int kMySQLLatencyIdx = kMySQLTable.ColIndex("latency");
 
 }  // namespace stirling

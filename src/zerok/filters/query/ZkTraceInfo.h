@@ -3,6 +3,8 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include "src/zerok/common/utils.h"
+
 
 namespace zk {
     class ZkTraceInfo{
@@ -29,6 +31,27 @@ namespace zk {
                 this->traceId = "";
                 this->spanId = "";
                 this->workloadIds = std::vector<std::string>();
+            }
+
+            ZkTraceInfo(std::string traceParent){
+                fromTraceParent(traceParent);
+            }
+
+            ZkTraceInfo fromTraceParent(std::string traceParent) {
+                std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
+                if(splitString.size() <= static_cast<size_t>(1)){
+                    printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent.c_str());
+                    return *this;
+                }
+                traceId = splitString.at(1);
+                if(traceId == ""){
+                    printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
+                    return *this;
+                }
+                spanId = splitString.at(2);
+                this->setTraceId(traceId);
+                this->setSpanId(spanId);
+                return *this;
             }
 
             //all the getters and setters
