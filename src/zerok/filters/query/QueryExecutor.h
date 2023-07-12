@@ -76,10 +76,13 @@ namespace zk{
                     printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
                 }
                 zkTraceInfo.fromTraceParent(traceParent);
-                if(zkTraceInfo.getTraceId() == "" || zkTraceInfo.getSpanId() == ""){
+                if(zkTraceInfo.isValid() == false){
                     printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
                     return zkTraceInfo;
                 }
+
+                traceId = zkTraceInfo.getTraceId();
+                spanId = zkTraceInfo.getSpanId();
                 std::cout << "\nAVIN_DEBUG_STORE_apply0102" << std::endl;
                 //TODO: Check if trace id is present, if not return false
                 if(ZkQueryManager::protocolToQueries.count(protocol) > 0){
