@@ -2,6 +2,7 @@
 
 #include <string>
 #include <vector>
+#include <set>
 #include <unordered_map>
 #include "src/zerok/common/utils.h"
 
@@ -11,11 +12,11 @@ namespace zk {
          private:
             std::string traceId;
             std::string spanId;
-            std::vector<std::string> workloadIds;
+            std::set<std::string> workloadIds;
         
         public:
             //default and full constructor
-            ZkTraceInfo(std::string traceId, std::string spanId, std::vector<std::string> workloadIds){
+            ZkTraceInfo(std::string traceId, std::string spanId, std::set<std::string> workloadIds){
                 this->traceId = traceId;
                 this->spanId = spanId;
                 this->workloadIds = workloadIds;
@@ -24,13 +25,13 @@ namespace zk {
             ZkTraceInfo(std::string traceId, std::string spanId){
                 this->traceId = traceId;
                 this->spanId = spanId;
-                this->workloadIds = std::vector<std::string>();
+                this->workloadIds = std::set<std::string>();
             }
 
             ZkTraceInfo(){
                 this->traceId = "";
                 this->spanId = "";
-                this->workloadIds = std::vector<std::string>();
+                this->workloadIds = std::set<std::string>();
             }
 
             ZkTraceInfo(std::string traceParent){
@@ -71,17 +72,17 @@ namespace zk {
                 this->spanId = spanId;
             }
 
-            std::vector<std::string> getWorkloadIds(){
+            std::set<std::string> getWorkloadIds(){
                 return workloadIds;
             }
 
-            void setWorkloadIds(std::vector<std::string> workloadIds){
+            void setWorkloadIds(std::set<std::string> workloadIds){
                 this->workloadIds = workloadIds;
             }
 
             //add workloadid method
             void addWorkloadId(std::string workloadId){
-                workloadIds.push_back(workloadId);
+                workloadIds.insert(workloadId);
             }
 
             //method to get the string representation of the workloadIds with comma separated values
