@@ -1377,19 +1377,25 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string spanId = "";
   std::string workloadIds = "";
 
+
   if(!zk::ZkConfig::isMySqlEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled false";
     return;
   }
 
   if(zk::ZkConfig::isMySqlTraceEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isMySqlNonTracedAllowed()){
+        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nontraced false";
         return;
       }
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nonrtraced true";
     }else{
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
@@ -1474,18 +1480,23 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string workloadIds = "";
 
   if(!zk::ZkConfig::isPgSqlEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled false";
     return;
   }
 
   if(zk::ZkConfig::isPgSqlTraceEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isPgSqlNonTracedAllowed()){
+        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced false";
         return;
       }
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced true";
     }else{
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
