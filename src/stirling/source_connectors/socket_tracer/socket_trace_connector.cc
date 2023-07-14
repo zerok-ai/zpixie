@@ -1386,7 +1386,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   if(zk::ZkConfig::isMySqlTraceEnabled()){
     LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
-    std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
+    std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.msg);
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isMySqlNonTracedAllowed()){
