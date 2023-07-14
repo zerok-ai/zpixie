@@ -2,6 +2,8 @@
 
 #include "./ZkServiceConfig.h"
 #include "./ZkRedisConfig.h"
+#include "./ZkMySqlConfig.h"
+#include "./ZkPgSqlConfig.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -14,6 +16,8 @@ namespace zk {
             static bool initialized;
             static ZkServiceConfig zkConfig;
             static ZkRedisConfig zkRedisConfig;
+            static ZkMySqlConfig zkMySqlConfig;
+            static ZkPgSqlConfig zkPgSqlConfig;
             
             static ZkServiceConfig parseZkServiceConfig(const std::string& filename) {
                 std::cout << "AVIN_DEBUG_ Found parsing service config: " << std::endl;
@@ -58,6 +62,134 @@ namespace zk {
 
                 file.close();
                 return localZkServiceConfig;
+            }
+
+            // Parse the YAML-like file and extract the 'mysql' section
+            static ZkMySqlConfig parseMySqlConfig(const std::string& filename) {
+                std::cout << "AVIN_DEBUG_ Found parsing mysql config: " << std::endl;
+                ZkMySqlConfig localZkMySqlConfig = ZkMySqlConfig();
+                std::ifstream file(filename);
+                if (!file.is_open()) {
+                    std::cout << "AVIN_DEBUG_ MySql Config Failed to open file: " << filename << std::endl;
+                    return localZkMySqlConfig;
+                }
+
+                std::string line;
+                std::string currentKey;
+                bool inMySqlSection = false;
+
+                while (std::getline(file, line)) {
+                    std::stringstream ss(line);
+                    std::string key;
+                    std::string value;
+                    std::getline(ss, key, ':');
+                    std::getline(ss, value);
+
+                    if (key.empty() && value.empty()) {
+                        continue;  // Skip empty lines
+                    }
+
+                    // Trim leading/trailing whitespaces
+                    key.erase(0, key.find_first_not_of(" \t"));
+                    key.erase(key.find_last_not_of(" \t") + 1);
+                    value.erase(0, value.find_first_not_of(" \t"));
+                    value.erase(value.find_last_not_of(" \t") + 1);
+
+                    if (value.empty()){
+                        if (key == "mysql") {
+                            inMySqlSection = true;
+                            localZkMySqlConfig.setInitialized(true);
+                            continue;
+                        }else{
+                            inMySqlSection = false;
+                        }
+                    }
+
+                    if (inMySqlSection) {
+                        if (key.empty() || value.empty()) {
+                            continue;  // Skip malformed lines
+                        }
+
+                        // Store key-value pairs
+                        if (key == "enabled") {
+                            localZkMySqlConfig.setEnabled(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
+                        } else if (key == "traceEnabled") {
+                            localZkMySqlConfig.setTraceEnabled(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
+                        } else if (key == "allowNonTraced") {
+                            localZkMySqlConfig.setAllowNonTraced(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                        }
+                    }
+                }
+
+                file.close();
+                return localZkMySqlConfig;
+            }
+
+            // Parse the YAML-like file and extract the 'pgsql' section
+            static ZkPgSqlConfig parsePgSqlConfig(const std::string& filename) {
+                std::cout << "AVIN_DEBUG_ Found parsing pgsql config: " << std::endl;
+                ZkPgSqlConfig localZkPgSqlConfig = ZkPgSqlConfig();
+                std::ifstream file(filename);
+                if (!file.is_open()) {
+                    std::cout << "AVIN_DEBUG_ PgSql Config Failed to open file: " << filename << std::endl;
+                    return localZkPgSqlConfig;
+                }
+
+                std::string line;
+                std::string currentKey;
+                bool inPgSqlSection = false;
+
+                while (std::getline(file, line)) {
+                    std::stringstream ss(line);
+                    std::string key;
+                    std::string value;
+                    std::getline(ss, key, ':');
+                    std::getline(ss, value);
+
+                    if (key.empty() && value.empty()) {
+                        continue;  // Skip empty lines
+                    }
+
+                    // Trim leading/trailing whitespaces
+                    key.erase(0, key.find_first_not_of(" \t"));
+                    key.erase(key.find_last_not_of(" \t") + 1);
+                    value.erase(0, value.find_first_not_of(" \t"));
+                    value.erase(value.find_last_not_of(" \t") + 1);
+
+                    if (value.empty()){
+                        if (key == "pgsql") {
+                            localZkPgSqlConfig.setInitialized(true);
+                            inPgSqlSection = true;
+                            continue;
+                        }else{
+                            inPgSqlSection = false;
+                        }
+                    }
+
+                    if (inPgSqlSection) {
+                        if (key.empty() || value.empty()) {
+                            continue;  // Skip malformed lines
+                        }
+
+                        // Store key-value pairs
+                        if (key == "enabled") {
+                            localZkPgSqlConfig.setEnabled(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
+                        } else if (key == "traceEnabled") {
+                            localZkPgSqlConfig.setTraceEnabled(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
+                        } else if (key == "allowNonTraced") {
+                            localZkPgSqlConfig.setAllowNonTraced(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                        }
+                    }
+                }
+
+                file.close();
+                return localZkPgSqlConfig;
             }
 
             // Parse the YAML-like file and extract the 'redis' section
@@ -134,11 +266,20 @@ namespace zk {
                 return zkRedisConfig;
             }
 
+            static ZkPgSqlConfig getZkPgSqlConfig(){
+                return zkPgSqlConfig;
+            }
+
+            static ZkMySqlConfig getZkMySqlConfig(){
+                return zkMySqlConfig;
+            }
+
             static void init(){
                 if(initialized){
                     return;
                 }
                 initialized = true;
+                //Redis config
                 ZkRedisConfig localZkRedisConfig = parseRedisConfig("/opt/zk-client-db-configmap.yaml");
                 if(localZkRedisConfig.getHost() != "ZK_NULL"){
                     std::cout << "AVIN_DEBUG_ localZkRedisConfig parsed" << localZkRedisConfig.getHost() << std::endl;
@@ -147,6 +288,8 @@ namespace zk {
                     std::cout << "AVIN_DEBUG_ localZkRedisConfig not parsed" << std::endl;
                     zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
                 }
+
+                //Service configs
                 ZkServiceConfig localZkServiceConfig = parseZkServiceConfig("/opt/zpixie-configmap.yaml");
                 if(localZkServiceConfig.isInitialized()){
                     std::cout << "AVIN_DEBUG_ localZkServiceConfig parsed" << std::endl;
@@ -155,12 +298,34 @@ namespace zk {
                     std::cout << "AVIN_DEBUG_ localZkServiceConfig not parsed" << std::endl;
                     zkConfig = ZkServiceConfig(false);
                 }
+
+                //PgSql Configs
+                ZkPgSqlConfig localZkPgSqlConfig = parsePgSqlConfig("/opt/zpixie-configmap.yaml");
+                if(localZkPgSqlConfig.isInitialized()){
+                    std::cout << "AVIN_DEBUG_ localZkPgSqlConfig parsed" << std::endl;
+                    zkPgSqlConfig = ZkPgSqlConfig(localZkPgSqlConfig.isEnabled(), localZkPgSqlConfig.isTraceEnabled(), localZkPgSqlConfig.isAllowNonTraced());
+                }else{
+                    std::cout << "AVIN_DEBUG_ localZkPgSqlConfig not parsed" << std::endl;
+                    zkPgSqlConfig = ZkPgSqlConfig();
+                }
+
+                //MySql Configs
+                ZkMySqlConfig localZkMySqlConfig = parseMySqlConfig("/opt/zpixie-configmap.yaml");
+                if(localZkMySqlConfig.isInitialized()){
+                    std::cout << "AVIN_DEBUG_ localZkMySqlConfig parsed" << std::endl;
+                    zkMySqlConfig = ZkMySqlConfig(localZkMySqlConfig.isEnabled(), localZkMySqlConfig.isTraceEnabled(), localZkMySqlConfig.isAllowNonTraced());
+                }else{
+                    std::cout << "AVIN_DEBUG_ localZkMySqlConfig not parsed" << std::endl;
+                    zkMySqlConfig = ZkMySqlConfig();
+                }
                 
             }
 
     };
 
     bool ZkConfigProvider::initialized = false;
+    ZkMySqlConfig ZkConfigProvider::zkMySqlConfig = ZkMySqlConfig();
+    ZkPgSqlConfig ZkConfigProvider::zkPgSqlConfig = ZkPgSqlConfig();
     ZkServiceConfig ZkConfigProvider::zkConfig = ZkServiceConfig(false);
     ZkRedisConfig ZkConfigProvider::zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
 }

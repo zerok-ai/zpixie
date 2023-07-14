@@ -4,6 +4,7 @@ namespace zk {
     class ZkServiceConfig{
         private:
             bool allowAllCalls;
+            
             bool initialized;
         
         public:

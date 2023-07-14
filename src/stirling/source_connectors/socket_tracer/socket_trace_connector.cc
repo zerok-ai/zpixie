@@ -1367,47 +1367,33 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 #endif
 }
 
-std::string extractTraceparentValue(const std::string& queryString) {
-    std::string traceparentValue;
-
-    std::size_t traceparentStart = queryString.find("traceparent:");
-    if (traceparentStart == std::string::npos) {
-        return traceparentValue;
-    }
-
-    traceparentStart += strlen("traceparent:");
-
-    std::size_t traceparentEnd = queryString.find(",", traceparentStart);
-    if (traceparentEnd == std::string::npos) {
-        return traceparentValue;
-    }
-
-    traceparentValue = queryString.substr(traceparentStart, traceparentEnd - traceparentStart);
-    return traceparentValue;
-}
-
-
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mysql::Record entry, DataTable* data_table) {
   md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
                 conn_tracker.conn_id().upid.start_time_ticks);
 
-  /* extract value of key traceparent from comment in entry.req.msg */
-  std::string traceParent = extractTraceparentValue(entry.req.msg);
-  zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
 
-  if(!tracesInfo.isValid()){
-    if(!zk::ZkConfig::isAllowAllCalls()){
-      return;
+  if(!zk::ZkConfig::isMySqlEnabled()){
+    return;
+  }
+
+  if(zk::ZkConfig::isMySqlTraceEnabled()){
+    /* extract value of key traceparent from comment in entry.req.msg */
+    std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
+    zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
+    if(!tracesInfo.isValid()){
+      if(!zk::ZkConfig::isMySqlNonTracedAllowed()){
+        return;
+      }
+    }else{
+      traceId = tracesInfo.getTraceId();
+      spanId = tracesInfo.getSpanId();
+      workloadIds = tracesInfo.getWorkloadIdsString();
     }
-  }else{
-    traceId = tracesInfo.getTraceId();
-    spanId = tracesInfo.getSpanId();
-    workloadIds = tracesInfo.getWorkloadIdsString();
   }
 
 
@@ -1483,21 +1469,27 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
                 conn_tracker.conn_id().upid.start_time_ticks);
 
-  /* extract value of key traceparent from comment in entry.req.msg */
-  std::string traceParent = extractTraceparentValue(entry.req.payload);
-  zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
 
-  if(!tracesInfo.isValid()){
-    if(!zk::ZkConfig::isAllowAllCalls()){
-      return;
+  if(!zk::ZkConfig::isPgSqlEnabled()){
+    return;
+  }
+
+  if(zk::ZkConfig::isPgSqlTraceEnabled()){
+    /* extract value of key traceparent from comment in entry.req.msg */
+    std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
+    zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
+    if(!tracesInfo.isValid()){
+      if(!zk::ZkConfig::isPgSqlNonTracedAllowed()){
+        return;
+      }
+    }else{
+      traceId = tracesInfo.getTraceId();
+      spanId = tracesInfo.getSpanId();
+      workloadIds = tracesInfo.getWorkloadIdsString();
     }
-  }else{
-    traceId = tracesInfo.getTraceId();
-    spanId = tracesInfo.getSpanId();
-    workloadIds = tracesInfo.getWorkloadIdsString();
   }
 
   DataTable::RecordBuilder<&kPGSQLTable> r(data_table, entry.resp.timestamp_ns);

@@ -81,6 +81,25 @@ namespace px {
           // zk::ZkQueryExecutor::initializeQueries();
         }
 
+        static std::string extractTraceparentValue(const std::string& queryString) {
+            std::string traceparentValue;
+
+            std::size_t traceparentStart = queryString.find("traceparent:");
+            if (traceparentStart == std::string::npos) {
+                return traceparentValue;
+            }
+
+            traceparentStart += strlen("traceparent:");
+
+            std::size_t traceparentEnd = queryString.find(",", traceparentStart);
+            if (traceparentEnd == std::string::npos) {
+                return traceparentValue;
+            }
+
+            traceparentValue = queryString.substr(traceparentStart, traceparentEnd - traceparentStart);
+            return traceparentValue;
+        }
+
         //returns passthrough value - as in if the given record is allowed to be writtent o the db (apache arrow)
         static zk::ZkTraceInfo httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){
