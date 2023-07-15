@@ -166,6 +166,7 @@ namespace zk {
                     return parsedQuery; // Return nullptr if any required field is missing
                 }
 
+                parsedQuery = new Query();
                 std::string protocolString = doc["protocol"].GetString();
                 std::string traceRoleString = doc["trace_role"].GetString();
                 std::string serviceString = doc["service"].GetString();
