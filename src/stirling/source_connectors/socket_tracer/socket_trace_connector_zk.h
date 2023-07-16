@@ -82,7 +82,7 @@ namespace px {
         }
 
         static std::string extractTraceparentValue(const std::string& queryString) {
-            std::string traceparentValue;
+            std::string traceparentValue = "ZK_NULL";
 
             std::size_t traceparentStart = queryString.find("traceparent:");
             if (traceparentStart == std::string::npos) {

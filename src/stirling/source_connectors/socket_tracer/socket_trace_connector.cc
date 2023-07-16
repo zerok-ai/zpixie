@@ -1384,18 +1384,21 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   }
 
   if(zk::ZkConfig::isMySqlTraceEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled true";
+    // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.msg);
+    if(traceParent == "ZK_NULL" || traceParent == ""){
+      return;
+    }
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isMySqlNonTracedAllowed()){
-        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nontraced false";
+        // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nontraced false";
         return;
       }
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nonrtraced true";
+      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nonrtraced true";
     }else{
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
+      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
@@ -1480,23 +1483,26 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string workloadIds = "";
 
   if(!zk::ZkConfig::isPgSqlEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled false";
+    // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled false";
     return;
   }
 
   if(zk::ZkConfig::isPgSqlTraceEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled true";
+    // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
+    if(traceParent == "ZK_NULL" || traceParent == ""){
+      return;
+    }
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isPgSqlNonTracedAllowed()){
-        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced false";
+        // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced false";
         return;
       }
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced true";
+      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced true";
     }else{
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
+      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
