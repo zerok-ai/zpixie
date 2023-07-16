@@ -190,7 +190,9 @@ namespace zk {
                 //////////
                 const rapidjson::Value& ruleDoc = doc["rule"];
                 Rule* parsedRule = parse(ruleDoc);
-                andRule->rules.push_back(parsedRule);
+                if(parsedRule != nullptr){
+                    andRule->rules.push_back(parsedRule);
+                }
 
                 parsedQuery->rule = andRule;
                 return parsedQuery;
@@ -217,7 +219,9 @@ namespace zk {
                 int rulesDocSize = static_cast<int>(rulesDoc.Size());
                 for (int i = 0; i < rulesDocSize; i++) {
                     Rule* rule = parse(rulesDoc[i]);
-                    vector.push_back(rule);
+                    if(rule != nullptr){
+                        vector.push_back(rule);
+                    }
                 }
                 rule->rules = vector;
                 return rule;
@@ -263,36 +267,86 @@ namespace zk {
 
             static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc){
                 SimpleRule* rule = nullptr;
-                FieldType fieldType = fieldTypeMap[ruleDoc["datatype"].GetString()];
 
-                if (fieldType == STRING){
+                // Check if the rule document is an object
+                if (!ruleDoc.IsObject()) {
+                    std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for simple rule. Expected an object. Line: " << __LINE__ << std::endl;
+                    return rule; // Return nullptr if JSON is not an object
+                }
+
+                // Check if the required fields exist in the rule document
+                if (!ruleDoc.HasMember("id") || !ruleDoc.HasMember("datatype") || !ruleDoc.HasMember("operator") || !ruleDoc.HasMember("value")) {
+                    std::cout << "AVIN_DEBUG_ QueryBuilder Missing required fields in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                    return rule; // Return nullptr if any required field is missing
+                }
+
+                // Get the field values from the rule document
+                std::string id = ruleDoc["id"].GetString();
+                std::string datatype = ruleDoc["datatype"].GetString();
+                std::string op = ruleDoc["operator"].GetString();
+
+                // Check if the field values are valid
+                if (id.empty() || datatype.empty() || op.empty()) {
+                    std::cout << "AVIN_DEBUG_ QueryBuilder Invalid field values in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                    return rule; // Return nullptr if any field value is invalid
+                }
+
+                // Check if the datatype is a valid FieldType
+                FieldType fieldType = fieldTypeMap[datatype];
+                if (fieldTypeMap.find(datatype) == fieldTypeMap.end()) {
+                    std::cout << "AVIN_DEBUG_ QueryBuilder Unknown datatype in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                    return rule; // Return nullptr if the operator is unknown
+                }
+
+                // Create the appropriate SimpleRule based on the datatype
+                if (fieldType == STRING) {
                     rule = new SimpleRuleString();
                     ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
-                }else if(fieldType == INTEGER){
+                } else if (fieldType == INTEGER) {
                     rule = new SimpleRuleInteger();
-                    // ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
 
                     if (ruleDoc["value"].IsString()) {
                         std::string value = ruleDoc["value"].GetString();
-                        int valueInt = std::stoi(value);
-                        ((SimpleRuleInteger*)rule)->value = valueInt;
+                        try {
+                            int valueInt = std::stoi(value);
+                            ((SimpleRuleInteger*)rule)->value = valueInt;
+                        } catch (const std::exception& e) {
+                            std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse integer value in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                            delete rule; // Delete the created rule object
+                            return nullptr; // Return nullptr if failed to parse integer value
+                        }
+                    } else if (ruleDoc["value"].IsInt()) {
+                        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+                    } else {
+                        std::cout << "AVIN_DEBUG_ QueryBuilder Invalid value type in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                        delete rule; // Delete the created rule object
+                        return nullptr; // Return nullptr if value type is invalid
                     }
-                }else if(fieldType == KEY_MAP){
+                } else if (fieldType == KEY_MAP) {
                     rule = new SimpleRuleKeyValue();
                     ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
-                }else if(fieldType == WORKLOAD_IDENTIFIER){
+                } else if (fieldType == WORKLOAD_IDENTIFIER) {
                     return parseWorkloadIdentifierRule(ruleDoc);
-                }else{
-                    return rule;
+                } else {
+                    std::cout << "AVIN_DEBUG_ QueryBuilder Unsupported datatype in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                    return rule; // Return nullptr if the datatype is unsupported
                 }
 
-                rule->id = ruleDoc["id"].GetString();
+                // Set the remaining fields of the rule object
+                rule->id = id;
                 rule->type = fieldType;
-                if (ruleDoc.HasMember("key")){
+                if (ruleDoc.HasMember("key")) {
                     rule->key = ruleDoc["key"].GetString();
                 }
-                
-                rule->operatorType = operatorTypeMap[ruleDoc["operator"].GetString()];
+
+                // Check if the operator is a valid OperatorType
+                if (operatorTypeMap.find(op) == operatorTypeMap.end()) {
+                    std::cout << "AVIN_DEBUG_ QueryBuilder Unknown operator in the simple rule JSON. Line: " << __LINE__ << std::endl;
+                    delete rule; // Delete the created rule object
+                    return nullptr; // Return nullptr if the operator is unknown
+                }
+                rule->operatorType = operatorTypeMap[op];
+
                 return rule;
             }
 
