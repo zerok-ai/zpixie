@@ -4,6 +4,7 @@
 #include "./ZkRedisConfig.h"
 #include "./ZkMySqlConfig.h"
 #include "./ZkPgSqlConfig.h"
+#include "./ZkHttpConfig.h"
 #include <iostream>
 #include <fstream>
 #include <sstream>
@@ -17,6 +18,7 @@ namespace zk {
             static ZkServiceConfig zkConfig;
             static ZkRedisConfig zkRedisConfig;
             static ZkMySqlConfig zkMySqlConfig;
+            static ZkHttpConfig zkHttpConfig;
             static ZkPgSqlConfig zkPgSqlConfig;
             
             static ZkServiceConfig parseZkServiceConfig(const std::string& filename) {
@@ -62,6 +64,70 @@ namespace zk {
 
                 file.close();
                 return localZkServiceConfig;
+            }
+
+            // Parse the YAML-like file and extract the 'mysql' section
+            static ZkHttpConfig parseHttpConfig(const std::string& filename) {
+                std::cout << "AVIN_DEBUG_ Found parsing mysql config: " << std::endl;
+                ZkHttpConfig localZkHttpConfig = ZkHttpConfig();
+                std::ifstream file(filename);
+                if (!file.is_open()) {
+                    std::cout << "AVIN_DEBUG_ Http Config Failed to open file: " << filename << std::endl;
+                    return localZkHttpConfig;
+                }
+
+                std::string line;
+                std::string currentKey;
+                bool inHttpSection = false;
+
+                while (std::getline(file, line)) {
+                    std::stringstream ss(line);
+                    std::string key;
+                    std::string value;
+                    std::getline(ss, key, ':');
+                    std::getline(ss, value);
+
+                    if (key.empty() && value.empty()) {
+                        continue;  // Skip empty lines
+                    }
+
+                    // Trim leading/trailing whitespaces
+                    key.erase(0, key.find_first_not_of(" \t"));
+                    key.erase(key.find_last_not_of(" \t") + 1);
+                    value.erase(0, value.find_first_not_of(" \t"));
+                    value.erase(value.find_last_not_of(" \t") + 1);
+
+                    if (value.empty()){
+                        if (key == "mysql") {
+                            inHttpSection = true;
+                            localZkHttpConfig.setInitialized(true);
+                            continue;
+                        }else{
+                            inHttpSection = false;
+                        }
+                    }
+
+                    if (inHttpSection) {
+                        if (key.empty() || value.empty()) {
+                            continue;  // Skip malformed lines
+                        }
+
+                        // Store key-value pairs
+                        if (key == "enabled") {
+                            localZkHttpConfig.setEnabled(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
+                        } else if (key == "traceEnabled") {
+                            localZkHttpConfig.setTraceEnabled(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
+                        } else if (key == "allowNonTraced") {
+                            localZkHttpConfig.setAllowNonTraced(value == "true" || value == "1" || value == "TRUE");
+                            std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                        }
+                    }
+                }
+
+                file.close();
+                return localZkHttpConfig;
             }
 
             // Parse the YAML-like file and extract the 'mysql' section
@@ -274,6 +340,10 @@ namespace zk {
                 return zkMySqlConfig;
             }
 
+            static ZkHttpConfig getZkHttpConfig(){
+                return zkHttpConfig;
+            }
+
             static void init(){
                 if(initialized){
                     return;
@@ -318,6 +388,16 @@ namespace zk {
                     std::cout << "AVIN_DEBUG_ localZkMySqlConfig not parsed" << std::endl;
                     zkMySqlConfig = ZkMySqlConfig();
                 }
+
+                //Http Configs
+                ZkHttpConfig localZkHttpConfig = parseHttpConfig("/opt/zpixie-configmap.yaml");
+                if(localZkHttpConfig.isInitialized()){
+                    std::cout << "AVIN_DEBUG_ localZkHttpConfig parsed" << std::endl;
+                    zkHttpConfig = ZkHttpConfig(localZkHttpConfig.isEnabled(), localZkHttpConfig.isTraceEnabled(), localZkHttpConfig.isAllowNonTraced());
+                }else{
+                    std::cout << "AVIN_DEBUG_ localZkHttpConfig not parsed" << std::endl;
+                    zkHttpConfig = ZkHttpConfig();
+                }
                 
             }
 
@@ -325,6 +405,7 @@ namespace zk {
 
     bool ZkConfigProvider::initialized = false;
     ZkMySqlConfig ZkConfigProvider::zkMySqlConfig = ZkMySqlConfig();
+    ZkHttpConfig ZkConfigProvider::zkHttpConfig = ZkHttpConfig();
     ZkPgSqlConfig ZkConfigProvider::zkPgSqlConfig = ZkPgSqlConfig();
     ZkServiceConfig ZkConfigProvider::zkConfig = ZkServiceConfig(false);
     ZkRedisConfig ZkConfigProvider::zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);

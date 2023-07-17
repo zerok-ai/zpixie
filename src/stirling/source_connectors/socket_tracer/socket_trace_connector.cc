@@ -1199,21 +1199,36 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   }
 
   //Zerok Starts
-  //HTTP Filters go here
-  zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
-  if(!tracesInfo.isValid()){
-    if(!zk::ZkConfig::isAllowAllCalls()){
-      return;
-    }
-  }else{
-    traceId = tracesInfo.getTraceId();
-    spanId = tracesInfo.getSpanId();
-    workloadIds = tracesInfo.getWorkloadIdsString();
+
+
+  if(!zk::ZkConfig::isHttpEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled false";
+    return;
   }
-  
+
+  if(zk::ZkConfig::isHttpTraceEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled true";
+
+    zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
+    if(!tracesInfo.isValid()){
+      if(!zk::ZkConfig::isHttpNonTracedAllowed()){
+        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nontraced false";
+        return;
+      }
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nonrtraced true";
+    }else{
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http traces valid";
+      traceId = tracesInfo.getTraceId();
+      spanId = tracesInfo.getSpanId();
+      workloadIds = tracesInfo.getWorkloadIdsString();
+    }
+  }
+
+  //HTTP Filters go here
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
@@ -1306,27 +1321,35 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string respBody = resp_stream->ConsumeData();
   std::string respHeadersJson = ToJSONString(resp_stream->headers());
   int64_t latency = CalculateLatency(req_stream->timestamp_ns, resp_stream->timestamp_ns);
-  /*
-  uint64_t time, md::UPID upid, std::string remoteAddr, 
-  int remotePort, int traceRole, int majorVersion, int minorVersion, std::string reqHeadesJson, 
-  HTTPContentType content_type, std::string reqMethod, std::string reqPath, int64_t respStatus, 
-  std::string respMessage, size_t reqBodySize, std::string reqBody, size_t respBodySize, 
-  std::string respBody, std::string respHeadersJson, int64_t latency
-  */
-  zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
-    minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
-    respBodySize, respBody, respHeadersJson, latency);
+  
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
-  if(!tracesInfo.isValid()){
-    if(!zk::ZkConfig::isAllowAllCalls()){
-      return;
+
+
+  if(!zk::ZkConfig::isHttpEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled false";
+    return;
+  }
+
+  if(zk::ZkConfig::isHttpTraceEnabled()){
+    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled true";
+
+    zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
+                minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
+                respBodySize, respBody, respHeadersJson, latency);
+    if(!tracesInfo.isValid()){
+      if(!zk::ZkConfig::isHttpNonTracedAllowed()){
+        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nontraced false";
+        return;
+      }
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nonrtraced true";
+    }else{
+      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http traces valid";
+      traceId = tracesInfo.getTraceId();
+      spanId = tracesInfo.getSpanId();
+      workloadIds = tracesInfo.getWorkloadIdsString();
     }
-  }else{
-    traceId = tracesInfo.getTraceId();
-    spanId = tracesInfo.getSpanId();
-    workloadIds = tracesInfo.getWorkloadIdsString();
   }
   //Zerok Ends
 
