@@ -66,10 +66,14 @@ UProbeManager::UProbeManager(bpf_tools::BCCWrapper* bcc) : bcc_(bcc) {
   proc_parser_ = std::make_unique<system::ProcParser>();
 }
 
-void UProbeManager::Init(bool enable_http2_tracing, bool disable_self_probing) {
+void UProbeManager::Init(bool disable_go_tls_tracing, bool enable_http2_tracing,
+                         bool disable_self_probing) {
+  cfg_disable_go_tls_tracing_ = disable_go_tls_tracing;
   cfg_enable_http2_tracing_ = enable_http2_tracing;
   cfg_disable_self_probing_ = disable_self_probing;
 
+  openssl_source_map_ =
+      UserSpaceManagedBPFMap<uint32_t, ssl_source_t>::Create(bcc_, "openssl_source_map");
   openssl_symaddrs_map_ = UserSpaceManagedBPFMap<uint32_t, struct openssl_symaddrs_t>::Create(
       bcc_, "openssl_symaddrs_map");
   go_common_symaddrs_map_ = UserSpaceManagedBPFMap<uint32_t, struct go_common_symaddrs_t>::Create(
@@ -274,6 +278,15 @@ StatusOr<std::vector<std::filesystem::path>> FindHostPathForPIDLibs(
                                 HostPathForPIDPathSearchType::kSearchTypeEndsWith);
 }
 
+enum class SSLSocketFDAccess {
+  // Specifies that a connection's socket fd will be identified by accessing struct members
+  // of the SSL struct exposed by OpenSSL's API when the SSL_write/SSL_read functions are called.
+  kUserSpaceOffsets,
+  // Specifies that a connection's socket fd will be identified based on the underlying syscall
+  // (read, write, etc) while a user space tls function is on the stack.
+  kNestedSyscall,
+};
+
 // SSLLibMatcher allows customizing the search of shared object files
 // that need to be traced with the SSL_write and SSL_read uprobes.
 // In dynamically linked cases, it's likely that there are two
@@ -283,32 +296,72 @@ struct SSLLibMatcher {
   std::string_view libssl;
   std::string_view libcrypto;
   HostPathForPIDPathSearchType search_type;
+  SSLSocketFDAccess socket_fd_access;
 };
+
+constexpr char kLibSSL_1_1[] = "libssl.so.1.1";
+constexpr char kLibSSL_3[] = "libssl.so.3";
+constexpr char kLibPython[] = "libpython";
 
 static constexpr const auto kLibSSLMatchers = MakeArray<SSLLibMatcher>({
     SSLLibMatcher{
-        .libssl = "libssl.so.1.1",
+        .libssl = kLibSSL_1_1,
         .libcrypto = "libcrypto.so.1.1",
         .search_type = HostPathForPIDPathSearchType::kSearchTypeEndsWith,
+        .socket_fd_access = SSLSocketFDAccess::kNestedSyscall,
     },
     SSLLibMatcher{
-        .libssl = "libssl.so.3",
+        .libssl = kLibSSL_3,
         .libcrypto = "libcrypto.so.3",
         .search_type = HostPathForPIDPathSearchType::kSearchTypeEndsWith,
+        .socket_fd_access = SSLSocketFDAccess::kNestedSyscall,
     },
     SSLLibMatcher{
         // This must match independent of python version and INSTSONAME suffix
         // (e.g. libpython3.10.so.0.1).
-        .libssl = "libpython",
-        .libcrypto = "libpython",
+        .libssl = kLibPython,
+        .libcrypto = kLibPython,
         .search_type = HostPathForPIDPathSearchType::kSearchTypeContains,
+        .socket_fd_access = SSLSocketFDAccess::kNestedSyscall,
     },
+    // non BIO native TLS applications cannot be probed by accessing the socket fd
+    // within the underlying syscall.
     SSLLibMatcher{
         .libssl = kLibNettyTcnativePrefix,
         .libcrypto = kLibNettyTcnativePrefix,
         .search_type = HostPathForPIDPathSearchType::kSearchTypeContains,
+        .socket_fd_access = SSLSocketFDAccess::kUserSpaceOffsets,
     },
 });
+
+ssl_source_t SSLSourceFromLib(std::string_view libssl) {
+  if (libssl == kLibSSL_1_1) {
+    return kLibSSL_1_1_Source;
+  } else if (libssl == kLibSSL_3) {
+    return kLibSSL_3_Source;
+  } else if (libssl == kLibPython) {
+    return kLibPythonSource;
+  } else if (libssl == kLibNettyTcnativePrefix) {
+    return kLibNettyTcnativeSource;
+  }
+
+  DCHECK(false) << "Unable to find matching ssl_source_t for library matcher: " << libssl;
+
+  return kSSLUnspecified;
+}
+
+std::string ProbeFuncForSocketAccessMethod(std::string_view probe_fn,
+                                           SSLSocketFDAccess socket_fd_access) {
+  std::string probe_suffix = "";
+  switch (socket_fd_access) {
+    case SSLSocketFDAccess::kUserSpaceOffsets:
+      break;
+    case SSLSocketFDAccess::kNestedSyscall:
+      probe_suffix = "_syscall_fd_access";
+  }
+
+  return absl::StrCat(probe_fn, probe_suffix);
+}
 
 // Return error if something unexpected occurs.
 // Return 0 if nothing unexpected, but there is nothing to deploy (e.g. no OpenSSL detected).
@@ -316,12 +369,6 @@ StatusOr<int> UProbeManager::AttachOpenSSLUProbesOnDynamicLib(uint32_t pid) {
   for (auto ssl_library_match : kLibSSLMatchers) {
     const auto libssl = ssl_library_match.libssl;
     const auto libcrypto = ssl_library_match.libcrypto;
-
-    // TODO(ddelnano): The legacy tls tracing implementation does not support OpenSSL v3.
-    // Remove this once that implementation is removed in addition to the feature toggle.
-    if (!FLAGS_access_tls_socket_fd_via_syscall && absl::EndsWith(libssl, "so.3")) {
-      continue;
-    }
 
     const std::vector<std::string_view> lib_names = {libssl, libcrypto};
     const auto search_type = ssl_library_match.search_type;
@@ -351,7 +398,7 @@ StatusOr<int> UProbeManager::AttachOpenSSLUProbesOnDynamicLib(uint32_t pid) {
       return error::Internal("libcrypto not found [path = $0]", container_libcrypto.string());
     }
 
-    if (!FLAGS_access_tls_socket_fd_via_syscall || libssl == kLibNettyTcnativePrefix) {
+    if (libssl == kLibNettyTcnativePrefix) {
       auto fptr_manager = std::make_unique<obj_tools::RawFptrManager>(container_libcrypto);
 
       PX_RETURN_IF_ERROR(UpdateOpenSSLSymAddrs(fptr_manager.get(), container_libcrypto, pid));
@@ -363,14 +410,17 @@ StatusOr<int> UProbeManager::AttachOpenSSLUProbesOnDynamicLib(uint32_t pid) {
       return 0;
     }
 
+    auto ssl_source = SSLSourceFromLib(libssl);
+    // Optimisitcally update the SSL lib source since the probes can trigger
+    // before the BPF map is updated. This value is cleaned up when the upid is
+    // terminated, so if attachment fails it will be deleted prior to the pid being
+    // reused.
+    openssl_source_map_->UpdateValue(pid, ssl_source);
     for (auto spec : kOpenSSLUProbes) {
       spec.binary_path = container_libssl.string();
+      spec.probe_fn =
+          ProbeFuncForSocketAccessMethod(spec.probe_fn, ssl_library_match.socket_fd_access);
 
-      // TODO(ddelnano): Remove this conditional logic once the new tls tracing
-      // implementation is the default.
-      if (FLAGS_access_tls_socket_fd_via_syscall && libssl != kLibNettyTcnativePrefix) {
-        spec.probe_fn = absl::Substitute("$0_syscall_fd_access", spec.probe_fn);
-      }
       PX_RETURN_IF_ERROR(LogAndAttachUProbe(spec));
     }
   }
@@ -407,6 +457,26 @@ StatusOr<std::array<UProbeTmpl, 6>> UProbeManager::GetNodeOpensslUProbeTmpls(con
   return iter->second;
 }
 
+StatusOr<int> UProbeManager::AttachOpenSSLUProbesOnStaticBinary(const uint32_t pid) {
+  PX_ASSIGN_OR_RETURN(const std::filesystem::path proc_exe, proc_parser_->GetExePath(pid));
+  const auto host_proc_exe = ProcPidRootPath(pid, proc_exe);
+
+  PX_ASSIGN_OR_RETURN(auto elf_reader, ElfReader::Create(host_proc_exe));
+  auto statusor = elf_reader->SearchTheOnlySymbol("SSL_write");
+
+  if (error::IsNotFound(statusor.status())) {
+    return 0;
+  }
+  PX_RETURN_IF_ERROR(statusor);
+
+  for (auto spec : kOpenSSLUProbes) {
+    spec.binary_path = host_proc_exe.string();
+    spec.probe_fn = absl::StrCat(spec.probe_fn, "_syscall_fd_access");
+    PX_RETURN_IF_ERROR(LogAndAttachUProbe(spec));
+  }
+  return kOpenSSLUProbes.size();
+}
+
 StatusOr<int> UProbeManager::AttachNodeJsOpenSSLUprobes(const uint32_t pid) {
   PX_ASSIGN_OR_RETURN(const std::filesystem::path proc_exe, proc_parser_->GetExePath(pid));
 
@@ -424,6 +494,12 @@ StatusOr<int> UProbeManager::AttachNodeJsOpenSSLUprobes(const uint32_t pid) {
 
   PX_ASSIGN_OR_RETURN(const SemVer ver, GetNodeVersion(pid, proc_exe));
   PX_RETURN_IF_ERROR(UpdateNodeTLSWrapSymAddrs(pid, host_proc_exe, ver));
+
+  // Optimisitcally update the SSL lib source since the probes can trigger
+  // before the BPF map is updated. This value is cleaned up when the upid is
+  // terminated, so if attachment fails it will be deleted prior to the pid being
+  // reused.
+  openssl_source_map_->UpdateValue(pid, kNodeJSSource);
 
   // These probes are attached on OpenSSL dynamic library (if present) as well.
   // Here they are attached on statically linked OpenSSL library (eg. for node).
@@ -523,6 +599,7 @@ std::thread UProbeManager::RunDeployUProbesThread(const absl::flat_hash_set<md::
 
 void UProbeManager::CleanupPIDMaps(const absl::flat_hash_set<md::UPID>& deleted_upids) {
   for (const auto& pid : deleted_upids) {
+    openssl_source_map_->RemoveValue(pid.pid());
     openssl_symaddrs_map_->RemoveValue(pid.pid());
     go_common_symaddrs_map_->RemoveValue(pid.pid());
     go_tls_symaddrs_map_->RemoveValue(pid.pid());
@@ -559,16 +636,42 @@ int UProbeManager::DeployOpenSSLUProbes(const absl::flat_hash_set<md::UPID>& pid
     if (count_or.ok()) {
       uprobe_count += count_or.ValueOrDie();
       VLOG(1) << absl::Substitute(
-          "Attaching OpenSSL uprobes on executable statically linked OpenSSL library succeeded for "
+          "Attaching OpenSSL uprobes on NodeJS (statically linked OpenSSL) succeeded for "
           "PID $0: $1 probes",
           pid.pid(), count_or.ValueOrDie());
     } else {
       monitor_.AppendSourceStatusRecord("socket_tracer", count_or.status(),
                                         "AttachNodeJsOpenSSLUprobes");
       VLOG(1) << absl::Substitute(
-          "Attaching OpenSSL uprobes on executable statically linked OpenSSL library failed for "
+          "Attaching OpenSSL uprobes on NodeJS (statically linked OpenSSL) failed for "
           "PID $0: $1",
           pid.pid(), count_or.ToString());
+    }
+
+    // Attach uprobes to statically linked applications only if no other probes have been attached.
+    if (FLAGS_stirling_trace_static_tls_binaries && count_or.ok() && count_or.ValueOrDie() == 0) {
+      // Optimisitcally update the SSL lib source since the probes can trigger
+      // before the BPF map is updated. This value is cleaned up when the upid is
+      // terminated, so if attachment fails it will be deleted prior to the pid being
+      // reused.
+      openssl_source_map_->UpdateValue(pid.pid(), kStaticallyLinkedSource);
+      count_or = AttachOpenSSLUProbesOnStaticBinary(pid.pid());
+
+      if (count_or.ok()) {
+        uprobe_count += count_or.ValueOrDie();
+
+        VLOG(1) << absl::Substitute(
+            "Attaching OpenSSL uprobes on executable statically linked OpenSSL library"
+            "succeeded for PID $0: $1 probes",
+            pid.pid(), count_or.ValueOrDie());
+      } else {
+        monitor_.AppendSourceStatusRecord("socket_tracer", count_or.status(),
+                                          "AttachOpenSSLUprobesStaticBinary");
+        VLOG(1) << absl::Substitute(
+            "Attaching OpenSSL uprobes on executable statically linked OpenSSL library failed"
+            "for PID $0: $1",
+            pid.pid(), count_or.ToString());
+      }
     }
   }
 
@@ -779,7 +882,7 @@ int UProbeManager::DeployGoUProbes(const absl::flat_hash_set<md::UPID>& pids) {
     }
 
     // GoTLS Probes.
-    {
+    if (!cfg_disable_go_tls_tracing_) {
       StatusOr<int> attach_status =
           AttachGoTLSUProbes(binary, elf_reader.get(), dwarf_reader.get(), pid_vec);
       if (!attach_status.ok()) {
@@ -793,7 +896,7 @@ int UProbeManager::DeployGoUProbes(const absl::flat_hash_set<md::UPID>& pids) {
     }
 
     // Go HTTP2 Probes.
-    if (cfg_enable_http2_tracing_) {
+    if (!cfg_disable_go_tls_tracing_ && cfg_enable_http2_tracing_) {
       StatusOr<int> attach_status =
           AttachGoHTTP2UProbes(binary, elf_reader.get(), dwarf_reader.get(), pid_vec);
       if (!attach_status.ok()) {

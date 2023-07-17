@@ -14,7 +14,6 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-load("@io_bazel_rules_docker//container:container.bzl", "container_push")
 load("@io_bazel_rules_go//go:def.bzl", "go_library")
 load("//bazel:pl_build_system.bzl", "pl_go_binary", "pl_go_image")
 
@@ -48,6 +47,7 @@ go_library(
         "@com_github_spf13_viper//:viper",
         "@io_etcd_go_etcd_client_pkg_v3//transport",
         "@io_etcd_go_etcd_client_v3//:client",
+        "@io_k8s_api//core/v1:core",
         "@org_golang_google_grpc//:go_default_library",
     ],
 )
@@ -65,13 +65,4 @@ pl_go_image(
         "//k8s:__subpackages__",
         "//src/vizier:__subpackages__",
     ],
-)
-
-container_push(
-    name = "push_vizier_metadata_server_image",
-    format = "Docker",
-    image = ":metadata_server_image",
-    registry = "gcr.io",
-    repository = "pixie-oss/pixie-dev/vizier/metadata_server_image",
-    tag = "{STABLE_BUILD_TAG}",
 )

@@ -43,8 +43,8 @@ var availableFeatureFlags = []*featureFlag{
 		DefaultValue:    true,
 	},
 	{
-		FeatureFlagName: "access-tls-socket-fd-via-syscall",
-		VizierFlagName:  "PL_ACCESS_TLS_SOCKET_FD_VIA_SYSCALL",
+		FeatureFlagName: "probe-static-tls-binaries",
+		VizierFlagName:  "PX_TRACE_STATIC_TLS_BINARIES",
 		DefaultValue:    false,
 	},
 }

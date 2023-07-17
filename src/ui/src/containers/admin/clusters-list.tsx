@@ -19,17 +19,24 @@
 import * as React from 'react';
 
 import { gql, useQuery } from '@apollo/client';
+import { Close as CloseIcon } from '@mui/icons-material';
 import {
   Button,
+  Card,
+  IconButton,
+  Modal,
   Table,
   TableBody,
   TableHead,
   TableRow,
+  Tooltip,
 } from '@mui/material';
 import { Theme } from '@mui/material/styles';
 import { createStyles, makeStyles } from '@mui/styles';
-import { Link } from 'react-router-dom';
+import { Link, Route, RouteComponentProps, Switch, useRouteMatch } from 'react-router-dom';
 
+import { Spinner } from 'app/components';
+import { ClusterDetails } from 'app/containers/admin/cluster-details';
 import { GQLClusterInfo } from 'app/types/schema';
 
 import {
@@ -55,15 +62,65 @@ type ClusterRowInfo = Pick<GQLClusterInfo,
 'lastHeartbeatMs'>;
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  modalRoot: {
+    width: '90vw',
+    maxWidth: theme.breakpoints.values.lg,
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: 'translate(-50%, -50%)',
+    // A consistent height, even if most of it is unused in some tabs, avoids controls jumping around the screen.
+    height: `calc(min(90vh, ${theme.breakpoints.values.md}px))`,
+    overflow: 'auto',
+  },
   error: {
+    display: 'flex',
+    flexFlow: 'row nowrap',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100%',
+    width: '100%',
     padding: theme.spacing(1),
   },
   removePadding: {
     padding: 0,
   },
+  root: {
+    position: 'relative',
+    width: '100%',
+    maxWidth: theme.breakpoints.values.lg,
+    margin: '0 auto',
+  },
+  loadingIndicator: {
+    position: 'absolute',
+    bottom: theme.spacing(-5),
+    left: '50%',
+    transform: 'translateX(-50%)',
+  },
+  table: {
+    '& td, & th': {
+      padding: theme.spacing(1), // Half of the default
+    },
+    '& th:first-child, & td:first-child > div': {
+      textAlign: 'center',
+      justifyContent: 'center',
+    },
+  },
+  tableHeadRow: {
+    '& > th': {
+      fontWeight: 'normal',
+      textTransform: 'uppercase',
+      color: theme.palette.foreground.grey4,
+    },
+  },
+  tableRow: {
+    '& > td > a': {
+      justifyContent: 'flex-start',
+    },
+  },
 }), { name: 'ClustersTable' });
 
-export const ClustersTable = React.memo(() => {
+export const ClustersTableInner = React.memo(() => {
   const classes = useStyles();
   const { data, loading, error } = useQuery<{
     clusters: ClusterRowInfo[]
@@ -86,54 +143,102 @@ export const ClustersTable = React.memo(() => {
     { pollInterval: 60000, fetchPolicy: 'network-only', nextFetchPolicy: 'cache-and-network' },
   );
 
-  const clusters = data?.clusters
-    .filter((cluster) => cluster.lastHeartbeatMs < INACTIVE_CLUSTER_THRESHOLD_MS)
-    .sort((clusterA, clusterB) => clusterA.prettyClusterName.localeCompare(clusterB.prettyClusterName));
+  const [clusters, setClusters] = React.useState<ClusterRowInfo[]>([]);
+  React.useEffect(() => {
+    if (data?.clusters) {
+      setClusters(data?.clusters
+        .filter((cluster) => cluster.lastHeartbeatMs < INACTIVE_CLUSTER_THRESHOLD_MS)
+        .sort((clusterA, clusterB) => clusterA.prettyClusterName.localeCompare(clusterB.prettyClusterName)));
+    }
+  }, [data?.clusters]);
 
-  if (loading) {
-    return <div className={classes.error}>Loading...</div>;
-  }
   if (error) {
-    return <div className={classes.error}>{error.toString()}</div>;
+    return <div className={classes.error}><span>{error.toString()}</span></div>;
   }
-  if (!clusters) {
-    return <div className={classes.error}>No clusters found.</div>;
+  if (!clusters.length) {
+    return <div className={classes.error}><span>{ loading ? 'Loading...' : 'No clusters found.' }</span></div>;
   }
 
   return (
-    <Table>
-      <TableHead>
-        <TableRow>
-          <StyledTableHeaderCell />
-          <StyledTableHeaderCell>Name</StyledTableHeaderCell>
-          <StyledTableHeaderCell>ID</StyledTableHeaderCell>
-          <StyledTableHeaderCell>Instrumented Nodes</StyledTableHeaderCell>
-          <StyledTableHeaderCell>Vizier Version</StyledTableHeaderCell>
-        </TableRow>
-      </TableHead>
-      <TableBody>
-        {clusters.map((cluster: ClusterRowInfo) => (
-          <TableRow key={cluster.id}>
-            <ClusterStatusCell status={cluster.status} />
-            <StyledTableCell>
-              <Button
-                className={classes.removePadding}
-                component={Link}
-                to={getClusterDetailsURL(encodeURIComponent(cluster.clusterName))}
-                color='info'
-                variant='text'
-                disabled={cluster.status === 'CS_DISCONNECTED'}
-              >
-                {cluster.prettyClusterName}
-              </Button>
-            </StyledTableCell>
-            <MonoSpaceCell data={cluster.id} />
-            <InstrumentationLevelCell cluster={cluster} />
-            <VizierVersionCell version={cluster.vizierVersion} />
+    <div className={classes.root}>
+      {loading && <div className={classes.loadingIndicator}><Spinner /></div>}
+      <Table className={classes.table}>
+        <TableHead>
+          <TableRow className={classes.tableHeadRow}>
+            <StyledTableHeaderCell>Status</StyledTableHeaderCell>
+            <StyledTableHeaderCell>Name</StyledTableHeaderCell>
+            <StyledTableHeaderCell>ID</StyledTableHeaderCell>
+            <StyledTableHeaderCell>Instrumented Nodes</StyledTableHeaderCell>
+            <StyledTableHeaderCell>Vizier Version</StyledTableHeaderCell>
           </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+        </TableHead>
+        <TableBody>
+          {clusters.map((cluster: ClusterRowInfo) => (
+            <TableRow key={cluster.id} className={classes.tableRow}>
+              <ClusterStatusCell status={cluster.status} />
+              <StyledTableCell>
+                <Button
+                  className={classes.removePadding}
+                  component={Link}
+                  to={getClusterDetailsURL(encodeURIComponent(cluster.clusterName))}
+                  color='info'
+                  variant='text'
+                  disabled={cluster.status === 'CS_DISCONNECTED'}
+                >
+                  {cluster.prettyClusterName}
+                </Button>
+              </StyledTableCell>
+              <MonoSpaceCell data={cluster.id} />
+              <InstrumentationLevelCell cluster={cluster} />
+              <VizierVersionCell version={cluster.vizierVersion} />
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+});
+ClustersTableInner.displayName = 'ClustersTableInner';
+
+const ClusterDetailsModal = React.memo<RouteComponentProps<{ name: string }>>(({
+  history,
+  match: { params: { name } },
+}) => {
+  const classes = useStyles();
+
+  const onClose = React.useCallback(() => {
+    history.push('/admin/clusters');
+  }, [history]);
+
+  if (!name) return null;
+  return (
+    <Modal open onClose={onClose}>
+      <Card className={classes.modalRoot} elevation={1}>
+        {/* eslint-disable-next-line react-memo/require-usememo */}
+        <ClusterDetails name={name} headerAffix={(
+          <Tooltip title='Close (Esc)'>
+            <IconButton onClick={onClose}>
+              <CloseIcon />
+            </IconButton>
+          </Tooltip>
+        )} />
+      </Card>
+    </Modal>
+  );
+});
+ClusterDetailsModal.displayName = 'ClusterDetailsModal';
+
+
+export const ClustersTable = React.memo(() => {
+  const { path } = useRouteMatch();
+  return (
+    <>
+      <ClustersTableInner />
+      <Switch>
+        <Route exact path={`${path}/:name`} component={ClusterDetailsModal} />
+        <Route path='*' />
+      </Switch>
+    </>
   );
 });
 ClustersTable.displayName = 'ClustersTable';
