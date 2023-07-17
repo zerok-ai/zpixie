@@ -1207,30 +1207,27 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
+  std::string reqPath = std::move(req_message.req_path);
 
 
   if(!zk::ZkConfig::isHttpEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled false";
     return;
   }
 
   if(zk::ZkConfig::isHttpTraceEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled true";
-
     zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(conn_tracker, req_message, resp_message, content_type, upid);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isHttpNonTracedAllowed()){
-        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nontraced false";
         return;
       }
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nonrtraced true";
     }else{
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
     }
   }
+
+  LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__ ;
 
   //HTTP Filters go here
   //Zerok Ends
@@ -1248,7 +1245,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("content_type")>(static_cast<uint64_t>(content_type));
   r.Append<r.ColIndex("req_headers")>(ToJSONString(req_message.headers), kMaxHTTPHeadersBytes);
   r.Append<r.ColIndex("req_method")>(std::move(req_message.req_method));
-  r.Append<r.ColIndex("req_path")>(std::move(req_message.req_path));
+  r.Append<r.ColIndex("req_path")>(reqPath);
   r.Append<r.ColIndex("req_body_size")>(req_message.body_size);
   r.Append<r.ColIndex("req_body")>(std::move(req_message.body), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("resp_headers")>(ToJSONString(resp_message.headers), kMaxHTTPHeadersBytes);
@@ -1332,29 +1329,24 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
 
   if(!zk::ZkConfig::isHttpEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled false";
     return;
   }
 
   if(zk::ZkConfig::isHttpTraceEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http enabled true";
-
     zk::ZkTraceInfo tracesInfo = ZkRulesExecutor::httpEvaluate(time, upid, remoteAddr, remotePort, traceRole, majorVersion,
                 minorVersion, reqHeadesJson, content_type, reqMethod, reqPath, respStatus, respMessage, reqBodySize, reqBody, 
                 respBodySize, respBody, respHeadersJson, latency);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isHttpNonTracedAllowed()){
-        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nontraced false";
         return;
       }
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http nonrtraced true";
     }else{
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG http traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
     }
   }
+  LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__ 
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
@@ -1406,12 +1398,10 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
 
   if(!zk::ZkConfig::isMySqlEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled false";
     return;
   }
 
   if(zk::ZkConfig::isMySqlTraceEnabled()){
-    // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.msg);
     if(traceParent == "ZK_NULL" || traceParent == ""){
@@ -1420,12 +1410,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isMySqlNonTracedAllowed()){
-        // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nontraced false";
         return;
       }
-      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql nonrtraced true";
     }else{
-      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
@@ -1515,7 +1502,6 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   }
 
   if(zk::ZkConfig::isPgSqlTraceEnabled()){
-    // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled true";
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
     if(traceParent == "ZK_NULL" || traceParent == ""){
@@ -1524,12 +1510,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isPgSqlNonTracedAllowed()){
-        // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced false";
         return;
       }
-      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced true";
     }else{
-      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG mysql traces valid";
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
