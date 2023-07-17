@@ -1346,7 +1346,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
       workloadIds = tracesInfo.getWorkloadIdsString();
     }
   }
-  LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__ 
+  LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__;
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
