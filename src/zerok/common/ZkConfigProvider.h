@@ -66,9 +66,9 @@ namespace zk {
                 return localZkServiceConfig;
             }
 
-            // Parse the YAML-like file and extract the 'mysql' section
+            // Parse the YAML-like file and extract the 'http' section
             static ZkHttpConfig parseHttpConfig(const std::string& filename) {
-                std::cout << "AVIN_DEBUG_ Found parsing mysql config: " << std::endl;
+                std::cout << "AVIN_DEBUG_ Found parsing http config: " << std::endl;
                 ZkHttpConfig localZkHttpConfig = ZkHttpConfig();
                 std::ifstream file(filename);
                 if (!file.is_open()) {
@@ -98,7 +98,7 @@ namespace zk {
                     value.erase(value.find_last_not_of(" \t") + 1);
 
                     if (value.empty()){
-                        if (key == "mysql") {
+                        if (key == "http") {
                             inHttpSection = true;
                             localZkHttpConfig.setInitialized(true);
                             continue;
