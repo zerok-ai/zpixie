@@ -30,13 +30,15 @@ import {
 } from '@mui/material';
 import { Theme } from '@mui/material/styles';
 import { createStyles, makeStyles } from '@mui/styles';
-import { Link } from 'react-router-dom';
+import * as QueryString from 'query-string';
+import { Link, useHistory } from 'react-router-dom';
 
 import OrgContext from 'app/common/org-context';
 import { useSnackbar } from 'app/components';
 import { OAUTH_PROVIDER } from 'app/containers/constants';
 import { GQLOrgInfo, GQLUserInfo } from 'app/types/schema';
 
+import { InviteUserButton } from './invite-user-button';
 import {
   AdminTooltip, StyledTableCell, StyledTableHeaderCell, StyledRightTableCell,
 } from './utils';
@@ -50,6 +52,18 @@ interface UserRowProps {
 }
 
 const useStyles = makeStyles((theme: Theme) => createStyles({
+  root: {
+    width: '100%',
+    maxWidth: theme.breakpoints.values.lg,
+    margin: '0 auto',
+  },
+  tableHeadRow: {
+    '& > th': {
+      fontWeight: 'normal',
+      textTransform: 'uppercase',
+      color: theme.palette.foreground.grey4,
+    },
+  },
   buttonContainer: {
     display: 'flex',
     justifyContent: 'flex-end',
@@ -57,6 +71,13 @@ const useStyles = makeStyles((theme: Theme) => createStyles({
   },
   approveButton: {
     width: theme.spacing(12),
+  },
+  inviteButtonWrapper: {
+    width: '100%',
+    padding: theme.spacing(2),
+    paddingTop: 0,
+    display: 'flex',
+    justifyContent: 'flex-end',
   },
   error: {
     padding: theme.spacing(1),
@@ -258,12 +279,24 @@ export const UsersTable = React.memo(() => {
   const users = data?.orgUsers || [];
   const classes = useStyles();
 
+  const history = useHistory();
+  const showInviteDialog = QueryString.parse(location.search).invite === 'true';
+  const onCloseInviteDialog = React.useCallback(() => {
+    if (showInviteDialog) {
+      // So that a page refresh after closing the dialog doesn't immediately open it again
+      history.replace({ search: '' });
+    }
+  }, [history, showInviteDialog]);
+
   if (error) {
     return <div className={classes.error}>{error.toString()}</div>;
   }
 
   return (
-    <>
+    <div className={classes.root}>
+      <div className={classes.inviteButtonWrapper}>
+        <InviteUserButton startOpen={showInviteDialog} onClose={onCloseInviteDialog} />
+      </div>
       {domainName && (
         <Alert icon={false} className={classes.managedDomainBanner} color='info' variant='outlined'>
           <p>
@@ -288,7 +321,7 @@ export const UsersTable = React.memo(() => {
       )}
       <Table>
         <TableHead>
-          <TableRow>
+          <TableRow className={classes.tableHeadRow}>
             <StyledTableHeaderCell>Name</StyledTableHeaderCell>
             <StyledTableHeaderCell>Email</StyledTableHeaderCell>
             <StyledTableHeaderCell />
@@ -300,7 +333,7 @@ export const UsersTable = React.memo(() => {
           ))}
         </TableBody>
       </Table>
-    </>
+    </div>
   );
 });
 UsersTable.displayName = 'UsersTable';

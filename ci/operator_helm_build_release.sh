@@ -33,7 +33,8 @@ parse_args() {
 
 parse_args "$@"
 tmp_dir="$(mktemp -d)"
-artifacts_dir="${ARTIFACTS_DIR:?}"
+index_file="${INDEX_FILE:?}"
+gh_repo="${GH_REPO:?}"
 
 helm_gcs_bucket="pixie-operator-charts"
 if [[ $VERSION == *"-"* ]]; then
@@ -41,6 +42,8 @@ if [[ $VERSION == *"-"* ]]; then
 fi
 
 repo_path=$(pwd)
+# shellcheck source=ci/artifact_utils.sh
+. "${repo_path}/ci/artifact_utils.sh"
 helm_path="${repo_path}/k8s/operator/helm"
 
 # Create Chart.yaml for this release for Helm3.
@@ -82,9 +85,16 @@ helm package "${helm_path}2" -d "${tmp_dir}/${helm_gcs_bucket}"
 # Update the index file.
 helm repo index "${tmp_dir}/${helm_gcs_bucket}" --url "https://${helm_gcs_bucket}.storage.googleapis.com"
 
-cp "${tmp_dir}/${helm_gcs_bucket}/pixie-operator-chart-${VERSION}.tgz" "${artifacts_dir}/pixie-operator-chart-${VERSION}.tgz"
-sha256sum "${tmp_dir}/${helm_gcs_bucket}/pixie-operator-chart-${VERSION}.tgz" | awk '{print $1}' > sha
-cp sha "${artifacts_dir}/pixie-operator-chart-${VERSION}.tgz.sha256"
+upload_artifact_to_mirrors "operator" "${VERSION}" "${tmp_dir}/${helm_gcs_bucket}/pixie-operator-chart-${VERSION}.tgz" "pixie-operator-chart-${VERSION}.tgz"
 
 # Upload the new index and tar to gcs by syncing. This will help keep the timestamps for pre-existing tars the same.
 gsutil rsync "${tmp_dir}/${helm_gcs_bucket}" "gs://${helm_gcs_bucket}"
+
+# Generate separate index file for GH.
+mkdir -p "${tmp_dir}/gh_helm_chart"
+helm package "${helm_path}" -d "${tmp_dir}/gh_helm_chart"
+# Pull index file.
+curl https://artifacts.px.dev/helm_charts/operator/index.yaml -o old_index.yaml
+# Update the index file.
+helm repo index "${tmp_dir}/gh_helm_chart" --merge old_index.yaml --url "https://github.com/${gh_repo}/releases/download/release%2Foperator%2Fv${VERSION}"
+mv "${tmp_dir}/gh_helm_chart/index.yaml" "${index_file}"

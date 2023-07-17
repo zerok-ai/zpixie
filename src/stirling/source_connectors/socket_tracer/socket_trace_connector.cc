@@ -104,6 +104,11 @@ DEFINE_int32(stirling_enable_mux_tracing, px::stirling::TraceMode::OnForNewerKer
 DEFINE_int32(stirling_enable_amqp_tracing, px::stirling::TraceMode::On,
              "If true, stirling will trace and process AMQP messages.");
 
+DEFINE_bool(stirling_disable_golang_tls_tracing,
+            gflags::BoolFromEnv("PX_STIRLING_DISABLE_GOLANG_TLS_TRACING", false),
+            "If true, stirling will not trace TLS traffic for Go applications. This implies "
+            "stirling_enable_http2_tracing=false.");
+
 DEFINE_bool(stirling_disable_self_tracing, true,
             "If true, stirling will not trace and process syscalls made by itself.");
 
@@ -151,11 +156,8 @@ DEFINE_uint64(max_body_bytes, gflags::Uint64FromEnv("PL_STIRLING_MAX_BODY_BYTES"
               "The maximum number of bytes in the body of protocols like HTTP");
 
 DEFINE_bool(
-    access_tls_socket_fd_via_syscall,
-    gflags::BoolFromEnv("PL_ACCESS_TLS_SOCKET_FD_VIA_SYSCALL", true),
-    "If true, stirling will identify a socket's fd based on the underlying syscall (read, write, "
-    "etc) while a user space tls function call occurs. When false, stirling attempts to access the "
-    "socket fd by walking user space data structures which may be brittle.");
+    stirling_trace_static_tls_binaries, gflags::BoolFromEnv("PX_TRACE_STATIC_TLS_BINARIES", false),
+    "If true, stirling will tls trace binaries statically linked with OpenSSL or BoringSSL");
 
 OBJ_STRVIEW(socket_trace_bcc_script, socket_trace);
 
@@ -421,8 +423,6 @@ Status SocketTraceConnector::InitBPF() {
       absl::StrCat("-DENABLE_NATS_TRACING=", protocol_transfer_specs_[kProtocolNATS].enabled),
       absl::StrCat("-DENABLE_AMQP_TRACING=", protocol_transfer_specs_[kProtocolAMQP].enabled),
       absl::StrCat("-DENABLE_MONGO_TRACING=", "true"),
-      absl::StrCat("-DACCESS_TLS_SK_FD_VIA_ACTIVE_SYSCALL=",
-                   FLAGS_access_tls_socket_fd_via_syscall),
   };
   PX_RETURN_IF_ERROR(InitBPFProgram(socket_trace_bcc_script, defines));
 
@@ -496,7 +496,8 @@ Status SocketTraceConnector::InitImpl() {
   conn_info_map_mgr_ = std::make_shared<ConnInfoMapManager>(this);
   ConnTracker::SetConnInfoMapManager(conn_info_map_mgr_);
 
-  uprobe_mgr_.Init(protocol_transfer_specs_[kProtocolHTTP2].enabled,
+  uprobe_mgr_.Init(FLAGS_stirling_disable_golang_tls_tracing,
+                   protocol_transfer_specs_[kProtocolHTTP2].enabled,
                    FLAGS_stirling_disable_self_tracing);
 
   openssl_trace_state_ =
@@ -670,9 +671,12 @@ void SocketTraceConnector::CheckTracerState() {
     auto table = openssl_trace_state_debug_->get_table_offline(true);
     for (auto& entry : table) {
       struct openssl_trace_state_debug_t debug = std::get<1>(entry);
+      auto ssl_source = std::string(magic_enum::enum_name(debug.ssl_source));
 
       openssl_trace_mismatched_fds_counter_family_
-          .Add({{"name", openssl_mismatched_fds_metric}, {"exe", debug.comm}})
+          .Add({{"name", openssl_mismatched_fds_metric},
+                {"exe", debug.comm},
+                {"ssl_source", ssl_source}})
           .Increment();
     }
   }

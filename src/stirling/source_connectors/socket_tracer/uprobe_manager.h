@@ -45,7 +45,7 @@
 DECLARE_bool(stirling_rescan_for_dlopen);
 DECLARE_bool(stirling_enable_grpc_c_tracing);
 DECLARE_double(stirling_rescan_exp_backoff_factor);
-DECLARE_bool(access_tls_socket_fd_via_syscall);
+DECLARE_bool(stirling_trace_static_tls_binaries);
 
 namespace px {
 namespace stirling {
@@ -116,10 +116,13 @@ class UProbeManager {
 
   /**
    * Mandatory initialization step before RunDeployUprobesThread can be called.
+   * @param disable_go_tls_tracing Whether to disable Go TLS tracing. Implies enable_http2_tracing
+   * is false.
    * @param enable_http2_tracing Whether to enable HTTP2 tracing.
    * @param disable_self_tracing Whether to enable uprobe deployment on Stirling itself.
    */
-  void Init(bool enable_http2_tracing, bool disable_self_tracing = true);
+  void Init(bool disable_go_tls_tracing, bool enable_http2_tracing,
+            bool disable_self_tracing = true);
 
   /**
    * Notify uprobe manager of an mmap event. An mmap may be indicative of a dlopen,
@@ -574,6 +577,19 @@ class UProbeManager {
   StatusOr<int> AttachNodeJsOpenSSLUprobes(uint32_t pid);
 
   /**
+   * Attaches the required probes for TLS tracing to the specified PID if the binary is
+   * statically linked with the necessary OpenSSL compatible symbols. This will only capture
+   * data if the binary uses the OpenSSL API in a BIO native way -- where OpenSSL IO primitives
+   * are used rather than just its encryption functionality.
+   *
+   * @param pid The PID of the process whose binary is examined for OpenSSL symbols statically
+   * linked.
+   * @return The number of uprobes deployed. It is not an error if the binary
+   *         does not contain the necessary symbols to probe; instead the return value will be zero.
+   */
+  StatusOr<int> AttachOpenSSLUProbesOnStaticBinary(uint32_t pid);
+
+  /**
    * Calls BCCWrapper.AttachUProbe() with a probe template and log any errors to the probe status
    * table.
    */
@@ -619,6 +635,10 @@ class UProbeManager {
   // Whether to try to uprobe ourself (e.g. for OpenSSL). Typically, we don't want to do that.
   bool cfg_disable_self_probing_;
 
+  // Whether we want to enable Go TLS tracing. When true, it implies cfg_enable_http2_tracing_ is
+  // false.
+  bool cfg_disable_go_tls_tracing_;
+
   // Whether we want to enable HTTP2 tracing. When false, we don't deploy HTTP2 uprobes.
   bool cfg_enable_http2_tracing_;
 
@@ -649,6 +669,8 @@ class UProbeManager {
   absl::flat_hash_set<std::string> go_tls_probed_binaries_;
   absl::flat_hash_set<std::string> nodejs_binaries_;
   absl::flat_hash_set<std::string> grpc_c_probed_binaries_;
+
+  std::unique_ptr<UserSpaceManagedBPFMap<uint32_t, ssl_source_t>> openssl_source_map_;
 
   // BPF maps through which the addresses of symbols for a given pid are communicated to uprobes.
   std::unique_ptr<UserSpaceManagedBPFMap<uint32_t, struct openssl_symaddrs_t>>
