@@ -9,6 +9,18 @@ namespace zk {
                 return zk::ZkConfigProvider::getZkConfig().isAllowAllCalls();
             }
 
+            static bool isHttpEnabled(){
+                return zk::ZkConfigProvider::getZkHttpConfig().isEnabled();
+            }
+
+            static bool isHttpTraceEnabled(){
+                return zk::ZkConfigProvider::getZkHttpConfig().isTraceEnabled();
+            }
+
+            static bool isHttpNonTracedAllowed(){
+                return zk::ZkConfigProvider::getZkHttpConfig().isAllowNonTraced();
+            }
+
             static bool isMySqlEnabled(){
                 return zk::ZkConfigProvider::getZkMySqlConfig().isEnabled();
             }
