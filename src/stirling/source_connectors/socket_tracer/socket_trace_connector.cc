@@ -1404,9 +1404,6 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   if(zk::ZkConfig::isMySqlTraceEnabled()){
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.msg);
-    if(traceParent == "ZK_NULL" || traceParent == ""){
-      return;
-    }
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isMySqlNonTracedAllowed()){
@@ -1504,9 +1501,6 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   if(zk::ZkConfig::isPgSqlTraceEnabled()){
     /* extract value of key traceparent from comment in entry.req.msg */
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
-    if(traceParent == "ZK_NULL" || traceParent == ""){
-      return;
-    }
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
       if(!zk::ZkConfig::isPgSqlNonTracedAllowed()){
