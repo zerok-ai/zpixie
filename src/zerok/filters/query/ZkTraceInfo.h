@@ -41,7 +41,6 @@ namespace zk {
             ZkTraceInfo fromTraceParent(std::string traceParent) {
                 std::vector<std::string> splitString = CommonUtils::splitString(traceParent, "-");
                 if(splitString.size() <= static_cast<size_t>(1)){
-                    printf("\nAVIN_DEBUG_STORE_apply02 traceparent header value is invalid: %s", traceParent.c_str());
                     return *this;
                 }
                 traceId = splitString.at(1);
