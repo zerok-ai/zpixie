@@ -1516,7 +1516,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     }
   }
 
-  LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql record processed " << traceParent;
+  LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql record processed ";
 
   DataTable::RecordBuilder<&kPGSQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
