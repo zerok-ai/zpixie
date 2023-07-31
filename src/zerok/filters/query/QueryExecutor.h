@@ -52,29 +52,46 @@ namespace zk{
 
         }
 
+        static SimpleRuleKeyValue* generateTraceparentRule(std::string ruleId, bool isCaps) {
+            SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
+            traceIdRule->id = ruleId;
+            traceIdRule->type = KEY_MAP;
+            traceIdRule->input = "string";
+            traceIdRule->value = "/traceparent";
+            traceIdRule->key = "/traceparent";
+            if (isCaps) {
+                traceIdRule->key = "/Traceparent";
+            }
+            return traceIdRule;
+        }
+
         static ZkTraceInfo apply(std::string protocol, std::map<std::string, std::string> propsMap){
             ZkTraceInfo zkTraceInfo = ZkTraceInfo();
             std::string traceId = "";
             std::string spanId = "";
             if(protocol == "HTTP"){
-                SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
-                traceIdRule->id = "req_headers";
-                traceIdRule->type = KEY_MAP;
-                traceIdRule->input = "string";
-                traceIdRule->key = "/traceparent";
-                traceIdRule->value = "/traceparent";
-                std::string traceParent = traceIdRule->extractValue(propsMap);
-                if(traceParent == "ZK_NULL" || traceParent == ""){
-                    traceIdRule->key = "/Traceparent";
-                    traceParent = traceIdRule->extractValue(propsMap);
-                    if(traceParent == "ZK_NULL" || traceParent == ""){
-                        return zkTraceInfo;
-                    }else{
-                        printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
+                /* Generate rules to check traceparent or Traceparent header in req_headers OR resp_headers */
+                SimpleRuleKeyValue* traceIdReqRuleSmall = generateTraceparentRule("req_headers", false);
+                SimpleRuleKeyValue* traceIdReqRuleCaps = generateTraceparentRule("req_headers", true);
+                SimpleRuleKeyValue* traceIdResRuleSmall = generateTraceparentRule("resp_headers", false);
+                SimpleRuleKeyValue* traceIdResRuleCaps = generateTraceparentRule("resp_headers", true);
+
+                const int ruleCount = 4;
+                SimpleRuleKeyValue* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
+                std::string traceParent = "ZK_NULL"
+                for(int ruleIdx=0; ruleIdx<ruleCount; ruleIdx++) {
+                    traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
+                    if(traceParent != "ZK_NULL"){
+                        break;
                     }
-                }else{
-                    printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
                 }
+                if(traceParent == "ZK_NULL"){
+                    /* no trace parent found in both req & resp headers */
+                    printf("\nAVIN_DEBUG_STORE_apply0100 traceparent header missing");
+                    return zkTraceInfo;
+                } 
+                printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
+                
                 zkTraceInfo.fromTraceParent(traceParent);
                 if(zkTraceInfo.isValid() == false){
                     printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
