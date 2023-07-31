@@ -81,9 +81,9 @@ namespace zk{
                 std::string traceParent = "ZK_NULL";
                 for(int ruleIdx=0; ruleIdx<ruleCount; ruleIdx++) {
                     traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
-                    printf("\nAVIN_DEBUG_STORE_apply010001 ruleIdx %d : %s", ruleIdx, traceParent);
-                    printf("\nAVIN_DEBUG_STORE_apply010002 propsMap[req_headers] : %s", propsMap.get("req_headers"));
-                    printf("\nAVIN_DEBUG_STORE_apply010003 propsMap[resp_headers] : %s", propsMap.get("resp_headers"));
+                    printf("\nAVIN_DEBUG_STORE_apply010001 ruleIdx %d : %s", ruleIdx, traceParent.c_str());
+                    printf("\nAVIN_DEBUG_STORE_apply010002 propsMap[req_headers] : %s", propsMap["req_headers"].c_str());
+                    printf("\nAVIN_DEBUG_STORE_apply010003 propsMap[resp_headers] : %s", propsMap["resp_headers"].c_str());
                     printf("\nAVIN_DEBUG_STORE_apply010004 -----------------------------------\n\n");
                     if(traceParent != "ZK_NULL"){
                         break;
