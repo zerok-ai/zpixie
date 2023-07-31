@@ -78,7 +78,7 @@ namespace zk{
 
                 const int ruleCount = 4;
                 SimpleRuleKeyValue* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
-                std::string traceParent = "ZK_NULL"
+                std::string traceParent = "ZK_NULL";
                 for(int ruleIdx=0; ruleIdx<ruleCount; ruleIdx++) {
                     traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
                     printf("\nAVIN_DEBUG_STORE_apply010001 ruleIdx %d : %s", ruleIdx, traceParent);
