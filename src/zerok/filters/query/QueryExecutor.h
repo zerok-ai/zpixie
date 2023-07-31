@@ -78,9 +78,13 @@ namespace zk{
 
                 const int ruleCount = 4;
                 SimpleRuleKeyValue* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
-                std::string traceParent = "ZK_NULL";
+                std::string traceParent = "ZK_NULL"
                 for(int ruleIdx=0; ruleIdx<ruleCount; ruleIdx++) {
                     traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
+                    printf("\nAVIN_DEBUG_STORE_apply010001 ruleIdx %d : %s", ruleIdx, traceParent);
+                    printf("\nAVIN_DEBUG_STORE_apply010002 propsMap[req_headers] : %s", propsMap.get("req_headers"));
+                    printf("\nAVIN_DEBUG_STORE_apply010003 propsMap[resp_headers] : %s", propsMap.get("resp_headers"));
+                    printf("\nAVIN_DEBUG_STORE_apply010004 -----------------------------------\n\n");
                     if(traceParent != "ZK_NULL"){
                         break;
                     }
@@ -90,6 +94,7 @@ namespace zk{
                     printf("\nAVIN_DEBUG_STORE_apply0100 traceparent header missing");
                     return zkTraceInfo;
                 } 
+
                 printf("\nAVIN_DEBUG_STORE_apply0101 traceparent header present %s", traceParent.c_str());
                 
                 zkTraceInfo.fromTraceParent(traceParent);
