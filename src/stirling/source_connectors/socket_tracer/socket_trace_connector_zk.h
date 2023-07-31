@@ -115,11 +115,11 @@ namespace px {
         }
 
         static zk::ZkTraceInfo httpEvaluate(std::map<std::string, std::string> propsMap){
-          // std::string myString = "";
-          // for (const auto& pair : propsMap) {
-          //     myString += pair.first + ": " + pair.second + "@@@@";
-          // }
-          // LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
+          std::string myString = "";
+          for (const auto& pair : propsMap) {
+              myString += pair.first + ": " + pair.second + "@@@@";
+          }
+          LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
           zk::ZkTraceInfo data = zk::ZkQueryExecutor::apply("HTTP", propsMap);
           return data;
         }
