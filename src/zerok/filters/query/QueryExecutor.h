@@ -110,7 +110,7 @@ namespace zk{
                         for (const auto& query : queries) {
                             bool evaluation = query->rule->evaluate(propsMap);
                             std::cout << "\nAVIN_DEBUG_STORE_apply010401 " << query->workloadId << ":eval--" << evaluation << std::endl;
-                            Print all entries from propsMap
+                            // Print all entries from propsMap
                             std::string myString = "";
                             for (const auto& pair : propsMap) {
                                 myString += pair.first + ": " + pair.second + "@@@@";
