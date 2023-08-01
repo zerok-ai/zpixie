@@ -87,7 +87,6 @@ namespace zk{
                 }
                 if(traceParent == "ZK_NULL"){
                     /* no trace parent found in both req & resp headers */
-                    printf("\nAVIN_DEBUG_STORE_apply0100 traceparent header missing");
                     return zkTraceInfo;
                 } 
 
