@@ -101,6 +101,13 @@ namespace zk{
                 traceId = zkTraceInfo.getTraceId();
                 spanId = zkTraceInfo.getSpanId();
                 std::cout << "\nAVIN_DEBUG_STORE_apply0102" << std::endl;
+                if(true){
+                    std::string myString = "";
+                    for (const auto& pair : propsMap) {
+                        myString += pair.first + ": " + pair.second + "@@@@";
+                    }
+                    std::cout << "\nAVIN_DEBUG_STORE_apply010201 propsMap " << myString  << std::endl;
+                }
                 //TODO: Check if trace id is present, if not return false
                 if(ZkQueryManager::protocolToQueries.count(protocol) > 0){
                     std::cout << "\nAVIN_DEBUG_STORE_apply0103" << std::endl;
