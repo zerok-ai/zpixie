@@ -1207,7 +1207,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string traceId = "";
   std::string spanId = "";
   std::string workloadIds = "";
-  std::string reqPath = std::move(req_message.req_path);
+  std::string reqPath = req_message.req_path;
 
 
   if(!zk::ZkConfig::isHttpEnabled()){
