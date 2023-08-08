@@ -308,14 +308,15 @@ namespace zk {
                     if (ruleDoc["value"].IsString()) {
                         std::string value = ruleDoc["value"].GetString();
                         try {
-                            int valueInt = std::stoi(value);
-                            ((SimpleRuleInteger*)rule)->value = valueInt;
+                            long valueLong = std::stol(value);
+                            ((SimpleRuleInteger*)rule)->value = valueLong;
                         } catch (const std::exception& e) {
                             std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse integer value in the simple rule JSON. Line: " << __LINE__ << std::endl;
                             delete rule; // Delete the created rule object
                             return nullptr; // Return nullptr if failed to parse integer value
                         }
                     } else if (ruleDoc["value"].IsInt()) {
+                        //TODO:AVIN Validate for long
                         ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
                     } else {
                         std::cout << "AVIN_DEBUG_ QueryBuilder Invalid value type in the simple rule JSON. Line: " << __LINE__ << std::endl;

@@ -6,11 +6,11 @@
 namespace zk {
     class SimpleRuleInteger : public SimpleRuleDefault {
     public:
-        int value;
+        long value;
 
         bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                int foundValue = std::stoi(propsMap[id]);
+                long foundValue = std::stol(propsMap[id]);
                 return foundValue == value;
             }
             return false;
@@ -18,7 +18,7 @@ namespace zk {
 
         bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                int foundValue = std::stoi(propsMap[id]);
+                long foundValue = std::stol(propsMap[id]);
                 return foundValue != value;
             }
             return false;
@@ -26,7 +26,7 @@ namespace zk {
 
         bool evaluateLessThan(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                int foundValue = std::stoi(propsMap[id]);
+                long foundValue = std::stol(propsMap[id]);
                 return foundValue < value;
             }
             return false;
@@ -34,7 +34,7 @@ namespace zk {
 
         bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                int foundValue = std::stoi(propsMap[id]);
+                long foundValue = std::stol(propsMap[id]);
                 return foundValue <= value;
             }
             return false;
@@ -42,7 +42,7 @@ namespace zk {
 
         bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                int foundValue = std::stoi(propsMap[id]);
+                long foundValue = std::stol(propsMap[id]);
                 return foundValue > value;
             }
             return false;
@@ -50,7 +50,7 @@ namespace zk {
 
         bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                int foundValue = std::stoi(propsMap[id]);
+                long foundValue = std::stol(propsMap[id]);
                 return foundValue >= value;
             }
             return false;
