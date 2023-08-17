@@ -101,8 +101,9 @@ namespace px {
         }
 
         static std::string extractResultRows(const std::string& queryString) {
-            std::string resultRows = "ZK_NULL";
+            std::string resultRows = "0";
 
+            /* TODO: (avin) explore if we can extract this in a better way. */
             std::size_t resultRowsStart = queryString.find("Resultset rows = ");
             if (resultRowsStart == std::string::npos) {
                 return resultRows;
