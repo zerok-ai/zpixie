@@ -106,6 +106,7 @@ namespace px {
             /* TODO: (avin) explore if we can extract this in a better way. */
             std::size_t resultRowsStart = queryString.find("Resultset rows = ");
             if (resultRowsStart == std::string::npos) {
+                LOG(INFO) << "SHIVAM_DEBUG01__extractResultRows !resultRowsStart " << resultRows;
                 return resultRows;
             }
 
@@ -113,10 +114,14 @@ namespace px {
 
             std::size_t resultRowsEnd = queryString.find(" > ", resultRowsStart);
             if (resultRowsEnd == std::string::npos) {
+                LOG(INFO) << "SHIVAM_DEBUG02__extractResultRows !resultRowsEnd " << resultRows;
                 return resultRows;
             }
 
+            LOG(INFO) << "SHIVAM_DEBUG10__extractResultRows bounds " << resultRowsStart << " " << resultRowsEnd;
+
             resultRows = queryString.substr(resultRowsStart, resultRowsEnd - resultRowsStart);
+            LOG(INFO) << "SHIVAM_DEBUG20__extractResultRows resultRows " << resultRows;
             return resultRows;
         }
 
