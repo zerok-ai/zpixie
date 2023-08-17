@@ -96,11 +96,11 @@ constexpr int kMySQLReqCmdIdx = kMySQLTable.ColIndex("req_cmd");
 constexpr int kMySQLReqBodyIdx = kMySQLTable.ColIndex("req_body");
 constexpr int kMySQLRespStatusIdx = kMySQLTable.ColIndex("resp_status");
 constexpr int kMySQLRespBodyIdx = kMySQLTable.ColIndex("resp_body");
-constexpr int kMySQLTraceIdIdx = kHTTPTable.ColIndex("trace_id");
-constexpr int kMySQLSpanIdIdx = kHTTPTable.ColIndex("span_id");
-constexpr int kMySQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_ids");
-constexpr int kMySQLIsTruncatedIdx = kHTTPTable.ColIndex("is_truncated");
-constexpr int kMySQLRowsIdx = kHTTPTable.ColIndex("rows");
+constexpr int kMySQLTraceIdIdx = kMySQLTable.ColIndex("trace_id");
+constexpr int kMySQLSpanIdIdx = kMySQLTable.ColIndex("span_id");
+constexpr int kMySQLWorkloadIdIdx = kMySQLTable.ColIndex("workload_ids");
+constexpr int kMySQLIsTruncatedIdx = kMySQLTable.ColIndex("is_truncated");
+constexpr int kMySQLRowsIdx = kMySQLTable.ColIndex("rows");
 constexpr int kMySQLLatencyIdx = kMySQLTable.ColIndex("latency");
 
 }  // namespace stirling
