@@ -100,6 +100,25 @@ namespace px {
             return traceparentValue;
         }
 
+        static std::string extractResultRows(const std::string& queryString) {
+            std::string resultRows = "ZK_NULL";
+
+            std::size_t resultRowsStart = queryString.find("Resultset rows = ");
+            if (resultRowsStart == std::string::npos) {
+                return resultRows;
+            }
+
+            resultRowsStart += strlen("Resultset rows = ");
+
+            std::size_t resultRowsEnd = queryString.find(" > ", resultRowsStart);
+            if (resultRowsEnd == std::string::npos) {
+                return resultRows;
+            }
+
+            resultRows = queryString.substr(resultRowsStart, resultRowsEnd - resultRowsStart);
+            return resultRows;
+        }
+
         //returns passthrough value - as in if the given record is allowed to be writtent o the db (apache arrow)
         static zk::ZkTraceInfo httpEvaluate(const ConnTracker& conn_tracker, protocols::http::Message& req_message, 
             protocols::http::Message& resp_message, HTTPContentType content_type, md::UPID upid){

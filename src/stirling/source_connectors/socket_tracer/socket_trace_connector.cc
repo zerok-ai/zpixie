@@ -1256,6 +1256,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("span_id")>(spanId);
   r.Append<r.ColIndex("workload_ids")>(workloadIds);
   r.Append<r.ColIndex("resp_body")>(std::move(resp_message.body), FLAGS_max_body_bytes);
+  r.Append<r.ColIndex("is_truncated")>(strlen(resp_message.body) > FLAGS_max_body_bytes);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
 #ifndef NDEBUG
@@ -1427,9 +1428,11 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("req_body")>(std::move(entry.req.msg), FLAGS_max_body_bytes);
   r.Append<r.ColIndex("resp_status")>(static_cast<uint64_t>(entry.resp.status));
   r.Append<r.ColIndex("resp_body")>(std::move(entry.resp.msg), FLAGS_max_body_bytes);
+  r.Append<r.ColIndex("rows")>(ZkRulesExecutor::extractResultRows(entry.resp.msg));
   r.Append<r.ColIndex("trace_id")>(traceId);
   r.Append<r.ColIndex("span_id")>(spanId);
   r.Append<r.ColIndex("workload_ids")>(workloadIds);
+  r.Append<r.ColIndex("is_truncated")>(strlen(entry.resp.msg) > FLAGS_max_body_bytes);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(entry.req.timestamp_ns, entry.resp.timestamp_ns));
 #ifndef NDEBUG
