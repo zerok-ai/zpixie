@@ -109,6 +109,10 @@ constexpr DataElement kHTTPElements[] = {
          types::DataType::STRING,
          types::SemanticType::ST_NONE,
          types::PatternType::STRUCTURED},
+        {"is_truncated", "if the request/response body is truncated",
+         types::DataType::BOOL,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
         canonical_data_elements::kLatencyNS,
 #ifndef NDEBUG
         canonical_data_elements::kPXInfo,
@@ -141,6 +145,7 @@ constexpr int kHTTPRespBodySizeIdx = kHTTPTable.ColIndex("resp_body_size");
 constexpr int kHTTPTraceIdIdx = kHTTPTable.ColIndex("trace_id");
 constexpr int kHTTPSpanIdIdx = kHTTPTable.ColIndex("span_id");
 constexpr int kHTTPWorkloadIdIdx = kHTTPTable.ColIndex("workload_ids");
+constexpr int kHTTPIsTruncatedIdx = kHTTPTable.ColIndex("is_truncated");
 constexpr int kHTTPLatencyIdx = kHTTPTable.ColIndex("latency");
 
 }  // namespace stirling

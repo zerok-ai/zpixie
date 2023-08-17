@@ -71,6 +71,14 @@ static constexpr DataElement kMySQLElements[] = {
          types::DataType::STRING,
          types::SemanticType::ST_NONE,
          types::PatternType::STRUCTURED},
+        {"rows", "number of rows returned in result",
+         types::DataType::STRING,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
+        {"is_truncated", "if the request/response body is truncated",
+         types::DataType::BOOL,
+         types::SemanticType::ST_NONE,
+         types::PatternType::STRUCTURED},
         canonical_data_elements::kLatencyNS,
 #ifndef NDEBUG
         canonical_data_elements::kPXInfo,
@@ -91,6 +99,8 @@ constexpr int kMySQLRespBodyIdx = kMySQLTable.ColIndex("resp_body");
 constexpr int kMySQLTraceIdIdx = kHTTPTable.ColIndex("trace_id");
 constexpr int kMySQLSpanIdIdx = kHTTPTable.ColIndex("span_id");
 constexpr int kMySQLWorkloadIdIdx = kHTTPTable.ColIndex("workload_ids");
+constexpr int kMySQLIsTruncatedIdx = kHTTPTable.ColIndex("is_truncated");
+constexpr int kMySQLRowsIdx = kHTTPTable.ColIndex("rows");
 constexpr int kMySQLLatencyIdx = kMySQLTable.ColIndex("latency");
 
 }  // namespace stirling
