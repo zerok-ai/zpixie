@@ -110,7 +110,7 @@ constexpr DataElement kHTTPElements[] = {
          types::SemanticType::ST_NONE,
          types::PatternType::STRUCTURED},
         {"is_truncated", "if the request/response body is truncated",
-         types::DataType::BOOL,
+         types::DataType::BOOLEAN,
          types::SemanticType::ST_NONE,
          types::PatternType::STRUCTURED},
         canonical_data_elements::kLatencyNS,
