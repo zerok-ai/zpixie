@@ -111,7 +111,7 @@ namespace px {
 
             resultRowsStart += strlen("Resultset rows = ");
 
-            std::size_t resultRowsEnd = queryString.find(" > ", resultRowsStart);
+            std::size_t resultRowsEnd = queryString.find(" ", resultRowsStart);
             if (resultRowsEnd == std::string::npos) {
                 return resultRows;
             }
