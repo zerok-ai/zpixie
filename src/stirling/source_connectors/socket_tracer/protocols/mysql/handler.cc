@@ -244,8 +244,7 @@ StatusOr<ParseState> HandleResultsetResponse(DequeView<Packet> resp_packets, Rec
 	for (auto & element : results) {
 		resultsString = resultsString + element.msg + " | ";
 	}
-	absl::StrAppend(&entry->resp.msg, "Resultset rows = ", resultsString);
-
+	absl::StrAppend(&entry->resp.msg, "Resultset rows = ", results.size(), " > ", resultsString);
 
   // Check for another resultset in case this is a multi-resultset.
   if (MoreResultsExist(last_packet)) {
