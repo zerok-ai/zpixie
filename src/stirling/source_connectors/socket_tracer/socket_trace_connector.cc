@@ -1532,6 +1532,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   r.Append<r.ColIndex("trace_id")>(traceId);
   r.Append<r.ColIndex("span_id")>(spanId);
   r.Append<r.ColIndex("workload_ids")>(workloadIds);
+  r.Append<r.ColIndex("is_truncated")>(false);
   r.Append<r.ColIndex("latency")>(
       CalculateLatency(entry.req.timestamp_ns, entry.resp.timestamp_ns));
   r.Append<r.ColIndex("req_cmd")>(ToString(entry.req.tag, /* is_req */ true));
