@@ -103,6 +103,11 @@ spec:
             secretKeyRef:
               key: jwt-signing-key
               name: pl-cluster-secrets
+        - name: PL_REDIS_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: redis-password
+              name: redis
         - name: PL_VIZIER_ID
           valueFrom:
             secretKeyRef:

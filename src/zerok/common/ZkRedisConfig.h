@@ -2,11 +2,13 @@
 
 #include <string>
 #include <utility>
+#include <stdlib.h>
 
 namespace zk {
     class ZkRedisConfig{
         private:
             std::string host;
+            std::string password;
             int port;
             int readTimeout;
         
@@ -15,12 +17,18 @@ namespace zk {
                 host = "";
                 port = 0;
                 readTimeout = 0;
+                this->readEnv();
             }
             
             ZkRedisConfig(std::string host, int port, int readTimeout){
                 this->host = std::move(host);
                 this->port = port;
                 this->readTimeout = readTimeout;
+                this->readEnv();
+            }
+
+            void readEnv(){
+                this->password = getenv("PL_REDIS_PASSWORD");
             }
 
             void setHost(std::string host){
@@ -29,6 +37,14 @@ namespace zk {
 
             std::string getHost(){
                 return host;
+            }
+
+            void setPassword(std::string password){
+                this->password = std::move(password);
+            }
+
+            std::string getPassword(){
+                return password;
             }
 
             void setPort(int port){
