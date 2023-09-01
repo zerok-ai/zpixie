@@ -63,7 +63,8 @@ namespace zk {
                 if(redisConnection == nullptr){
                     zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
                     std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
-                    redisConnection = redisConnectWithPassword(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort(), zkRedisConfig.getPassword().c_str());
+                    redisConnection = redisConnect(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort());
+                    auth();
                     select();
                 }else{
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
@@ -91,6 +92,23 @@ namespace zk {
                 // If you want to select a different database, use redisCommand to send the SELECT command
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SELECT %d", database);
                 if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    freeReplyObject(reply);
+                    return false;
+                }
+
+                freeReplyObject(reply);
+                return true;
+            }
+
+            bool auth() {
+                if(database == 0){
+                    return true;
+                }
+
+                // If you want to select a different database, use redisCommand to send the SELECT command
+                redisReply* reply = (redisReply*)redisCommand(redisConnection, "AUTH %s", zkRedisConfig.getPassword().c_str());
+                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                    std::cout << "\nAVIN_DEBUG Reply error auth: " << reply->type << std::endl;
                     freeReplyObject(reply);
                     return false;
                 }
