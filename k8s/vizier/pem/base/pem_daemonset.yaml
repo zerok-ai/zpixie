@@ -108,6 +108,11 @@ spec:
             secretKeyRef:
               key: redis-password
               name: redis
+        - name: PL_REDIS_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: zk-redis-config
+              key: redisHost
         - name: PL_VIZIER_ID
           valueFrom:
             secretKeyRef:

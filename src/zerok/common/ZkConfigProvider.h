@@ -304,10 +304,11 @@ namespace zk {
                         }
 
                         // Store key-value pairs
-                        if (key == "host") {
-                            localZkRedisConfig.setHost(value);
-                            std::cout << "AVIN_DEBUG_ Found host: " << value << std::endl;
-                        } else if (key == "port") {
+                        std::cout << "AVIN_DEBUG_ Found host: " << localZkRedisConfig.getHost() << std::endl;
+                        // if (key == "host") {
+                        //     localZkRedisConfig.setHost(value);
+                        // } else 
+                        if (key == "port") {
                             int port = std::stoi(value);
                             localZkRedisConfig.setPort(port);
                             std::cout << "AVIN_DEBUG_ Found port: " << value << std::endl;
@@ -356,7 +357,7 @@ namespace zk {
                     zkRedisConfig = ZkRedisConfig(localZkRedisConfig.getHost(), localZkRedisConfig.getPort(), localZkRedisConfig.getReadTimeout());
                 }else{
                     std::cout << "AVIN_DEBUG_ localZkRedisConfig not parsed" << std::endl;
-                    zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
+                    zkRedisConfig = ZkRedisConfig("redis-master.zk-client.svc.cluster.local", 6379, 1000);
                 }
 
                 //Service configs
@@ -408,5 +409,5 @@ namespace zk {
     ZkHttpConfig ZkConfigProvider::zkHttpConfig = ZkHttpConfig();
     ZkPgSqlConfig ZkConfigProvider::zkPgSqlConfig = ZkPgSqlConfig();
     ZkServiceConfig ZkConfigProvider::zkConfig = ZkServiceConfig(false);
-    ZkRedisConfig ZkConfigProvider::zkRedisConfig = ZkRedisConfig("redis.zk-client.svc.cluster.local", 6379, 1000);
+    ZkRedisConfig ZkConfigProvider::zkRedisConfig = ZkRedisConfig("redis-master.zk-client.svc.cluster.local", 6379, 1000);
 }

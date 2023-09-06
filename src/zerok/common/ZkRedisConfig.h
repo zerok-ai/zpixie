@@ -14,14 +14,14 @@ namespace zk {
         
         public:
             ZkRedisConfig(){
-                host = "";
+                // host = "";
                 port = 0;
                 readTimeout = 0;
                 this->readEnv();
             }
             
             ZkRedisConfig(std::string host, int port, int readTimeout){
-                this->host = std::move(host);
+                // this->host = std::move(host);
                 this->port = port;
                 this->readTimeout = readTimeout;
                 this->readEnv();
@@ -29,6 +29,7 @@ namespace zk {
 
             void readEnv(){
                 this->password = getenv("PL_REDIS_PASSWORD");
+                this->host = getenv("PL_REDIS_HOST");
             }
 
             void setHost(std::string host){
