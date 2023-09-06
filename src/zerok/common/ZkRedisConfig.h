@@ -22,6 +22,8 @@ namespace zk {
             
             ZkRedisConfig(std::string host, int port, int readTimeout){
                 // this->host = std::move(host);
+                if (host == ""){
+                }
                 this->port = port;
                 this->readTimeout = readTimeout;
                 this->readEnv();
