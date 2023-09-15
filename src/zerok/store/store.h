@@ -64,8 +64,10 @@ namespace zk {
                     zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
                     std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
                     redisConnection = redisConnect(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort());
-                    auth(zkRedisConfig.getPassword().c_str());
-                    select();
+                    bool authSuccess = auth(zkRedisConfig.getPassword().c_str());
+                    if(authSuccess){
+                        select();
+                    }
                 }else{
                     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
                     // printf("AVIN_DEBUG_STORE00_ Already connected\n");
@@ -92,7 +94,9 @@ namespace zk {
 
                 // If you want to select a different database, use redisCommand to send the SELECT command
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SELECT %d", database);
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return false;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     freeReplyObject(reply);
                     return false;
                 }
@@ -108,7 +112,9 @@ namespace zk {
 
                 // If you want to select a different database, use redisCommand to send the SELECT command
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "AUTH %s", password);
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return false;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     std::cout << "\nAVIN_DEBUG Reply error auth: " << reply->type << std::endl;
                     freeReplyObject(reply);
                     return false;
@@ -127,10 +133,13 @@ namespace zk {
 
             void expire(const char* key, const int expiryaInSeconds){
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXPIRE %s %d", key, expiryaInSeconds);
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
                     std::cout << "\nAVIN_DEBUG Reply error expire: " << reply->type << std::endl;
                     freeReplyObject(reply);
+                    return;
                 }
                 freeReplyObject(reply);
             }
@@ -149,14 +158,13 @@ namespace zk {
 
             bool startTransaction(){
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "MULTI");
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    std::cout << "\nAVIN_DEBUG Reply error startTransaction: reply null" <<  std::endl;
+                    return false;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        std::cout << "\nAVIN_DEBUG Reply error startTransaction: " << reply->type << std::endl;
-                        freeReplyObject(reply);
-                    }else{
-                        std::cout << "\nAVIN_DEBUG Reply error startTransaction: reply null" <<  std::endl;
-                    }
+                    std::cout << "\nAVIN_DEBUG Reply error startTransaction: " << reply->type << std::endl;
+                    freeReplyObject(reply);
                     return false;
                 }
                 freeReplyObject(reply);
@@ -165,14 +173,13 @@ namespace zk {
 
             bool endTransaction(){
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXEC");
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    std::cout << "\nAVIN_DEBUG Reply error endTransaction: reply null" <<  std::endl;
+                    return false;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        std::cout << "\nAVIN_DEBUG Reply error endTransaction: " << reply->type << std::endl;
-                        freeReplyObject(reply);
-                    }else{
-                        std::cout << "\nAVIN_DEBUG Reply error endTransaction: reply null" <<  std::endl;
-                    }
+                    std::cout << "\nAVIN_DEBUG Reply error endTransaction: " << reply->type << std::endl;
+                    freeReplyObject(reply);
                     return false;
                 }
                 freeReplyObject(reply);
@@ -199,14 +206,13 @@ namespace zk {
                 // std::cout << "DerivedClass finalArgs. " << finalArgs << std::endl;
 
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" <<  std::endl;
+                    return false;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
-                        freeReplyObject(reply);
-                    }else{
-                        std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" <<  std::endl;
-                    }
+                    std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
+                    freeReplyObject(reply);
                     return false;
                 }
                 freeReplyObject(reply);
@@ -216,11 +222,11 @@ namespace zk {
             bool set(const std::string& key, const std::string& value) override {
                 // printf("AVIN_DEBUG_STORE04_ store.set\n");
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SET %s %s", key.c_str(), value.c_str());
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return false;
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        freeReplyObject(reply);
-                    }
+                    freeReplyObject(reply);
                     return false;
                 }
                 freeReplyObject(reply);
@@ -231,15 +237,13 @@ namespace zk {
                 // printf("AVIN_DEBUG_STORE07_ store.get\n");
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "GET %s", key.c_str()));
                 // redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return "";
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
                     // printf("AVIN_DEBUG_STORE08_ store.get %s\n", reply ? reply->str : "Unknown error");
-                    if(reply != nullptr){
-                        freeReplyObject(reply);
-                    }
+                    freeReplyObject(reply);
                     return "";
-                }else{
-                    // printf("AVIN_DEBUG_STORE09_ store.get success\n");
                 }
                 std::string value = reply->str;
                 freeReplyObject(reply);
@@ -248,11 +252,11 @@ namespace zk {
 
             std::vector<std::string> hkeys(const std::string& key) override{
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HKEYS %s", key.c_str()));
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return std::vector<std::string>();
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        freeReplyObject(reply);
-                    }
+                    freeReplyObject(reply);
                     return std::vector<std::string>();
                 }
                 std::vector<std::string> keys;
@@ -265,11 +269,11 @@ namespace zk {
 
             std::string hget(const std::string& key) override{
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HGET %s", key.c_str()));
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return "";
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        freeReplyObject(reply);
-                    }
+                    freeReplyObject(reply);
                     return "";
                 }
                 std::string value = reply->str;
@@ -279,11 +283,11 @@ namespace zk {
 
             std::map<std::string, std::string> hgetall(const std::string& key) override{
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HGETALL %s", key.c_str()));
-                if (reply == nullptr || reply->type == REDIS_REPLY_ERROR) {
+                if(reply == nullptr){
+                    return std::map<std::string, std::string>();
+                }else if (reply->type == REDIS_REPLY_ERROR) {
                     // Handle error
-                    if(reply != nullptr){
-                        freeReplyObject(reply);
-                    }
+                    freeReplyObject(reply);
                     return std::map<std::string, std::string>();
                 }
                 std::map<std::string, std::string> values;
