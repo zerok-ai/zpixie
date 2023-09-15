@@ -88,6 +88,9 @@ namespace zk {
             }
 
             bool select() {
+                if(checkForConnection() == false){
+                    return false;
+                }
                 if(database == 0){
                     return true;
                 }
@@ -106,6 +109,9 @@ namespace zk {
             }
 
             bool auth(const char* password) {
+                if(checkForConnection() == false){
+                    return false;
+                }
                 if(database == 0){
                     return true;
                 }
@@ -132,6 +138,9 @@ namespace zk {
             }
 
             void expire(const char* key, const int expiryaInSeconds){
+                if(checkForConnection() == false){
+                    return;
+                }
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXPIRE %s %d", key, expiryaInSeconds);
                 if(reply == nullptr){
                     return;
@@ -156,7 +165,17 @@ namespace zk {
                 }
             }
 
+            bool checkForConnection(){
+                if(redisConnection == nullptr || redisConnection->err ){
+                    return false;
+                }
+                return true;
+            }
+
             bool startTransaction(){
+                if(checkForConnection() == false){
+                    return false;
+                }
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "MULTI");
                 if(reply == nullptr){
                     std::cout << "\nAVIN_DEBUG Reply error startTransaction: reply null" <<  std::endl;
@@ -172,6 +191,9 @@ namespace zk {
             }
 
             bool endTransaction(){
+                if(checkForConnection() == false){
+                    return false;
+                }
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXEC");
                 if(reply == nullptr){
                     std::cout << "\nAVIN_DEBUG Reply error endTransaction: reply null" <<  std::endl;
@@ -194,6 +216,9 @@ namespace zk {
             }
 
             bool addToSet(const char* key, va_list args) {
+                if(checkForConnection() == false){
+                    return false;
+                }
                 std::string finalArgs;
                 const char* arg = va_arg(args, const char*);
                 while (arg != nullptr) {
@@ -220,6 +245,9 @@ namespace zk {
             }
 
             bool set(const std::string& key, const std::string& value) override {
+                if(checkForConnection() == false){
+                    return false;
+                }
                 // printf("AVIN_DEBUG_STORE04_ store.set\n");
                 redisReply* reply = (redisReply*)redisCommand(redisConnection, "SET %s %s", key.c_str(), value.c_str());
                 if(reply == nullptr){
@@ -234,6 +262,9 @@ namespace zk {
             }
 
             std::string get(const std::string& key) override {
+                if(checkForConnection() == false){
+                    return "";
+                }
                 // printf("AVIN_DEBUG_STORE07_ store.get\n");
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "GET %s", key.c_str()));
                 // redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
@@ -251,6 +282,9 @@ namespace zk {
             }
 
             std::vector<std::string> hkeys(const std::string& key) override{
+                if(checkForConnection() == false){
+                    return std::vector<std::string>();
+                }
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HKEYS %s", key.c_str()));
                 if(reply == nullptr){
                     return std::vector<std::string>();
@@ -268,6 +302,9 @@ namespace zk {
             }
 
             std::string hget(const std::string& key) override{
+                if(checkForConnection() == false){
+                    return "";
+                }
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HGET %s", key.c_str()));
                 if(reply == nullptr){
                     return "";
@@ -282,6 +319,9 @@ namespace zk {
             }
 
             std::map<std::string, std::string> hgetall(const std::string& key) override{
+                if(checkForConnection() == false){
+                    return std::map<std::string, std::string>();
+                }
                 redisReply* reply = static_cast<redisReply*>(redisCommand(redisConnection, "HGETALL %s", key.c_str()));
                 if(reply == nullptr){
                     return std::map<std::string, std::string>();
