@@ -75,10 +75,7 @@ namespace px {
 
       public:
         static void init(){
-          // std::thread::id threadId = std::this_thread::get_id();
-          // LOG(INFO) << "\nAVIN_DEBUG_STORE_INIT_01 initializing striling::zk-executor " << threadId;
           zk::ZkQueryExecutor::init();
-          // zk::ZkQueryExecutor::initializeQueries();
         }
 
         static std::string extractTraceparentValue(const std::string& queryString) {

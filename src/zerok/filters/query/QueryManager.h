@@ -186,19 +186,22 @@ namespace zk{
             static void init(){
                 if(!storeInitializedOnce){
                     std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
-                    // printf("\nAVIN_DEBUG_QUERY_init00 ");
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
-                    // zkStore = zk::ZkStoreProvider::instance();
-                    // zkStore->connect();
                     zkStoreReader = zk::ZkStoreProvider::instance(6);
-                    zkStoreReader->connect();
                     zkStoreWriter = zk::ZkStoreProvider::instance(1);
-                    zkStoreWriter->connect();
                     uuid = CommonUtils::generateUUID();
                     possibleIdentifiers.insert("*/*");
                     possibleIdentifiers.insert("NS01/*");
                     possibleIdentifiers.insert("NS01/SVC01");
+                }
+                bool readerConnected = zkStoreReader->connect();
+                if(!readerConnected){
+                    zkStoreReader->connect();
+                }
+                bool writerConnected = zkStoreWriter->connect();
+                if(!writerConnected){
+                    zkStoreWriter->connect();
                 }
             }
 

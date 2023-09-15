@@ -73,11 +73,12 @@ namespace zk {
                 if (redisConnection == nullptr || redisConnection->err) {
                     if (redisConnection) {
                         // Handle connection error
-                        // printf("AVIN_DEBUG_STORE01_ Connection error: %s\n", redisConnection->errstr);
+                        printf("AVIN_DEBUG_STORE01_ Connection error: %s\n", redisConnection->errstr);
                         disconnect();
+                        return false;
                     } else {
                         // Handle memory allocation error
-                        // printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
+                        printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
                     }
                     return false;
                 }

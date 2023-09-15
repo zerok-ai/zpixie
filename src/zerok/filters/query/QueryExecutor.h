@@ -24,32 +24,6 @@ namespace zk{
         static void init(){
             zk::ZkConfigProvider::init();
             ZkQueryManager::refresh();
-
-            ///////
-            // std::ifstream inputFile("/opt/zk-client-db-configmap.yaml"); // Open the file
-
-            // if (!inputFile) {
-            //     std::cerr << "Failed to open the file." << std::endl;
-            // }
-
-            // // std::string line = "";
-            // // while (std::getline(inputFile, line)) {
-            // //     // Process each line of the file
-            // //     std::cout << line << std::endl;
-            // // }
-
-            // // Parse the YAML file
-            // YAML::Node yamlNode = YAML::Load(inputFile);
-
-            // // Access data from the YAML structure
-            // std::string value = yamlNode["key"].as<std::string>();
-            // std::cout << "Value: " << value << std::endl;
-
-
-            // inputFile.close(); // Close the file
-
-            ///////
-
         }
 
         static SimpleRuleKeyValue* generateTraceparentRule(std::string ruleId, bool isCaps) {
