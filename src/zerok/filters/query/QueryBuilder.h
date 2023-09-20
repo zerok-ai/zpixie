@@ -73,48 +73,6 @@ namespace zk {
                 rapidjson::Document scenarioDoc;
                 scenarioDoc.Parse(jsonRule);
                 return extractQueriesFromScenario(scenarioDoc);
-                // rapidjson::Document scenarioDoc;
-                // scenarioDoc.Parse(jsonRule);
-
-                // std::vector<Query*> vector;
-
-                // if (scenarioDoc.HasParseError()) {
-                //     std::cout << "AVIN_DEBUG_ QueryBuilder JSON parse error: " << GetParseError_En(scenarioDoc.GetParseError()) << std::endl;
-                //     return vector; // Return empty vector if JSON parsing failed
-                // }
-
-                // if (!scenarioDoc.IsObject()) {
-                //     std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object." << std::endl;
-                //     return vector; // Return empty vector if JSON is not an object
-                // }
-
-                // if (!scenarioDoc.HasMember("workloads")) {
-                //     std::cout << "AVIN_DEBUG_ QueryBuilder Missing 'workloads' field in the JSON." << std::endl;
-                //     return vector; // Return empty vector if 'workloads' field is missing
-                // }
-
-                // rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
-                // if (!workloadsDoc.IsObject()) {
-                //     std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. 'workloads' field is not an object." << std::endl;
-                //     return vector; // Return empty vector if 'workloads' is not an object
-                // }
-
-                // for (auto& member : workloadsDoc.GetObject()) {
-                //     const char* key = member.name.GetString();
-                //     rapidjson::Value& workloadDoc = workloadsDoc[key];
-                //     Query* query = parseWorkload(key, workloadDoc);
-
-                //     if (query) {
-                //         std::string keyString(key);
-                //         query->workloadId = keyString;
-                //         vector.push_back(query);
-                //     } else {
-                //         std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key << std::endl;
-                //         // Log warning or perform error handling as necessary
-                //     }
-                // }
-
-                // return vector;
             }
             
             static std::vector<Query*> parseScenarios(const char* jsonRule){
@@ -227,44 +185,6 @@ namespace zk {
                 return rule;
             }
 
-            static Rule* parseWorkloadIdentifierRule(const rapidjson::Value& ruleDoc){
-                CompositeRule* rule = new CompositeRule();
-                rule->condition = AND;
-                
-                const rapidjson::Value& value = ruleDoc["value"];
-                std::string sourceOrDestination = ruleDoc["id"].GetString();
-
-                //TraceRule
-                SimpleRuleString* traceRule = new SimpleRuleString();
-                traceRule->id = "trace_role";
-                traceRule->type = STRING;
-                traceRule->input = "string";
-                if(sourceOrDestination == "source"){
-                    traceRule->value = "server";
-                }else{
-                    traceRule->value = "client";
-                }
-                
-                rule->rules.push_back(traceRule);
-
-                //delete once done:
-                // for (auto r : rule->rules) {
-                //     delete r;
-                // }
-
-                //remote_addr
-                if(value.HasMember("ip")){
-                    SimpleRuleString* ipRule = new SimpleRuleString();
-                    ipRule->id = "remote_addr";
-                    ipRule->type = STRING;
-                    ipRule->input = "string";
-                    ipRule->value = "10.0.0.4";
-                    rule->rules.push_back(ipRule);
-                }
-
-                return rule;
-            }
-
             static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc){
                 SimpleRule* rule = nullptr;
 
@@ -323,11 +243,10 @@ namespace zk {
                         delete rule; // Delete the created rule object
                         return nullptr; // Return nullptr if value type is invalid
                     }
-                } else if (fieldType == KEY_MAP) {
-                    rule = new SimpleRuleKeyValue();
-                    ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
-                } else if (fieldType == WORKLOAD_IDENTIFIER) {
-                    return parseWorkloadIdentifierRule(ruleDoc);
+                // } 
+                // else if (fieldType == KEY_MAP) {
+                //     rule = new SimpleRuleKeyValue();
+                //     ((SimpleRuleKeyValue*)rule)->value = ruleDoc["value"].GetString();
                 } else {
                     std::cout << "AVIN_DEBUG_ QueryBuilder Unsupported datatype in the simple rule JSON. Line: " << __LINE__ << std::endl;
                     return rule; // Return nullptr if the datatype is unsupported
@@ -338,6 +257,9 @@ namespace zk {
                 rule->type = fieldType;
                 if (ruleDoc.HasMember("key")) {
                     rule->key = ruleDoc["key"].GetString();
+                }
+                if (ruleDoc.HasMember("json_path")) {
+                    rule->key = ruleDoc["json_path"].GetString();
                 }
 
                 // Check if the operator is a valid OperatorType

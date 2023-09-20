@@ -12,7 +12,7 @@ namespace zk {
 
         bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                std::string foundValue = propsMap[id];
+                std::string foundValue = this->extractValueFromJson(propsMap);
                 return foundValue == value;
             }
             return false;
@@ -20,7 +20,7 @@ namespace zk {
         
         bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                std::string foundValue = propsMap[id];
+                std::string foundValue = this->extractValueFromJson(propsMap);
                 return foundValue != value;
             }
             return false;
@@ -28,7 +28,7 @@ namespace zk {
 
         bool evaluateIn(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                std::string foundValue = propsMap[id];
+                std::string foundValue = this->extractValueFromJson(propsMap);
                 std::vector<std::string> splits = CommonUtils::splitString(value, ", ");
 
                 return std::find(splits.begin(), splits.end(), foundValue) != splits.end();
@@ -38,7 +38,7 @@ namespace zk {
 
         bool evaluateNotIn(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                std::string foundValue = propsMap[id];
+                std::string foundValue = this->extractValueFromJson(propsMap);
                 std::vector<std::string> splits = CommonUtils::splitString(value, ", ");
 
                 return std::find(splits.begin(), splits.end(), foundValue) == splits.end();

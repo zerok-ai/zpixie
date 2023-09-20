@@ -26,15 +26,16 @@ namespace zk{
             ZkQueryManager::refresh();
         }
 
-        static SimpleRuleKeyValue* generateTraceparentRule(std::string ruleId, bool isCaps) {
-            SimpleRuleKeyValue* traceIdRule = new SimpleRuleKeyValue();
+
+        static SimpleRuleString* generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
+            SimpleRuleString* traceIdRule = new SimpleRuleString();
             traceIdRule->id = ruleId;
-            traceIdRule->type = KEY_MAP;
+            traceIdRule->type = STRING;
             traceIdRule->input = "string";
             traceIdRule->value = "/traceparent";
-            traceIdRule->key = "/traceparent";
+            traceIdRule->json_path = "/traceparent";
             if (isCaps) {
-                traceIdRule->key = "/Traceparent";
+                traceIdRule->json_path = "/Traceparent";
             }
             return traceIdRule;
         }
@@ -45,16 +46,16 @@ namespace zk{
             std::string spanId = "";
             if(protocol == "HTTP"){
                 /* Generate rules to check traceparent or Traceparent header in req_headers OR resp_headers */
-                SimpleRuleKeyValue* traceIdReqRuleSmall = generateTraceparentRule("req_headers", false);
-                SimpleRuleKeyValue* traceIdReqRuleCaps = generateTraceparentRule("req_headers", true);
-                SimpleRuleKeyValue* traceIdResRuleSmall = generateTraceparentRule("resp_headers", false);
-                SimpleRuleKeyValue* traceIdResRuleCaps = generateTraceparentRule("resp_headers", true);
+                SimpleRuleString* traceIdReqRuleSmall = generateTraceparentRuleV2("req_headers", false);
+                SimpleRuleString* traceIdReqRuleCaps = generateTraceparentRuleV2("req_headers", true);
+                SimpleRuleString* traceIdResRuleSmall = generateTraceparentRuleV2("resp_headers", false);
+                SimpleRuleString* traceIdResRuleCaps = generateTraceparentRuleV2("resp_headers", true);
 
                 const int ruleCount = 4;
-                SimpleRuleKeyValue* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
+                SimpleRuleString* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
                 std::string traceParent = "ZK_NULL";
                 for(int ruleIdx=0; ruleIdx<ruleCount; ruleIdx++) {
-                    traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
+                    traceParent = traceRuleArray[ruleIdx]->extractValueFromJson(propsMap);
                     if(traceParent != "ZK_NULL"){
                         break;
                     }

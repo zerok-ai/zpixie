@@ -38,9 +38,7 @@ namespace zk {
 
     static std::unordered_map<std::string, FieldType> fieldTypeMap = {
         {"string", STRING},
-        {"integer", INTEGER},
-        {"key-map", KEY_MAP},
-        {"workload-identifier", WORKLOAD_IDENTIFIER}
+        {"integer", INTEGER}
     };
 
     class Query{
