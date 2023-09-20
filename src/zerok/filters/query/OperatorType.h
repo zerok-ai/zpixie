@@ -2,6 +2,8 @@
 
 namespace zk {
     enum OperatorType{
+        EXISTS, 
+        NOT_EXISTS, 
         EQUALS, 
         NOT_EQUALS,
         IN,

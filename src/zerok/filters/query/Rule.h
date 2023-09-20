@@ -90,6 +90,12 @@ namespace zk {
             bool evaluate(std::map<std::string, std::string> propsMap) const override{
                 switch (operatorType)
                 {
+                    case EXISTS:
+                        return evaluateExists(propsMap);
+                    
+                    case NOT_EXISTS:
+                        return evaluateNotExists(propsMap);
+
                     case EQUALS:
                         return evaluateEquals(propsMap);
                     
@@ -121,6 +127,8 @@ namespace zk {
                 return false;
             }
 
+            virtual bool evaluateExists(std::map<std::string, std::string> propsMap) const = 0;
+            virtual bool evaluateNotExists(std::map<std::string, std::string> propsMap) const = 0;
             virtual bool evaluateEquals(std::map<std::string, std::string> propsMap) const = 0;
             virtual bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const = 0;
             virtual bool evaluateIn(std::map<std::string, std::string> propsMap) const = 0;

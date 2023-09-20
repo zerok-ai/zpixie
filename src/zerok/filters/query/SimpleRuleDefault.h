@@ -5,6 +5,15 @@
 namespace zk {
     class SimpleRuleDefault : public SimpleRule {
     public:
+        bool evaluateExists(std::map<std::string, std::string> propsMap) const override{
+            if(propsMap.count(id)){
+                return true;
+            }
+            return false;
+        };
+        bool evaluateNotExists(std::map<std::string, std::string> propsMap) const override{
+            return evaluateExists(propsMap) ? false : true;
+        };
         bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
