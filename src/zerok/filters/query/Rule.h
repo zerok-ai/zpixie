@@ -6,6 +6,8 @@
 #include "ConditionType.h"
 #include "FieldType.h"
 #include "OperatorType.h"
+#include <rapidjson/document.h>
+#include <rapidjson/pointer.h>
 
 namespace zk {
     class Rule{
