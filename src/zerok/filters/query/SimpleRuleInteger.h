@@ -10,7 +10,7 @@ namespace zk {
 
         bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                long foundValue = std::stol(this->extractValueFromJson(propsMap));
+                long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue == value;
             }
             return false;
@@ -18,7 +18,7 @@ namespace zk {
 
         bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                long foundValue = std::stol(this->extractValueFromJson(propsMap));
+                long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue != value;
             }
             return false;
@@ -26,7 +26,7 @@ namespace zk {
 
         bool evaluateLessThan(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                long foundValue = std::stol(this->extractValueFromJson(propsMap));
+                long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue < value;
             }
             return false;
@@ -34,7 +34,7 @@ namespace zk {
 
         bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                long foundValue = std::stol(this->extractValueFromJson(propsMap));
+                long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue <= value;
             }
             return false;
@@ -42,7 +42,7 @@ namespace zk {
 
         bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                long foundValue = std::stol(this->extractValueFromJson(propsMap));
+                long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue > value;
             }
             return false;
@@ -50,7 +50,7 @@ namespace zk {
 
         bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const override{
             if(propsMap.count(id)){
-                long foundValue = std::stol(this->extractValueFromJson(propsMap));
+                long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue >= value;
             }
             return false;

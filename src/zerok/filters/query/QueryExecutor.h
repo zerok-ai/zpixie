@@ -55,7 +55,7 @@ namespace zk{
                 SimpleRuleString* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
                 std::string traceParent = "ZK_NULL";
                 for(int ruleIdx=0; ruleIdx<ruleCount; ruleIdx++) {
-                    traceParent = traceRuleArray[ruleIdx]->extractValueFromJson(propsMap);
+                    traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
                     if(traceParent != "ZK_NULL"){
                         break;
                     }

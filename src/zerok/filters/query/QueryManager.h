@@ -12,18 +12,6 @@
 namespace zk{
     class ZkQueryManager{
         private:
-            // static bool testBoolOnce;
-            // static bool storeInitializedOnce;
-            // static zk::ZkStore* zkStoreReader;
-            // static zk::ZkStore* zkStoreWriter;
-            // static std::string uuid;
-            // static long lastTimestampInMilliseconds;
-            // static long ttlForRedisCheckInMilliseconds;
-            // static std::set<std::string> possibleIdentifiers;
-            // static std::map<std::string, std::vector<Query*> > protocolToQueries;
-            // static std::map<std::string, int > queryToVersion;
-            // static std::map<std::string, std::map<std::string, std::vector<Query*> > > protocolToScenarioToQueries;
-
             static bool isTtlExpiredPassed(){
                 auto currentTime = std::chrono::high_resolution_clock::now();
                 auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
@@ -74,6 +62,11 @@ namespace zk{
                     //1 - Identify changed scenarios
                     std::vector<std::string> changedScenarios = identifyChangedScenarios();
 
+                    //1.2 - Extract the attributes from redis
+                    std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap;
+                    std::map<std::string, std::string> attributesMap = zkStoreReader->hgetall("EBPF_abc_HTTP");
+                    protocolToAttributesMap.insert("HTTP", attributesMap);
+
                     //1.5 - Check for the size of changedScenarios and return if it is 0
                     if(changedScenarios.size() == 0){
                         return;
@@ -102,7 +95,7 @@ namespace zk{
                         rapidjson::Value scenarioDocValue(scenarioJsonDocument, scenarioJsonDocument.GetAllocator());
 
                         //3 - extract the queries from scenario json by calling extractQueriesFromScenario on QueryBuilder
-                        std::vector<Query*> queries = QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str());
+                        std::vector<Query*> queries = QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str(), protocolToAttributesMap);
 
                         //4 - for each query, check if the query is allowed as per the possibleIdentifiers set
                         for (const auto& query : queries) {
@@ -190,6 +183,7 @@ namespace zk{
                     ttlForRedisCheckInMilliseconds = 300000;
                     zkStoreReader = zk::ZkStoreProvider::instance(6);
                     zkStoreWriter = zk::ZkStoreProvider::instance(1);
+                    zkStoreAttributedReader = zk::ZkStoreProvider::instance(4);
                     uuid = CommonUtils::generateUUID();
                     possibleIdentifiers.insert("*/*");
                     possibleIdentifiers.insert("NS01/*");
@@ -198,6 +192,10 @@ namespace zk{
                 bool readerConnected = zkStoreReader->connect();
                 if(!readerConnected){
                     zkStoreReader->connect();
+                }
+                bool attributesReaderConnected = zkStoreAttributedReader->connect();
+                if(!attributesReaderConnected){
+                    zkStoreAttributedReader->connect();
                 }
                 bool writerConnected = zkStoreWriter->connect();
                 if(!writerConnected){
@@ -209,6 +207,7 @@ namespace zk{
             static bool storeInitializedOnce;
             static zk::ZkStore* zkStoreReader;
             static zk::ZkStore* zkStoreWriter;
+            static zk::ZkStore* zkStoreAttributedReader;
             static std::string uuid;
             static long lastTimestampInMilliseconds;
             static long ttlForRedisCheckInMilliseconds;
@@ -233,6 +232,7 @@ namespace zk{
     std::map<std::string, std::vector<Query*> > ZkQueryManager::protocolToQueries;
     zk::ZkStore* ZkQueryManager::zkStoreReader; 
     zk::ZkStore* ZkQueryManager::zkStoreWriter; 
+    zk::ZkStore* ZkQueryManager::zkStoreAttributedReader; 
     std::string ZkQueryManager::uuid;
     std::map<std::string, std::map<std::string, std::vector<Query*> > > ZkQueryManager::protocolToScenarioToQueries;
     bool ZkQueryManager::storeInitializedOnce; 

@@ -28,7 +28,7 @@ namespace zk {
 
                 return randomString;
             }
-            static std::vector<Query*> extractQueriesFromScenario(const rapidjson::Value& scenarioDoc){
+            static std::vector<Query*> extractQueriesFromScenario(const rapidjson::Value& scenarioDoc, const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap){
                 std::vector<Query*> vector;
 
                 if (!scenarioDoc.IsObject()) {
@@ -50,7 +50,7 @@ namespace zk {
                 for (auto& member : workloadsDoc.GetObject()) {
                     const char* key = member.name.GetString();
                     const rapidjson::Value& workloadDoc = workloadsDoc[key];
-                    Query* query = parseWorkload(key, workloadDoc);
+                    Query* query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
 
                     if (query) {
                         std::string keyString(key);
@@ -65,14 +65,14 @@ namespace zk {
                 return vector;
             }
 
-            static std::vector<Query*> extractQueriesFromScenario(const char* jsonRule){
+            static std::vector<Query*> extractQueriesFromScenario(const char* jsonRule, const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap){
                 if (jsonRule == nullptr) {
                     std::cout << "AVIN_DEBUG_ QueryBuilder JSON rule is nullptr." << " line: " << __LINE__ << std::endl;
                     return {}; // Return an empty vector or handle the error case appropriately
                 }
                 rapidjson::Document scenarioDoc;
                 scenarioDoc.Parse(jsonRule);
-                return extractQueriesFromScenario(scenarioDoc);
+                return extractQueriesFromScenario(scenarioDoc, protocolToAttributesMap);
             }
             
             static std::vector<Query*> parseScenarios(const char* jsonRule){
@@ -90,7 +90,7 @@ namespace zk {
                 return vector;
             }
 
-            static Query* parseWorkload(const char* key, const rapidjson::Value& doc){
+            static Query* parseWorkload(const char* key, const rapidjson::Value& doc, const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap){
                 Query* query = nullptr;
 
                 if (!doc.IsObject()) {
@@ -98,7 +98,7 @@ namespace zk {
                     return query; // Return nullptr if JSON is not an object
                 }
 
-                query = parseQuery(doc);
+                query = parseQuery(doc, protocolToAttributesMap);
                 if (query) {
                     std::string keyString(key);
                     query->workloadId = keyString;
@@ -110,7 +110,7 @@ namespace zk {
                 return query;
             }
 
-            static Query* parseQuery(const rapidjson::Value& doc){
+            static Query* parseQuery(const rapidjson::Value& doc, const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap){
                 Query* parsedQuery = nullptr;
 
                 if (!doc.IsObject()) {
@@ -126,6 +126,7 @@ namespace zk {
 
                 parsedQuery = new Query();
                 std::string protocolString = doc["protocol"].GetString();
+                std::map<std::string, std::string> attributesMap = protocolToAttributesMap.at(protocolString);
                 std::string traceRoleString = doc["trace_role"].GetString();
                 std::string serviceString = doc["service"].GetString();
                 std::vector<std::string> splits = CommonUtils::splitString(serviceString, "/");
@@ -147,7 +148,7 @@ namespace zk {
                 andRule->rules.push_back(traceRule);
                 //////////
                 const rapidjson::Value& ruleDoc = doc["rule"];
-                Rule* parsedRule = parse(ruleDoc);
+                Rule* parsedRule = parse(ruleDoc, attributesMap);
                 if(parsedRule != nullptr){
                     andRule->rules.push_back(parsedRule);
                 }
@@ -157,19 +158,19 @@ namespace zk {
             }
 
         private:
-            static Rule* parse(const rapidjson::Value& doc){
+            static Rule* parse(const rapidjson::Value& doc, const std::map<std::string, std::string> attributesMap){
                 Rule* parsedRule;
                 bool isCompositeRule = doc.HasMember("condition");
                 if(isCompositeRule){
-                    parsedRule = parseCompositeRule(doc);
+                    parsedRule = parseCompositeRule(doc, attributesMap);
                 }else{
-                    parsedRule = parseSimpleRule(doc);
+                    parsedRule = parseSimpleRule(doc, attributesMap);
                 }
 
                 return parsedRule;
             }
 
-            static Rule* parseCompositeRule(const rapidjson::Value& compositeRuleDoc){
+            static Rule* parseCompositeRule(const rapidjson::Value& compositeRuleDoc, const std::map<std::string, std::string> attributesMap){
                 CompositeRule* rule = new CompositeRule();
                 rule->condition = conditionTypeMap[compositeRuleDoc["condition"].GetString()];
                 const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
@@ -185,7 +186,7 @@ namespace zk {
                 return rule;
             }
 
-            static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc){
+            static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc, const std::map<std::string, std::string> attributesMap){
                 SimpleRule* rule = nullptr;
 
                 // Check if the rule document is an object
@@ -202,6 +203,12 @@ namespace zk {
 
                 // Get the field values from the rule document
                 std::string id = ruleDoc["id"].GetString();
+                //check if attributesMap is not null and is not empty
+                if(attributesMap.size() > 0){
+                    if(attributesMap.find(id) != attributesMap.end()){
+                        id = attributesMap.at(id);
+                    }
+                }
                 std::string datatype = ruleDoc["datatype"].GetString();
                 std::string op = ruleDoc["operator"].GetString();
 

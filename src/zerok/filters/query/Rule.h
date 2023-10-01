@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <algorithm>
 #include <map>
 #include "ConditionType.h"
 #include "FieldType.h"
@@ -56,17 +57,58 @@ namespace zk {
             std::string input;
             OperatorType operatorType;
 
-            std::string extractValueFromJson(std::map<std::string, std::string> propsMap) const {
-                if(propsMap.count(id)){
-                    const std::string json = propsMap[id];
-                    if(json_path == ""){
+            //id can contain this string: req_body.#extractJSON("message").#upperCase()
+            std::string evaluateIdAndExtractValue(std::map<std::string, std::string> propsMap) const {
+                std::string idToEvaluate = extractId(id);
+                std::string jsonPath = extractJsonPath(id);
+                std::string foundValue = "";
+                foundValue = extractValueFromJson(propsMap, idToEvaluate, jsonPath);
+
+                if(id.find("#upperCase") != std::string::npos){
+                    //convert to uppercase
+                    std::transform(foundValue.begin(), foundValue.end(), foundValue.begin(), ::toupper);
+                }
+
+                return foundValue;
+            }
+
+            std::string extractId(std::string id) const{
+                std::string idToEvaluate = id;
+                if(id.find("#") != std::string::npos){
+                    idToEvaluate = id.substr(0, id.find("#")-1);
+                }
+                
+                return idToEvaluate;
+            }
+
+            std::string extractJsonPath(std::string id) const{
+                std::string jsonPath = "";
+                if(id.find("#extractJSON") != std::string::npos){
+                    //extract json
+                    jsonPath = id.substr(id.find("(\"") + 2, id.find("\")") - id.find("(\"") - 2);
+                }
+                return jsonPath;
+            }
+
+            //function to extract value from json passed in the arguments
+            //if json_path is empty then return the json as it is
+            std::string extractValueFromJson(std::map<std::string, std::string> propsMap, std::string idToEvaluate, std::string jsonPath) const {
+                if(propsMap.count(idToEvaluate)){
+                    const std::string json = propsMap[idToEvaluate];
+                    std::string finalJsonPath = "";
+                    if(jsonPath == ""){
+                        finalJsonPath = json_path;
+                    }else{
+                        finalJsonPath = jsonPath;
+                    }
+                    if(finalJsonPath == ""){
                         return json;
                     }
                     const char* jsonCstr = json.c_str();
                     rapidjson::Document doc;
                     doc.Parse(jsonCstr);
 
-                    const char* keyCstr = json_path.c_str();
+                    const char* keyCstr = finalJsonPath.c_str();
                     //https://rapidjson.org/md_doc_pointer.html
                     rapidjson::Pointer pointer(keyCstr);
 
@@ -85,6 +127,12 @@ namespace zk {
                 }
 
                 return "ZK_NULL";
+            }
+
+
+
+            std::string extractValue(std::map<std::string, std::string> propsMap) const {
+                return evaluateIdAndExtractValue(propsMap);
             }
 
             bool evaluate(std::map<std::string, std::string> propsMap) const override{
