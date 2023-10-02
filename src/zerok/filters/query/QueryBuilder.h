@@ -75,20 +75,20 @@ namespace zk {
                 return extractQueriesFromScenario(scenarioDoc, protocolToAttributesMap);
             }
             
-            static std::vector<Query*> parseScenarios(const char* jsonRule){
-                rapidjson::Document doc;
-                doc.Parse(jsonRule);
+            // static std::vector<Query*> parseScenarios(const char* jsonRule){
+            //     rapidjson::Document doc;
+            //     doc.Parse(jsonRule);
 
-                std::vector<Query*> vector;
-                rapidjson::Value& scenariosDoc = doc["scenarios"];
-                int scenariosSize = static_cast<int>(scenariosDoc.Size());
-                for (int i = 0; i < scenariosSize; i++) {
-                    rapidjson::Value& scenarioDoc = scenariosDoc[i];
-                    std::vector<Query*> queriesFromOneScenario = extractQueriesFromScenario(scenarioDoc);
-                    vector.insert(vector.end(), queriesFromOneScenario.begin(), queriesFromOneScenario.end());
-                }
-                return vector;
-            }
+            //     std::vector<Query*> vector;
+            //     rapidjson::Value& scenariosDoc = doc["scenarios"];
+            //     int scenariosSize = static_cast<int>(scenariosDoc.Size());
+            //     for (int i = 0; i < scenariosSize; i++) {
+            //         rapidjson::Value& scenarioDoc = scenariosDoc[i];
+            //         std::vector<Query*> queriesFromOneScenario = extractQueriesFromScenario(scenarioDoc);
+            //         vector.insert(vector.end(), queriesFromOneScenario.begin(), queriesFromOneScenario.end());
+            //     }
+            //     return vector;
+            // }
 
             static Query* parseWorkload(const char* key, const rapidjson::Value& doc, const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap){
                 Query* query = nullptr;
@@ -177,7 +177,7 @@ namespace zk {
                 std::vector<Rule*> vector;
                 int rulesDocSize = static_cast<int>(rulesDoc.Size());
                 for (int i = 0; i < rulesDocSize; i++) {
-                    Rule* rule = parse(rulesDoc[i]);
+                    Rule* rule = parse(rulesDoc[i], attributesMap);
                     if(rule != nullptr){
                         vector.push_back(rule);
                     }
