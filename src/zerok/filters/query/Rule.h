@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <string>
+#include <iostream>
 #include <algorithm>
 #include <map>
 #include "ConditionType.h"
@@ -102,6 +103,7 @@ namespace zk {
                         finalJsonPath = jsonPath;
                     }
                     if(finalJsonPath == ""){
+                        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_01 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value " << json << std::endl;
                         return json;
                     }
                     const char* jsonCstr = json.c_str();
@@ -120,6 +122,7 @@ namespace zk {
                     const rapidjson::Value* result = pointer.Get(doc);
                     if (result != nullptr && result->IsString()) {
                         std::string foundValue = result->GetString();
+                        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_02 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value " << json << std::endl;
                         return foundValue;
                     }else{
                         return "ZK_NULL";
