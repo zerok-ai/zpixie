@@ -64,7 +64,7 @@ class SimpleRule : public Rule {
     std::string foundValue = "";
     foundValue = extractValueFromJson(propsMap, idToEvaluate, jsonPath);
 
-    if (json_path == "/traceparent") {
+    if (json_path != "/traceparent") {
       std::cout << "\nAVIN_DEBUG_ATTRIBUTES_00 Id " << id << ", jsonPath " << jsonPath << std::endl;
     }
     if (id.find("#upperCase") != std::string::npos) {
@@ -120,7 +120,7 @@ class SimpleRule : public Rule {
 
       // Extract the value using JSONPath
       if (!pointer.IsValid()) {
-        if (json_path == "/traceparent") {
+        if (json_path != "/traceparent") {
           std::cout << "\nAVIN_DEBUG_ATTRIBUTES_02 Id " << idToEvaluate << ", jsonPath " << jsonPath
                     << ", json_path " << json_path << ", value " << json << std::endl;
         }
@@ -130,13 +130,13 @@ class SimpleRule : public Rule {
       const rapidjson::Value* result = pointer.Get(doc);
       if (result != nullptr && result->IsString()) {
         std::string foundValue = result->GetString();
-        if (json_path == "/traceparent") {
+        if (json_path != "/traceparent") {
           std::cout << "\nAVIN_DEBUG_ATTRIBUTES_03 Id " << idToEvaluate << ", jsonPath " << jsonPath
                     << ", json_path " << json_path << ", value " << foundValue << std::endl;
         }
         return foundValue;
       } else {
-        if (json_path == "/traceparent") {
+        if (json_path != "/traceparent") {
           std::cout << "\nAVIN_DEBUG_ATTRIBUTES_04 Id " << idToEvaluate << ", jsonPath " << jsonPath
                     << ", json_path " << json_path << ", value " << json << std::endl;
         }
@@ -144,7 +144,7 @@ class SimpleRule : public Rule {
       }
     }
 
-    if (json_path == "/traceparent") {
+    if (json_path != "/traceparent") {
       std::cout << "\nAVIN_DEBUG_ATTRIBUTES_05 Id " << idToEvaluate << ", jsonPath " << jsonPath
                 << ", json_path " << json_path << ", value is null " << std::endl;
     }
