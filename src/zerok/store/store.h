@@ -262,6 +262,9 @@ namespace zk {
             }
 
             std::string get(const std::string& key) override {
+                if(key == "2023"){
+                    return "{\"version\":\"1694015003\",\"scenario_id\":\"2023\",\"scenario_title\":\"test-ebpf\",\"scenario_type\":\"USER\",\"enabled\":true,\"workloads\":{\"55661a0e-25cb-5a1c-ebpf-fad172b0caa2\":{\"service\":\"*\/*\",\"trace_role\":\"server\",\"protocol\":\"HTTP\",\"rule\":{\"type\":\"rule_group\",\"condition\":\"AND\",\"rules\":[{\"type\":\"rule\",\"id\":\"http_req_headers\",\"field\":\"req_method\",\"datatype\":\"string\",\"input\":\"string\",\"operator\":\"equal\",\"value\":\"bookstore1.bookstore.svc.cluster.local\"}]}}},\"filter\":{\"type\":\"workload\",\"condition\":\"AND\",\"workload_ids\":[\"55661a0e-25cb-5a1c-ebpf-fad172b0caa2\"]},\"group_by\":[{\"workload_id\":\"55661a0e-25cb-5a1c-ebpf-fad172b0caa2\",\"title\":\"source\",\"hash\":\"source\"}],\"rate_limit\":[{\"bucket_max_size\":5,\"bucket_refill_size\":5,\"tick_duration\":\"1m\"}]}"
+                }
                 if(checkForConnection() == false){
                     return "";
                 }
