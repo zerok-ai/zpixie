@@ -97,7 +97,9 @@ namespace zk{
 
                         //3 - extract the queries from scenario json by calling extractQueriesFromScenario on QueryBuilder
                         std::vector<Query*> queries = QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str(), protocolToAttributesMap);
-
+                        if(scenairo == "2023"){
+                            std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << " query.workloadId " << queries[0]->workloadId.c_str() << std::endl;
+                        }
                         //4 - for each query, check if the query is allowed as per the possibleIdentifiers set
                         for (const auto& query : queries) {
                             std::string identifier = query->ns + "/" + query->service;

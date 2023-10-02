@@ -227,6 +227,9 @@ namespace zk {
 
                 // Create the appropriate SimpleRule based on the datatype
                 if (fieldType == STRING) {
+                    if(id == "http_req_headers"){
+                        std::cout << "\nAVIN_DEBUG_QUERY_init02 http_req_headers processed " << std::endl;
+                    }
                     rule = new SimpleRuleString();
                     ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
                 } else if (fieldType == INTEGER) {
