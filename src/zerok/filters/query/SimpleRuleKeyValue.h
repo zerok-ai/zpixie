@@ -10,8 +10,8 @@ namespace zk {
         std::string value;
 
         std::string extractValue(std::map<std::string, std::string> propsMap) const {
-            if(propsMap.count(id)){
-                const std::string json = propsMap[id];
+            if(propsMap.count(resolvedId)){
+                const std::string json = propsMap[resolvedId];
                 const char* jsonCstr = json.c_str();
                 rapidjson::Document doc;
                 doc.Parse(jsonCstr);

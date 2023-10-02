@@ -6,7 +6,7 @@ namespace zk {
     class SimpleRuleDefault : public SimpleRule {
     public:
         bool evaluateExists(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 return true;
             }
             return false;

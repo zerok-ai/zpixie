@@ -9,7 +9,7 @@ namespace zk {
         long value;
 
         bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue == value;
             }
@@ -17,7 +17,7 @@ namespace zk {
         };
 
         bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue != value;
             }
@@ -25,7 +25,7 @@ namespace zk {
         };
 
         bool evaluateLessThan(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue < value;
             }
@@ -33,7 +33,7 @@ namespace zk {
         }
 
         bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue <= value;
             }
@@ -41,7 +41,7 @@ namespace zk {
         }
 
         bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue > value;
             }
@@ -49,7 +49,7 @@ namespace zk {
         }
 
         bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 long foundValue = std::stol(this->extractValue(propsMap));
                 return foundValue >= value;
             }

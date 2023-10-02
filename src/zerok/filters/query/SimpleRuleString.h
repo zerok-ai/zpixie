@@ -11,7 +11,7 @@ namespace zk {
         std::string value;
 
         bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if(propsMap.count(resolvedId)){
                 std::string foundValue = this->extractValue(propsMap);
                 return foundValue == value;
             }
@@ -19,7 +19,7 @@ namespace zk {
         };
         
         bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if (propsMap.count(resolvedId)) {
                 std::string foundValue = this->extractValue(propsMap);
                 return foundValue != value;
             }
@@ -27,7 +27,7 @@ namespace zk {
         };
 
         bool evaluateIn(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if (propsMap.count(resolvedId)) {
                 std::string foundValue = this->extractValue(propsMap);
                 std::vector<std::string> splits = CommonUtils::splitString(value, ", ");
 
@@ -37,7 +37,7 @@ namespace zk {
         };
 
         bool evaluateNotIn(std::map<std::string, std::string> propsMap) const override{
-            if(propsMap.count(id)){
+            if (propsMap.count(resolvedId)) {
                 std::string foundValue = this->extractValue(propsMap);
                 std::vector<std::string> splits = CommonUtils::splitString(value, ", ");
 

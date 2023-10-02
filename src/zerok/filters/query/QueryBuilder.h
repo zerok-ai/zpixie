@@ -143,6 +143,7 @@ namespace zk {
                 andRule->condition = conditionTypeMap["AND"];
                 SimpleRuleString* traceRule = new SimpleRuleString();
                 traceRule->id = "trace_role";
+                traceRule->resolvedId = "trace_role";
                 traceRule->type = STRING;
                 traceRule->input = "string";
                 traceRule->value = parsedQuery->traceRole;
@@ -271,6 +272,7 @@ namespace zk {
 
                 // Set the remaining fields of the rule object
                 rule->id = id;
+                rule->resolvedId = rule->extractId(id);
                 rule->type = fieldType;
                 if (ruleDoc.HasMember("key")) {
                     rule->key = ruleDoc["key"].GetString();
