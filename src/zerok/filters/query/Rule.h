@@ -116,19 +116,22 @@ namespace zk {
 
                     // Extract the value using JSONPath
                     if (!pointer.IsValid()) {
+                        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_02 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value " << json << std::endl;
                         return "ZK_NULL";
                     }
 
                     const rapidjson::Value* result = pointer.Get(doc);
                     if (result != nullptr && result->IsString()) {
                         std::string foundValue = result->GetString();
-                        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_02 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value " << foundValue << std::endl;
+                        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_03 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value " << foundValue << std::endl;
                         return foundValue;
                     }else{
+                        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_04 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value " << json << std::endl;
                         return "ZK_NULL";
                     }
                 }
 
+                std::cout << "\nAVIN_DEBUG_ATTRIBUTES_05 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << ", value is null " << std::endl;
                 return "ZK_NULL";
             }
 
