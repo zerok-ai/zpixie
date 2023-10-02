@@ -65,6 +65,7 @@ namespace zk {
                 std::string foundValue = "";
                 foundValue = extractValueFromJson(propsMap, idToEvaluate, jsonPath);
 
+                std::cout << "\nAVIN_DEBUG_ATTRIBUTES_00 Id " << idToEvaluate << ", jsonPath " << jsonPath << ", json_path " << json_path << std::endl;
                 if(id.find("#upperCase") != std::string::npos){
                     //convert to uppercase
                     std::transform(foundValue.begin(), foundValue.end(), foundValue.begin(), ::toupper);
