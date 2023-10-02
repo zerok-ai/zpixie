@@ -126,6 +126,7 @@ namespace zk {
 
                 parsedQuery = new Query();
                 std::string protocolString = doc["protocol"].GetString();
+                std::cout << "AVIN_DEBUG_QueryBuilder_EBPF Protocol " << protocolString << " line: " << __LINE__ << std::endl;
                 std::map<std::string, std::string> attributesMap = protocolToAttributesMap.at(protocolString);
                 std::string traceRoleString = doc["trace_role"].GetString();
                 std::string serviceString = doc["service"].GetString();
@@ -205,9 +206,15 @@ namespace zk {
                 std::string id = ruleDoc["id"].GetString();
                 //check if attributesMap is not null and is not empty
                 if(attributesMap.size() > 0){
+                    std::cout << "AVIN_DEBUG_QueryBuilder_EBPF01 attributes present id " << id << std::endl;
                     if(attributesMap.find(id) != attributesMap.end()){
                         id = attributesMap.at(id);
+                        std::cout << "AVIN_DEBUG_QueryBuilder_EBPF0202 id " << id << std::endl;
+                    }else{
+                        std::cout << "AVIN_DEBUG_QueryBuilder_EBPF0202 id not present " << std::endl;
                     }
+                }else{
+                    std::cout << "AVIN_DEBUG_QueryBuilder_EBPF03 attributes 0 " << std::endl;
                 }
                 std::string datatype = ruleDoc["datatype"].GetString();
                 std::string op = ruleDoc["operator"].GetString();
