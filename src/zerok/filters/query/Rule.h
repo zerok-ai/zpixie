@@ -51,7 +51,6 @@ class CompositeRule : public Rule {
 class SimpleRule : public Rule {
  public:
   std::string id;
-  std::string resolvedId;
   std::string key;
   std::string json_path;
   FieldType type;
@@ -77,14 +76,10 @@ class SimpleRule : public Rule {
   }
 
   std::string extractId() const {
-    if (resolvedId != "") {
-      return resolvedId;
-    }
     std::string idToEvaluate = id;
     if (id.find("#") != std::string::npos) {
       idToEvaluate = id.substr(0, id.find("#") - 1);
     }
-    resolvedId = idToEvaluate;
     return idToEvaluate;
   }
 
