@@ -64,9 +64,9 @@ class SimpleRule : public Rule {
     std::string foundValue = "";
     foundValue = extractValueFromJson(propsMap, idToEvaluate, jsonPath);
 
-    if (json_path != "/Traceparent" && json_path != "/traceparent") {
-      std::cout << "\nAVIN_DEBUG_ATTRIBUTES_00 Id " << id << ", jsonPath " << jsonPath << std::endl;
-    }
+    // if (json_path != "/Traceparent" && json_path != "/traceparent") {
+    //   std::cout << "\nAVIN_DEBUG_ATTRIBUTES_00 Id " << id << ", jsonPath " << jsonPath << std::endl;
+    // }
     if (id.find("#upperCase") != std::string::npos) {
       // convert to uppercase
       std::transform(foundValue.begin(), foundValue.end(), foundValue.begin(), ::toupper);
@@ -105,8 +105,8 @@ class SimpleRule : public Rule {
         finalJsonPath = jsonPath;
       }
       if (finalJsonPath == "") {
-        std::cout << "\nAVIN_DEBUG_ATTRIBUTES_01 Id " << idToEvaluate << ", jsonPath " << jsonPath
-                  << ", json_path " << json_path << ", value " << json << std::endl;
+        // std::cout << "\nAVIN_DEBUG_ATTRIBUTES_01 Id " << idToEvaluate << ", jsonPath " << jsonPath
+        //           << ", json_path " << json_path << ", value " << json << std::endl;
         return json;
       }
       const char* jsonCstr = json.c_str();
@@ -119,34 +119,34 @@ class SimpleRule : public Rule {
 
       // Extract the value using JSONPath
       if (!pointer.IsValid()) {
-        if (json_path != "/Traceparent" && json_path != "/traceparent") {
-          std::cout << "\nAVIN_DEBUG_ATTRIBUTES_02 Id " << idToEvaluate << ", jsonPath " << jsonPath
-                    << ", json_path " << json_path << ", value " << json << std::endl;
-        }
+        // if (json_path != "/Traceparent" && json_path != "/traceparent") {
+        //   std::cout << "\nAVIN_DEBUG_ATTRIBUTES_02 Id " << idToEvaluate << ", jsonPath " << jsonPath
+        //             << ", json_path " << json_path << ", value " << json << std::endl;
+        // }
         return "ZK_NULL";
       }
 
       const rapidjson::Value* result = pointer.Get(doc);
       if (result != nullptr && result->IsString()) {
         std::string foundValue = result->GetString();
-        if (json_path != "/Traceparent" && json_path != "/traceparent") {
-          std::cout << "\nAVIN_DEBUG_ATTRIBUTES_03 Id " << idToEvaluate << ", jsonPath " << jsonPath
-                    << ", json_path " << json_path << ", value " << foundValue << std::endl;
-        }
+        // if (json_path != "/Traceparent" && json_path != "/traceparent") {
+        //   std::cout << "\nAVIN_DEBUG_ATTRIBUTES_03 Id " << idToEvaluate << ", jsonPath " << jsonPath
+        //             << ", json_path " << json_path << ", value " << foundValue << std::endl;
+        // }
         return foundValue;
       } else {
-        if (json_path != "/Traceparent" && json_path != "/traceparent") {
-          std::cout << "\nAVIN_DEBUG_ATTRIBUTES_04 Id " << idToEvaluate << ", jsonPath " << jsonPath
-                    << ", json_path " << json_path << ", value " << json << std::endl;
-        }
+        // if (json_path != "/Traceparent" && json_path != "/traceparent") {
+        //   std::cout << "\nAVIN_DEBUG_ATTRIBUTES_04 Id " << idToEvaluate << ", jsonPath " << jsonPath
+        //             << ", json_path " << json_path << ", value " << json << std::endl;
+        // }
         return "ZK_NULL";
       }
     }
 
-    if (json_path != "/Traceparent" && json_path != "/traceparent") {
-      std::cout << "\nAVIN_DEBUG_ATTRIBUTES_05 Id " << idToEvaluate << ", jsonPath " << jsonPath
-                << ", json_path " << json_path << ", value is null " << std::endl;
-    }
+    // if (json_path != "/Traceparent" && json_path != "/traceparent") {
+    //   std::cout << "\nAVIN_DEBUG_ATTRIBUTES_05 Id " << idToEvaluate << ", jsonPath " << jsonPath
+    //             << ", json_path " << json_path << ", value is null " << std::endl;
+    // }
     return "ZK_NULL";
   }
 

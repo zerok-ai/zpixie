@@ -66,13 +66,14 @@ namespace zk{
                     std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap;
                     std::map<std::string, std::string> attributesMap = zkStoreReader->hgetall("EBPF_0.1.0-alpha_HTTP");
                     protocolToAttributesMap["HTTP"] = attributesMap;
-                    protocolToAttributesMap["HTTP"]["http_req_headers"] = "req_headers.#extractJSON(\"/Host\")";
+                    //For testing ebpf attributes
+                    // protocolToAttributesMap["HTTP"]["http_req_headers"] = "req_headers.#extractJSON(\"/Host\")";
 
                     //1.5 - Check for the size of changedScenarios and return if it is 0
                     if(changedScenarios.size() == 0){
                         return;
                     }
-                    changedScenarios.push_back("2023");
+                    //changedScenarios.push_back("2023");
                     //2 - for each such scenario, get the scenairo json from redis
                     for (const auto& scenairo : changedScenarios) {
                         std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << std::endl;
@@ -97,9 +98,9 @@ namespace zk{
 
                         //3 - extract the queries from scenario json by calling extractQueriesFromScenario on QueryBuilder
                         std::vector<Query*> queries = QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str(), protocolToAttributesMap);
-                        if(scenairo == "2023"){
-                            std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << " query.workloadId " << queries[0]->workloadId.c_str() << std::endl;
-                        }
+                        // if(scenairo == "2023"){
+                        //     std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << " query.workloadId " << queries[0]->workloadId.c_str() << std::endl;
+                        // }
                         //4 - for each query, check if the query is allowed as per the possibleIdentifiers set
                         for (const auto& query : queries) {
                             std::string identifier = query->ns + "/" + query->service;
