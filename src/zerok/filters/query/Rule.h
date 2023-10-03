@@ -60,7 +60,7 @@ class SimpleRule : public Rule {
 
   // id can contain this string: req_body.#extractJSON("message").#upperCase()
   std::string evaluateIdAndExtractValue(std::map<std::string, std::string> propsMap) const {
-    std::string idToEvaluate = extractId(id);
+    std::string idToEvaluate = extractId();
     std::string jsonPath = extractJsonPath(id);
     std::string foundValue = "";
     foundValue = extractValueFromJson(propsMap, idToEvaluate, jsonPath);
@@ -76,12 +76,15 @@ class SimpleRule : public Rule {
     return foundValue;
   }
 
-  std::string extractId(std::string id) const {
+  std::string extractId() const {
+    if (resolvedId != "") {
+      return resolvedId;
+    }
     std::string idToEvaluate = id;
     if (id.find("#") != std::string::npos) {
       idToEvaluate = id.substr(0, id.find("#") - 1);
     }
-
+    resolvedId = idToEvaluate;
     return idToEvaluate;
   }
 

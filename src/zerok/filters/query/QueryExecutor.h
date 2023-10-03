@@ -30,7 +30,6 @@ namespace zk{
         static SimpleRuleString* generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
             SimpleRuleString* traceIdRule = new SimpleRuleString();
             traceIdRule->id = ruleId;
-            traceIdRule->resolvedId = ruleId;
             traceIdRule->type = STRING;
             traceIdRule->input = "string";
             traceIdRule->value = "/traceparent";
