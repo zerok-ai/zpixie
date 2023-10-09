@@ -1397,7 +1397,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
   r.Append<r.ColIndex("time_")>(time);
   r.Append<r.ColIndex("upid")>(upid.value());
-  r.Append<r.ColIndex("cgid")>(cgIf);
+  r.Append<r.ColIndex("cgid")>(cgId);
   r.Append<r.ColIndex("remote_addr")>(remoteAddr);
   r.Append<r.ColIndex("remote_port")>(remotePort);
   r.Append<r.ColIndex("trace_role")>(traceRole);
