@@ -304,7 +304,8 @@ class QueryBuilder {
       std::string jsonPath = "";
       int jsonPathSize = static_cast<int>(jsonPathDoc.Size());
       for (int i = 0; i < jsonPathSize; i++) {
-        jsonPath += "/" + jsonPathDoc[i].GetString();
+        std::string jsonPathElement = jsonPathDoc[i].GetString();
+        jsonPath = jsonPath + "/" + jsonPathElement;
       }
       rule->json_path = jsonPath;
       // rule->json_path = ruleDoc["json_path"].GetString();
