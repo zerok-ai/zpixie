@@ -294,11 +294,20 @@ class QueryBuilder {
     // Set the remaining fields of the rule object
     rule->id = id;
     rule->type = fieldType;
-    if (ruleDoc.HasMember("key")) {
-      rule->key = ruleDoc["key"].GetString();
-    }
+    // if (ruleDoc.HasMember("key")) {
+    //   rule->key = ruleDoc["key"].GetString();
+    // }
     if (ruleDoc.HasMember("json_path")) {
-      rule->key = ruleDoc["json_path"].GetString();
+      //json_path is an array
+      //create a single string from it, with delimeter /
+      const rapidjson::Value& jsonPathDoc = ruleDoc["json_path"];
+      std::string jsonPath = "";
+      int jsonPathSize = static_cast<int>(jsonPathDoc.Size());
+      for (int i = 0; i < jsonPathSize; i++) {
+        jsonPath += "/" + jsonPathDoc[i].GetString();
+      }
+      rule->json_path = jsonPath;
+      // rule->json_path = ruleDoc["json_path"].GetString();
     }
 
     // Check if the operator is a valid OperatorType

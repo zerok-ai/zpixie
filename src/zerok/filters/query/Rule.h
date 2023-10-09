@@ -51,7 +51,6 @@ class CompositeRule : public Rule {
 class SimpleRule : public Rule {
  public:
   std::string id;
-  std::string key;
   std::string json_path;
   FieldType type;
   std::string input;
