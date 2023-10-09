@@ -45,6 +45,11 @@ var availableFeatureFlags = []*featureFlag{
 	{
 		FeatureFlagName: "probe-static-tls-binaries",
 		VizierFlagName:  "PX_TRACE_STATIC_TLS_BINARIES",
+		DefaultValue:    true,
+	},
+	{
+		FeatureFlagName: "debug-tls-sources",
+		VizierFlagName:  "PX_DEBUG_TLS_SOURCES",
 		DefaultValue:    false,
 	},
 }

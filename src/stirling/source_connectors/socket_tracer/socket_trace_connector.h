@@ -32,6 +32,7 @@
 
 #include "src/common/grpcutils/service_descriptor_database.h"
 #include "src/common/metrics/metrics.h"
+#include "src/common/system/kernel_version.h"
 #include "src/common/system/socket_info.h"
 #include "src/stirling/bpf_tools/bcc_wrapper.h"
 #include "src/stirling/obj_tools/dwarf_reader.h"
@@ -80,6 +81,8 @@ DECLARE_uint64(max_body_bytes);
 namespace px {
 namespace stirling {
 
+using px::stirling::bpf_tools::WrappedBCCArrayTable;
+
 // Whether the protocol traced is turned on, off, or on but only for newer kernels.
 enum TraceMode : int32_t {
   Off = 0,
@@ -87,7 +90,7 @@ enum TraceMode : int32_t {
   OnForNewerKernel = 2,
 };
 
-class SocketTraceConnector : public SourceConnector, public bpf_tools::BCCWrapper {
+class SocketTraceConnector : public BCCSourceConnector {
  public:
   static constexpr std::string_view kName = "socket_tracer";
   static constexpr auto kTables =
@@ -110,8 +113,8 @@ class SocketTraceConnector : public SourceConnector, public bpf_tools::BCCWrappe
   // TODO(yzhao): This is not used right now. Eventually use this to control data push frequency.
   static constexpr auto kPushPeriod = std::chrono::milliseconds{1000};
 
-  static std::unique_ptr<SourceConnector> Create(std::string_view name) {
-    return std::unique_ptr<SourceConnector>(new SocketTraceConnector(name));
+  static std::unique_ptr<SocketTraceConnector> Create(std::string_view name) {
+    return std::unique_ptr<SocketTraceConnector>(new SocketTraceConnector(name));
   }
 
   Status InitImpl() override;
@@ -180,8 +183,9 @@ class SocketTraceConnector : public SourceConnector, public bpf_tools::BCCWrappe
 
   explicit SocketTraceConnector(std::string_view source_name);
 
-  Status InitBPF();
   auto InitPerfBufferSpecs();
+  Status InitBPF();
+  void InitPerfBufferSpec();
   void InitProtocolTransferSpecs();
 
   ConnTracker& GetOrCreateConnTracker(struct conn_id_t conn_id);
@@ -231,10 +235,11 @@ class SocketTraceConnector : public SourceConnector, public bpf_tools::BCCWrappe
 
   ConnStats conn_stats_;
 
-  std::unique_ptr<ebpf::BPFArrayTable<int>> openssl_trace_state_;
-  std::unique_ptr<ebpf::BPFHashTable<uint32_t, struct openssl_trace_state_debug_t>>
+  std::unique_ptr<WrappedBCCArrayTable<int>> openssl_trace_state_;
+  std::unique_ptr<WrappedBCCMap<uint32_t, struct openssl_trace_state_debug_t>>
       openssl_trace_state_debug_;
   prometheus::Family<prometheus::Counter>& openssl_trace_mismatched_fds_counter_family_;
+  prometheus::Family<prometheus::Counter>& openssl_trace_tls_source_counter_family_;
 
   absl::flat_hash_set<int> pids_to_trace_disable_;
 
@@ -255,7 +260,7 @@ class SocketTraceConnector : public SourceConnector, public bpf_tools::BCCWrappe
     constexpr uint32_t kLinux5p2VersionCode = 328192;
     spec->enabled = (spec->trace_mode == TraceMode::On) ||
                     (spec->trace_mode == TraceMode::OnForNewerKernel &&
-                     utils::GetCachedKernelVersion().code() >= kLinux5p2VersionCode);
+                     system::GetCachedKernelVersion().code() >= kLinux5p2VersionCode);
   }
 
   // This map controls how each protocol is processed and transferred.

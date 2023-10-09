@@ -44,6 +44,8 @@ namespace px {
 namespace stirling {
 namespace bpf_tools {
 
+class BPFRecorder;
+
 enum class BPFProbeAttachType {
   // Attach to function entry.
   kEntry = BPF_PROBE_ENTRY,
@@ -170,12 +172,18 @@ struct PerfBufferSpec {
   // Function that will be called if there are lost/clobbered perf events.
   perf_reader_lost_cb probe_loss_fn;
 
+  // Used to invoke callback.
+  void* cb_cookie;
+
   // Size of perf buffer. Will be rounded up to and allocated in a power of 2 number of pages.
   int size_bytes = 1024 * 1024;
 
   // We specify a maximum total size per PerfBufferSizeCategory, this specifies which size category
   // to count this buffer's size against.
   PerfBufferSizeCategory size_category = PerfBufferSizeCategory::kUncategorized;
+
+  // This will be populated and used only if the BPF recording BCC wrapper is used.
+  BPFRecorder* recorder = nullptr;
 
   std::string ToString() const {
     return absl::Substitute("name=$0 size_bytes=$1 size_category=$2", name, size_bytes,

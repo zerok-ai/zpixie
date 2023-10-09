@@ -62,21 +62,21 @@ ParseState ParseFrame(message_type_t type, std::string_view* buf, Frame* result)
   }
 
   // DnsParser ensures there is a complete header.
-  DCHECK_GT(buf->size(), sizeof(DNSHeader));
+  CTX_DCHECK_GT(buf->size(), sizeof(DNSHeader));
   BinaryDecoder decoder(*buf);
-  result->header.txid = decoder.ExtractInt<uint16_t>().ValueOr(0xffff);
-  result->header.flags = decoder.ExtractInt<uint16_t>().ValueOr(0xffff);
-  result->header.num_queries = decoder.ExtractInt<uint16_t>().ValueOr(0xffff);
-  result->header.num_answers = decoder.ExtractInt<uint16_t>().ValueOr(0xffff);
-  result->header.num_auth = decoder.ExtractInt<uint16_t>().ValueOr(0xffff);
-  result->header.num_addl = decoder.ExtractInt<uint16_t>().ValueOr(0xffff);
+  result->header.txid = decoder.ExtractBEInt<uint16_t>().ValueOr(0xffff);
+  result->header.flags = decoder.ExtractBEInt<uint16_t>().ValueOr(0xffff);
+  result->header.num_queries = decoder.ExtractBEInt<uint16_t>().ValueOr(0xffff);
+  result->header.num_answers = decoder.ExtractBEInt<uint16_t>().ValueOr(0xffff);
+  result->header.num_auth = decoder.ExtractBEInt<uint16_t>().ValueOr(0xffff);
+  result->header.num_addl = decoder.ExtractBEInt<uint16_t>().ValueOr(0xffff);
 
   // The ValueOr(0xffff) conditions should never trigger, since there are enough bytes.
-  DCHECK_NE(result->header.flags, 0xffff);
-  DCHECK_NE(result->header.num_queries, 0xffff);
-  DCHECK_NE(result->header.num_answers, 0xffff);
-  DCHECK_NE(result->header.num_auth, 0xffff);
-  DCHECK_NE(result->header.num_addl, 0xffff);
+  CTX_DCHECK_NE(result->header.flags, 0xffff);
+  CTX_DCHECK_NE(result->header.num_queries, 0xffff);
+  CTX_DCHECK_NE(result->header.num_answers, 0xffff);
+  CTX_DCHECK_NE(result->header.num_auth, 0xffff);
+  CTX_DCHECK_NE(result->header.num_addl, 0xffff);
 
   result->AddRecords(std::move(response_handler.records_));
   buf->remove_prefix(buf->length());

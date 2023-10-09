@@ -67,13 +67,13 @@ size_t FindFrameBoundary(std::string_view buf, size_t start_pos) {
 
 // Parse the message's type, channel
 ParseState ParseFrame(message_type_t type, std::string_view* buf, Frame* packet) {
-  DCHECK(type == message_type_t::kRequest || type == message_type_t::kResponse);
+  CTX_DCHECK(type == message_type_t::kRequest || type == message_type_t::kResponse);
   BinaryDecoder decoder(*buf);
   if (decoder.BufSize() < kMinFrameLength) {
     return ParseState::kNeedsMoreData;
   }
 
-  PX_ASSIGN_OR_RETURN_INVALID(uint8_t frame_type, decoder.ExtractInt<uint8_t>());
+  PX_ASSIGN_OR_RETURN_INVALID(uint8_t frame_type, decoder.ExtractBEInt<uint8_t>());
   AMQPFrameTypes frame_type_header = static_cast<AMQPFrameTypes>(frame_type);
   if (!(frame_type_header == AMQPFrameTypes::kFrameHeader ||
         frame_type_header == AMQPFrameTypes::kFrameBody ||
@@ -82,8 +82,8 @@ ParseState ParseFrame(message_type_t type, std::string_view* buf, Frame* packet)
     return ParseState::kInvalid;
   }
 
-  PX_ASSIGN_OR_RETURN_INVALID(uint16_t channel, decoder.ExtractInt<uint16_t>());
-  PX_ASSIGN_OR_RETURN_INVALID(uint32_t payload_size, decoder.ExtractInt<uint32_t>());
+  PX_ASSIGN_OR_RETURN_INVALID(uint16_t channel, decoder.ExtractBEInt<uint16_t>());
+  PX_ASSIGN_OR_RETURN_INVALID(uint32_t payload_size, decoder.ExtractBEInt<uint32_t>());
   if (frame_type_header == AMQPFrameTypes::kFrameHeartbeat && payload_size != 0) {
     return ParseState::kInvalid;
   }

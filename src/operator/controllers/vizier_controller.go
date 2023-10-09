@@ -31,6 +31,7 @@ import (
 
 	"github.com/blang/semver"
 	"github.com/cenkalti/backoff/v4"
+	"github.com/gogo/protobuf/types"
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
 	appsv1 "k8s.io/api/apps/v1"
@@ -46,11 +47,13 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"px.dev/pixie/src/api/proto/cloudpb"
+	"px.dev/pixie/src/api/proto/uuidpb"
 	"px.dev/pixie/src/api/proto/vizierconfigpb"
 	"px.dev/pixie/src/operator/apis/px.dev/v1alpha1"
 	version "px.dev/pixie/src/shared/goversion"
 	"px.dev/pixie/src/shared/services"
 	"px.dev/pixie/src/shared/status"
+	"px.dev/pixie/src/utils"
 	"px.dev/pixie/src/utils/shared/certs"
 	"px.dev/pixie/src/utils/shared/k8s"
 )
@@ -490,7 +493,13 @@ func (r *VizierReconciler) deployVizier(ctx context.Context, req ctrl.Request, v
 		return err
 	}
 
-	configForVizierResp, err := generateVizierYAMLsConfig(ctx, req.Namespace, r.K8sVersion, vz, cloudClient)
+	// Get the Vizier's ID from the cluster's secrets.
+	vizierID, err := getVizierID(r.Clientset, req.Namespace)
+	if err != nil {
+		log.WithError(err).Error("Failed to retrieve the Vizier ID from the cluster's secrets")
+	}
+
+	configForVizierResp, err := generateVizierYAMLsConfig(ctx, req.Namespace, r.K8sVersion, vizierID, vz, cloudClient)
 	if err != nil {
 		log.WithError(err).Error("Failed to generate configs for Vizier YAMLs")
 		return err
@@ -784,7 +793,7 @@ func updateResourceConfiguration(resource *k8s.Resource, vz *v1alpha1.Vizier) er
 	addKeyValueMapToResource("labels", vz.Spec.Pod.Labels, resource.Object.Object)
 	addKeyValueMapToResource("annotations", vz.Spec.Pod.Annotations, resource.Object.Object)
 	updateResourceRequirements(vz.Spec.Pod.Resources, resource.Object.Object)
-	updatePodSpec(vz.Spec.Pod.NodeSelector, vz.Spec.Pod.SecurityContext, resource.Object.Object)
+	updatePodSpec(vz.Spec.Pod.NodeSelector, vz.Spec.Pod.Tolerations, vz.Spec.Pod.SecurityContext, resource.Object.Object)
 	return nil
 }
 
@@ -802,13 +811,14 @@ func convertResourceType(originalLst v1.ResourceList) *vizierconfigpb.ResourceLi
 
 // generateVizierYAMLsConfig is responsible retrieving a yaml map of configurations from
 // Pixie Cloud.
-func generateVizierYAMLsConfig(ctx context.Context, ns string, k8sVersion string, vz *v1alpha1.Vizier, conn *grpc.ClientConn) (*cloudpb.ConfigForVizierResponse,
+func generateVizierYAMLsConfig(ctx context.Context, ns string, k8sVersion string, vizierID *uuidpb.UUID, vz *v1alpha1.Vizier, conn *grpc.ClientConn) (*cloudpb.ConfigForVizierResponse,
 	error) {
 	client := cloudpb.NewConfigServiceClient(conn)
 
 	req := &cloudpb.ConfigForVizierRequest{
 		Namespace:  ns,
 		K8sVersion: k8sVersion,
+		VizierID:   vizierID,
 		VzSpec: &vizierconfigpb.VizierSpec{
 			Version:               vz.Spec.Version,
 			DeployKey:             vz.Spec.DeployKey,
@@ -830,6 +840,7 @@ func generateVizierYAMLsConfig(ctx context.Context, ns string, k8sVersion string
 					Requests: convertResourceType(vz.Spec.Pod.Resources.Requests),
 				},
 				NodeSelector: vz.Spec.Pod.NodeSelector,
+				Tolerations:  convertTolerations(vz.Spec.Pod.Tolerations),
 			},
 			Patches:  vz.Spec.Patches,
 			Registry: vz.Spec.Registry,
@@ -956,7 +967,25 @@ func updateResourceRequirements(requirements v1.ResourceRequirements, res map[st
 		castedContainer["resources"] = resources
 	}
 }
-func updatePodSpec(nodeSelector map[string]string, securityCtx *v1alpha1.PodSecurityContext, res map[string]interface{}) {
+
+func convertTolerations(tolerations []v1.Toleration) []*vizierconfigpb.Toleration {
+	var castedTolerations []*vizierconfigpb.Toleration
+	for _, toleration := range tolerations {
+		castedToleration := &vizierconfigpb.Toleration{
+			Key:      toleration.Key,
+			Operator: string(toleration.Operator),
+			Value:    toleration.Value,
+			Effect:   string(toleration.Effect),
+		}
+		if toleration.TolerationSeconds != nil {
+			castedToleration.TolerationSeconds = &types.Int64Value{Value: *toleration.TolerationSeconds}
+		}
+		castedTolerations = append(castedTolerations, castedToleration)
+	}
+	return castedTolerations
+}
+
+func updatePodSpec(nodeSelector map[string]string, tolerations []v1.Toleration, securityCtx *v1alpha1.PodSecurityContext, res map[string]interface{}) {
 	podSpec := make(map[string]interface{})
 	md, ok, err := unstructured.NestedFieldNoCopy(res, "spec", "template", "spec")
 	if ok && err == nil {
@@ -977,6 +1006,7 @@ func updatePodSpec(nodeSelector map[string]string, securityCtx *v1alpha1.PodSecu
 		castedNodeSelector[k] = v
 	}
 	podSpec["nodeSelector"] = castedNodeSelector
+	podSpec["tolerations"] = tolerations
 
 	// Add securityContext only if enabled.
 	if securityCtx == nil || !securityCtx.Enabled {
@@ -1100,6 +1130,37 @@ func getClusterUID(clientset *kubernetes.Clientset) (string, error) {
 		return "", err
 	}
 	return string(ksNS.UID), nil
+}
+
+// getVizierID gets the ID of the cluster the Vizier is in.
+func getVizierID(clientset *kubernetes.Clientset, namespace string) (*uuidpb.UUID, error) {
+	op := func() (*uuidpb.UUID, error) {
+		var vizierID *uuidpb.UUID
+		s := k8s.GetSecret(clientset, namespace, "pl-cluster-secrets")
+		if s == nil {
+			return nil, errors.New("Missing cluster secrets, retrying again")
+		}
+		if id, ok := s.Data["cluster-id"]; ok {
+			vizierID = utils.ProtoFromUUIDStrOrNil(string(id))
+			if vizierID == nil {
+				return nil, errors.New("Couldn't convert ID to proto")
+			}
+		}
+
+		return vizierID, nil
+	}
+
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.InitialInterval = 10 * time.Second
+	expBackoff.Multiplier = 2
+	expBackoff.MaxElapsedTime = 10 * time.Minute
+
+	vizierID, err := backoff.RetryWithData(op, expBackoff)
+	if err != nil {
+		return nil, errors.New("Timed out waiting for the Vizier ID")
+	}
+
+	return vizierID, nil
 }
 
 // getConfigForOperator is responsible retrieving the Operator config from from Pixie Cloud.

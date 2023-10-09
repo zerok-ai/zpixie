@@ -178,7 +178,6 @@ StatusOr<SchemaToAgentsMap> LoadSchemaMap(
 }
 
 StatusOr<std::unique_ptr<DistributedPlan>> CoordinatorImpl::CoordinateImpl(const IR* logical_plan) {
-  // TODO(zasgar) set support_partial_agg to true to enable partial aggs.
   PX_ASSIGN_OR_RETURN(std::unique_ptr<Splitter> splitter,
                       Splitter::Create(compiler_state_, /* support_partial_agg */ false));
   PX_ASSIGN_OR_RETURN(std::unique_ptr<BlockingSplitPlan> split_plan,

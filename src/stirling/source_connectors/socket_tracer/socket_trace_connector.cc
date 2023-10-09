@@ -81,27 +81,39 @@ DEFINE_string(socket_trace_data_events_output_path, "",
 // Due to BPF instruction limits (< 4096 instructions) on kernels older than
 // 5.2, we can't simultaneously enable all protocols. Thus, some protocols
 // are only enabled on newer kernels.
-DEFINE_int32(stirling_enable_http_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_http_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_HTTP_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process HTTP messages");
-DEFINE_int32(stirling_enable_http2_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_http2_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_HTTP2_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process gRPC RPCs.");
-DEFINE_int32(stirling_enable_mysql_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_mysql_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_MYSQL_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process MySQL messages.");
-DEFINE_int32(stirling_enable_pgsql_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_pgsql_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_PGSQL_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process PostgreSQL messages.");
-DEFINE_int32(stirling_enable_cass_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_cass_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_CASS_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process Cassandra messages.");
-DEFINE_int32(stirling_enable_dns_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_dns_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_DNS_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process DNS messages.");
-DEFINE_int32(stirling_enable_redis_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_redis_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_REDIS_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process Redis messages.");
-DEFINE_int32(stirling_enable_nats_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_nats_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_NATS_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process NATS messages.");
-DEFINE_int32(stirling_enable_kafka_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_kafka_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_KAFKA_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process Kafka messages.");
-DEFINE_int32(stirling_enable_mux_tracing, px::stirling::TraceMode::OnForNewerKernel,
+DEFINE_int32(stirling_enable_mux_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_MUX_TRACING",
+                                  px::stirling::TraceMode::OnForNewerKernel),
              "If true, stirling will trace and process Mux messages.");
-DEFINE_int32(stirling_enable_amqp_tracing, px::stirling::TraceMode::On,
+DEFINE_int32(stirling_enable_amqp_tracing,
+             gflags::Int32FromEnv("PX_STIRLING_ENABLE_AMQP_TRACING", px::stirling::TraceMode::On),
              "If true, stirling will trace and process AMQP messages.");
 
 DEFINE_bool(stirling_disable_golang_tls_tracing,
@@ -159,11 +171,16 @@ DEFINE_bool(
     stirling_trace_static_tls_binaries, gflags::BoolFromEnv("PX_TRACE_STATIC_TLS_BINARIES", true),
     "If true, stirling will tls trace binaries statically linked with OpenSSL or BoringSSL");
 
+DEFINE_bool(
+    stirling_debug_tls_sources, gflags::BoolFromEnv("PX_DEBUG_TLS_SOURCES", false),
+    "If true, stirling will add additional prometheus metrics regarding the traced tls sources");
+
 OBJ_STRVIEW(socket_trace_bcc_script, socket_trace);
 
 namespace px {
 namespace stirling {
 
+using px::stirling::bpf_tools::WrappedBCCPerCPUArrayTable;
 using px::system::ProcPath;
 using px::system::ProcPidPath;
 using px::utils::ToJSONString;
@@ -179,13 +196,18 @@ constexpr char openssl_mismatched_fds_metric[] = "openssl_trace_mismatched_fds";
 constexpr char openssl_mismatched_fds_help[] =
     "Count of the times a syscall's fd was mismatched when detecting fds from an active user space "
     "call";
+constexpr char openssl_tls_source_metric[] = "openssl_tls_source_debug";
+constexpr char openssl_tls_source_help[] =
+    "Records the number of times a protocol was traced along with additional debugging information";
 
 SocketTraceConnector::SocketTraceConnector(std::string_view source_name)
-    : SourceConnector(source_name, kTables),
+    : BCCSourceConnector(source_name, kTables),
       conn_stats_(&conn_trackers_mgr_),
       openssl_trace_mismatched_fds_counter_family_(
           BuildCounterFamily(openssl_mismatched_fds_metric, openssl_mismatched_fds_help)),
-      uprobe_mgr_(this) {
+      openssl_trace_tls_source_counter_family_(
+          BuildCounterFamily(openssl_tls_source_metric, openssl_tls_source_help)),
+      uprobe_mgr_(&this->BCC()) {
   proc_parser_ = std::make_unique<system::ProcParser>();
   InitProtocolTransferSpecs();
 }
@@ -387,22 +409,22 @@ auto SocketTraceConnector::InitPerfBufferSpecs() {
 
   auto specs = MakeArray<bpf_tools::PerfBufferSpec>({
       // For data events. The order must be consistent with output tables.
-      {"socket_data_events", HandleDataEvent, HandleDataEventLoss, kTargetDataBufferSize,
+      {"socket_data_events", HandleDataEvent, HandleDataEventLoss, this, kTargetDataBufferSize,
        PerfBufferSizeCategory::kData},
       // For non-data events. Must not mix with the above perf buffers for data events.
-      {"socket_control_events", HandleControlEvent, HandleControlEventLoss,
+      {"socket_control_events", HandleControlEvent, HandleControlEventLoss, this,
        kTargetControlBufferSize, PerfBufferSizeCategory::kControl},
-      {"conn_stats_events", HandleConnStatsEvent, HandleConnStatsEventLoss,
+      {"conn_stats_events", HandleConnStatsEvent, HandleConnStatsEventLoss, this,
        kTargetControlBufferSize, PerfBufferSizeCategory::kControl},
-      {"mmap_events", HandleMMapEvent, HandleMMapEventLoss, kTargetControlBufferSize / 10,
+      {"mmap_events", HandleMMapEvent, HandleMMapEventLoss, this, kTargetControlBufferSize / 10,
        PerfBufferSizeCategory::kControl},
-      {"go_grpc_events", HandleHTTP2Event, HandleHTTP2EventLoss, kTargetDataBufferSize,
+      {"go_grpc_events", HandleHTTP2Event, HandleHTTP2EventLoss, this, kTargetDataBufferSize,
        PerfBufferSizeCategory::kData},
-      {"grpc_c_events", HandleGrpcCEvent, HandleGrpcCDataLoss, kTargetDataBufferSize,
+      {"grpc_c_events", HandleGrpcCEvent, HandleGrpcCDataLoss, this, kTargetDataBufferSize,
        PerfBufferSizeCategory::kData},
-      {"grpc_c_header_events", HandleGrpcCHeaderEvent, HandleGrpcCHeaderDataLoss,
+      {"grpc_c_header_events", HandleGrpcCHeaderEvent, HandleGrpcCHeaderDataLoss, this,
        kTargetDataBufferSize, PerfBufferSizeCategory::kData},
-      {"grpc_c_close_events", HandleGrpcCCloseEvent, HandleGrpcCCloseDataLoss,
+      {"grpc_c_close_events", HandleGrpcCCloseEvent, HandleGrpcCCloseDataLoss, this,
        kTargetDataBufferSize, PerfBufferSizeCategory::kData},
   });
   ResizePerfBufferSpecs(&specs, category_maximums);
@@ -412,6 +434,7 @@ auto SocketTraceConnector::InitPerfBufferSpecs() {
 Status SocketTraceConnector::InitBPF() {
   // PROTOCOL_LIST: Requires update on new protocols.
   std::vector<std::string> defines = {
+      absl::StrCat("-DENABLE_TLS_DEBUG_SOURCES=", FLAGS_stirling_debug_tls_sources),
       absl::StrCat("-DENABLE_HTTP_TRACING=", protocol_transfer_specs_[kProtocolHTTP].enabled),
       absl::StrCat("-DENABLE_CQL_TRACING=", protocol_transfer_specs_[kProtocolCQL].enabled),
       absl::StrCat("-DENABLE_MUX_TRACING=", protocol_transfer_specs_[kProtocolMux].enabled),
@@ -424,15 +447,15 @@ Status SocketTraceConnector::InitBPF() {
       absl::StrCat("-DENABLE_AMQP_TRACING=", protocol_transfer_specs_[kProtocolAMQP].enabled),
       absl::StrCat("-DENABLE_MONGO_TRACING=", "true"),
   };
-  PX_RETURN_IF_ERROR(InitBPFProgram(socket_trace_bcc_script, defines));
+  PX_RETURN_IF_ERROR(bcc_->InitBPFProgram(socket_trace_bcc_script, defines));
 
-  PX_RETURN_IF_ERROR(AttachKProbes(kProbeSpecs));
+  PX_RETURN_IF_ERROR(bcc_->AttachKProbes(kProbeSpecs));
   LOG(INFO) << absl::Substitute("Number of kprobes deployed = $0", kProbeSpecs.size());
   LOG(INFO) << "Probes successfully deployed.";
 
-  const auto kPerfBufferSpecs = InitPerfBufferSpecs();
-  PX_RETURN_IF_ERROR(OpenPerfBuffers(kPerfBufferSpecs, this));
-  LOG(INFO) << absl::Substitute("Number of perf buffers opened = $0", kPerfBufferSpecs.size());
+  const auto perf_buffer_specs = InitPerfBufferSpecs();
+  PX_RETURN_IF_ERROR(bcc_->OpenPerfBuffers(perf_buffer_specs));
+  LOG(INFO) << absl::Substitute("Number of perf buffers opened = $0", perf_buffer_specs.size());
 
   // Set trace role to BPF probes.
   for (const auto& p : magic_enum::enum_values<traffic_protocol_t>()) {
@@ -493,18 +516,16 @@ Status SocketTraceConnector::InitImpl() {
     socket_info_mgr_ = s.ConsumeValueOrDie();
   }
 
-  conn_info_map_mgr_ = std::make_shared<ConnInfoMapManager>(this);
+  conn_info_map_mgr_ = std::make_shared<ConnInfoMapManager>(bcc_.get());
   ConnTracker::SetConnInfoMapManager(conn_info_map_mgr_);
 
   uprobe_mgr_.Init(FLAGS_stirling_disable_golang_tls_tracing,
                    protocol_transfer_specs_[kProtocolHTTP2].enabled,
                    FLAGS_stirling_disable_self_tracing);
 
-  openssl_trace_state_ =
-      std::make_unique<ebpf::BPFArrayTable<int>>(GetArrayTable<int>("openssl_trace_state"));
-  openssl_trace_state_debug_ =
-      std::make_unique<ebpf::BPFHashTable<uint32_t, struct openssl_trace_state_debug_t>>(
-          GetHashTable<uint32_t, openssl_trace_state_debug_t>("openssl_trace_state_debug"));
+  openssl_trace_state_ = WrappedBCCArrayTable<int>::Create(bcc_.get(), "openssl_trace_state");
+  openssl_trace_state_debug_ = WrappedBCCMap<uint32_t, struct openssl_trace_state_debug_t>::Create(
+      bcc_.get(), "openssl_trace_state_debug");
 
   // //Zerok initialization goes here
   // std::thread::id threadId = std::this_thread::get_id();
@@ -536,7 +557,7 @@ Status SocketTraceConnector::StopImpl() {
   // Must call Close() after attach_uprobes_thread_ has joined,
   // otherwise the two threads will cause concurrent accesses to BCC,
   // that will cause races and undefined behavior.
-  Close();
+  bcc_->Close();
   return Status::OK();
 }
 
@@ -570,13 +591,15 @@ std::string DumpContext(ConnectorContext* ctx) {
 
 template <typename TBPFTableKey, typename TBPFTableVal>
 std::string BPFMapInfo(bpf_tools::BCCWrapper* bcc, std::string_view name) {
-  auto map = bcc->GetHashTable<TBPFTableKey, TBPFTableVal>(name.data());
-  size_t map_size = map.get_table_offline().size();
-  if (1.0 * map_size / map.capacity() > 0.9) {
+  auto map = WrappedBCCMap<TBPFTableKey, TBPFTableVal>::Create(bcc, name.data());
+
+  size_t map_size = map->GetTableOffline().size();
+  if (1.0 * map_size / map->capacity() > 0.9) {
     LOG(WARNING) << absl::Substitute("BPF Table $0 is nearly at capacity [size=$0 capacity=$1]",
-                                     map_size, map.capacity());
+                                     map_size, map->capacity());
   }
-  return absl::Substitute("\nBPFTable=$0 occupancy=$1 capacity=$2", name, map_size, map.capacity());
+  return absl::Substitute("\nBPFTable=$0 occupancy=$1 capacity=$2", name, map_size,
+                          map->capacity());
 }
 
 std::string BPFMapsInfo(bpf_tools::BCCWrapper* bcc) {
@@ -614,7 +637,7 @@ void SocketTraceConnector::UpdateCommonState(ConnectorContext* ctx) {
   // so raw data will be pushed to connection trackers more aggressively.
   // No data is lost, but this is a side-effect of sorts that affects timing of transfers.
   // It may be worth noting during debug.
-  PollPerfBuffers();
+  bcc_->PollPerfBuffers();
 
   // Set-up current state for connection inference purposes.
   if (socket_info_mgr_ != nullptr) {
@@ -660,24 +683,42 @@ void SocketTraceConnector::CheckTracerState() {
     return;
   }
 
-  int error_code;
-  openssl_trace_state_->get_value(kOpenSSLTraceStatusIdx, error_code);
+  const int error_code =
+      openssl_trace_state_->GetValue(kOpenSSLTraceStatusIdx).ConsumeValueOr(kOpenSSLTraceOk);
+  const bool mismatched_fds = error_code == kOpenSSLMismatchedFDsDetected;
 
-  if (error_code == kOpenSSLMismatchedFDsDetected) {
-    openssl_trace_mismatched_fds_counter_family_.Add({{"name", openssl_mismatched_fds_metric}})
-        .Increment();
+  if (FLAGS_stirling_debug_tls_sources || mismatched_fds) {
+    if (mismatched_fds) {
+      openssl_trace_mismatched_fds_counter_family_.Add({{"name", openssl_mismatched_fds_metric}})
+          .Increment();
+    }
 
     // Record the offending applications and clear the BPF hash in the process.
-    auto table = openssl_trace_state_debug_->get_table_offline(true);
+    auto table = openssl_trace_state_debug_->GetTableOffline(true);
     for (auto& entry : table) {
       struct openssl_trace_state_debug_t debug = std::get<1>(entry);
       auto ssl_source = std::string(magic_enum::enum_name(debug.ssl_source));
+      auto is_mismatched_entry = debug.mismatched_fd;
 
-      openssl_trace_mismatched_fds_counter_family_
-          .Add({{"name", openssl_mismatched_fds_metric},
+      if (is_mismatched_entry) {
+        openssl_trace_mismatched_fds_counter_family_
+            .Add({{"name", openssl_mismatched_fds_metric},
+                  {"exe", debug.comm},
+                  {"ssl_source", ssl_source}})
+            .Increment();
+      }
+
+      if (FLAGS_stirling_debug_tls_sources) {
+        auto protocol = std::string(magic_enum::enum_name(debug.protocol));
+        openssl_trace_tls_source_counter_family_
+            .Add({
+                {"name", openssl_tls_source_metric},
                 {"exe", debug.comm},
-                {"ssl_source", ssl_source}})
-          .Increment();
+                {"ssl_source", ssl_source},
+                {"protocol", protocol},
+            })
+            .Increment();
+      }
     }
   }
   DCHECK_EQ(error_code, kOpenSSLTraceOk);
@@ -685,7 +726,7 @@ void SocketTraceConnector::CheckTracerState() {
   // Reset the BPF map to its default value so that each occurrence
   // can be detected.
   if (error_code != kOpenSSLTraceOk) {
-    openssl_trace_state_->update_value(kOpenSSLTraceStatusIdx, kOpenSSLTraceOk);
+    PX_UNUSED(openssl_trace_state_->SetValue(kOpenSSLTraceStatusIdx, kOpenSSLTraceOk));
   }
 }
 
@@ -710,7 +751,7 @@ void SocketTraceConnector::TransferDataImpl(ConnectorContext* ctx) {
   if (sampling_freq_mgr_.count() % (kDebugDumpPeriod / kSamplingPeriod) == 0) {
     if (debug_level_ >= 1) {
       LOG(INFO) << "Context: " << DumpContext(ctx);
-      LOG(INFO) << "BPF map info: " << BPFMapsInfo(static_cast<BCCWrapper*>(this));
+      LOG(INFO) << "BPF map info: " << BPFMapsInfo(bcc_.get());
     }
   }
 
@@ -770,9 +811,8 @@ void SocketTraceConnector::TransferDataImpl(ConnectorContext* ctx) {
 
 Status SocketTraceConnector::UpdateBPFProtocolTraceRole(traffic_protocol_t protocol,
                                                         uint64_t role_mask) {
-  auto control_map_handle = GetPerCPUArrayTable<uint64_t>(kControlMapName);
-  return bpf_tools::UpdatePerCPUArrayValue(static_cast<int>(protocol), role_mask,
-                                           &control_map_handle);
+  auto control_map = WrappedBCCPerCPUArrayTable<uint64_t>::Create(bcc_.get(), kControlMapName);
+  return control_map->SetValues(static_cast<int>(protocol), role_mask);
 }
 
 Status SocketTraceConnector::TestOnlySetTargetPID() {
@@ -786,14 +826,16 @@ Status SocketTraceConnector::TestOnlySetTargetPID() {
         "Enable CONN_TRACE for pid=$0 following --test_only_socket_trace_target_pid", pid);
     FLAGS_stirling_conn_trace_pid = pid;
   }
-  auto control_map_handle = GetPerCPUArrayTable<int64_t>(kControlValuesArrayName);
-  return bpf_tools::UpdatePerCPUArrayValue(kTargetTGIDIndex, pid, &control_map_handle);
+  auto control_map =
+      WrappedBCCPerCPUArrayTable<int64_t>::Create(bcc_.get(), kControlValuesArrayName);
+  return control_map->SetValues(kTargetTGIDIndex, pid);
 }
 
 Status SocketTraceConnector::DisableSelfTracing() {
-  auto control_map_handle = GetPerCPUArrayTable<int64_t>(kControlValuesArrayName);
-  int64_t self_pid = getpid();
-  return bpf_tools::UpdatePerCPUArrayValue(kStirlingTGIDIndex, self_pid, &control_map_handle);
+  auto control_map =
+      WrappedBCCPerCPUArrayTable<int64_t>::Create(bcc_.get(), kControlValuesArrayName);
+  const int64_t self_pid = getpid();
+  return control_map->SetValues(kStirlingTGIDIndex, self_pid);
 }
 
 //-----------------------------------------------------------------------------
@@ -1194,8 +1236,8 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   // Note that we do this after filtering to avoid burning CPU cycles unnecessarily.
   protocols::http::PreProcessMessage(&resp_message);
 
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   HTTPContentType content_type = HTTPContentType::kUnknown;
   if (protocols::http::IsJSONContent(resp_message)) {
@@ -1235,6 +1277,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_message.timestamp_ns);
   r.Append<r.ColIndex("time_")>(resp_message.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   // Note that there is a string copy here,
   // But std::move is not allowed because we re-use conn object.
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
@@ -1292,8 +1335,8 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   int64_t resp_status;
   ECHECK(absl::SimpleAtoi(resp_stream->headers().ValueByKey(":status", "-1"), &resp_status));
 
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   std::string path = req_stream->headers().ValueByKey(protocols::http2::headers::kPath);
 
@@ -1306,7 +1349,8 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 
   //Zerok Starts
   //HTTP Filters go here
-  uint64_t time = resp_stream->timestamp_ns; 
+  uint64_t time = resp_stream->timestamp_ns;
+  uint64_t cgId = conn_id.cgid;
   std::string remoteAddr = conn_tracker.remote_endpoint().AddrStr(); 
   int remotePort = conn_tracker.remote_endpoint().port(); 
   int traceRole = conn_tracker.role(); 
@@ -1353,6 +1397,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
   r.Append<r.ColIndex("time_")>(time);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(cgIf);
   r.Append<r.ColIndex("remote_addr")>(remoteAddr);
   r.Append<r.ColIndex("remote_port")>(remotePort);
   r.Append<r.ColIndex("trace_role")>(traceRole);
@@ -1390,8 +1435,8 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mysql::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   std::string traceId = "";
   std::string spanId = "";
@@ -1421,6 +1466,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   DataTable::RecordBuilder<&kMySQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
@@ -1443,12 +1489,13 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::cass::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   DataTable::RecordBuilder<&kCQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
@@ -1466,12 +1513,13 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::dns::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   DataTable::RecordBuilder<&kDNSTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
@@ -1489,8 +1537,8 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::pgsql::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   std::string traceId = "";
   std::string spanId = "";
@@ -1524,6 +1572,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   DataTable::RecordBuilder<&kPGSQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
@@ -1544,12 +1593,13 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mux::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   DataTable::RecordBuilder<&kMuxTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
@@ -1564,13 +1614,15 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::amqp::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
+
   int64_t timestamp_ns = std::max(entry.req.timestamp_ns, entry.resp.timestamp_ns);
   DataTable::RecordBuilder<&kAMQPTable> r(data_table, timestamp_ns);
 
   r.Append<r.ColIndex("time_")>(timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(conn_tracker.role());
@@ -1611,8 +1663,8 @@ endpoint_role_t Swapendpoint_role_t(endpoint_role_t role) {
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::redis::Record entry, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   endpoint_role_t role = conn_tracker.role();
   if (entry.role_swapped) {
@@ -1622,6 +1674,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   DataTable::RecordBuilder<&kRedisTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
@@ -1638,13 +1691,14 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::nats::Record record, DataTable* data_table) {
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   endpoint_role_t role = conn_tracker.role();
   DataTable::RecordBuilder<&kNATSTable> r(data_table, record.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(record.req.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
@@ -1661,13 +1715,14 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
                                          protocols::kafka::Record record, DataTable* data_table) {
   constexpr size_t kMaxKafkaBodyBytes = 65536;
 
-  md::UPID upid(ctx->GetASID(), conn_tracker.conn_id().upid.pid,
-                conn_tracker.conn_id().upid.start_time_ticks);
+  auto const& conn_id = conn_tracker.conn_id();
+  md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
   endpoint_role_t role = conn_tracker.role();
   DataTable::RecordBuilder<&kKafkaTable> r(data_table, record.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(record.req.timestamp_ns);
   r.Append<r.ColIndex("upid")>(upid.value());
+  r.Append<r.ColIndex("cgid")>(conn_id.cgid);
   r.Append<r.ColIndex("remote_addr")>(conn_tracker.remote_endpoint().AddrStr());
   r.Append<r.ColIndex("remote_port")>(conn_tracker.remote_endpoint().port());
   r.Append<r.ColIndex("trace_role")>(role);
@@ -1700,6 +1755,7 @@ namespace {
 void SocketDataEventToPB(const SocketDataEvent& event, sockeventpb::SocketDataEvent* pb) {
   pb->mutable_attr()->set_timestamp_ns(event.attr.timestamp_ns);
   pb->mutable_attr()->mutable_conn_id()->set_pid(event.attr.conn_id.upid.pid);
+  pb->mutable_attr()->mutable_conn_id()->set_cgid(event.attr.conn_id.cgid);
   pb->mutable_attr()->mutable_conn_id()->set_start_time_ns(
       event.attr.conn_id.upid.start_time_ticks);
   pb->mutable_attr()->mutable_conn_id()->set_fd(event.attr.conn_id.fd);
@@ -1802,6 +1858,7 @@ void SocketTraceConnector::TransferConnStats(ConnectorContext* ctx, DataTable* d
 
       r.Append<idx::kTime>(time);
       r.Append<idx::kUPID>(upid.value());
+      r.Append<idx::kCGID>(stats.cgid_curr);
       r.Append<idx::kRemoteAddr>(key.remote_addr);
       r.Append<idx::kRemotePort>(key.remote_port);
       r.Append<idx::kAddrFamily>(static_cast<int>(stats.addr_family));

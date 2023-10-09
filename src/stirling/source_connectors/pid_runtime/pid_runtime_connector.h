@@ -33,8 +33,10 @@
 namespace px {
 namespace stirling {
 
-class PIDRuntimeConnector : public SourceConnector, public bpf_tools::BCCWrapper {
+class PIDRuntimeConnector : public BCCSourceConnector {
  public:
+  using BPFMapDataT = bpf_tools::WrappedBCCMap<uint16_t, pidruntime_val_t>;
+
   static constexpr std::string_view kName = "bcc_cpu_stat";
   static constexpr auto kSamplingPeriod = std::chrono::milliseconds{100};
   static constexpr auto kPushPeriod = std::chrono::milliseconds{1000};
@@ -66,8 +68,7 @@ class PIDRuntimeConnector : public SourceConnector, public bpf_tools::BCCWrapper
   void TransferDataImpl(ConnectorContext* ctx) override;
 
  protected:
-  explicit PIDRuntimeConnector(std::string_view name)
-      : SourceConnector(name, kTables), bpf_tools::BCCWrapper() {}
+  explicit PIDRuntimeConnector(std::string_view name) : BCCSourceConnector(name, kTables) {}
 
  private:
   // Freq. (in Hz) at which to trigger bpf func.
@@ -76,6 +77,7 @@ class PIDRuntimeConnector : public SourceConnector, public bpf_tools::BCCWrapper
       MakeArray<bpf_tools::SamplingProbeSpec>({"trace_pid_runtime", kSamplingFreqHz});
 
   std::map<uint16_t, uint64_t> prev_run_time_map_;
+  std::unique_ptr<BPFMapDataT> bpf_data_;
 };
 
 }  // namespace stirling

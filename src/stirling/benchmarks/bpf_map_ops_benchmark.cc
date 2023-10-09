@@ -27,9 +27,10 @@
 #include "src/stirling/utils/proc_path_tools.h"
 
 using ::px::stirling::GetSelfPath;
-using ::px::stirling::bpf_tools::BCCWrapper;
+using ::px::stirling::bpf_tools::BCCWrapperImpl;
 using ::px::stirling::bpf_tools::BPFProbeAttachType;
 using ::px::stirling::bpf_tools::UProbeSpec;
+using ::px::stirling::bpf_tools::WrappedBCCMap;
 
 constexpr int kNumKeys = 100;
 
@@ -49,7 +50,7 @@ NO_OPT_ATTR void BPFMapPopulateTrigger(int n) {
 }
 }
 
-void SetupCleanupProbe(BCCWrapper* bcc) {
+void SetupCleanupProbe(BCCWrapperImpl* bcc) {
   std::filesystem::path self_path = GetSelfPath().ValueOrDie();
   auto elf_reader_or_s = px::stirling::obj_tools::ElfReader::Create(self_path.string());
   PX_CHECK_OK(elf_reader_or_s.status());
@@ -74,7 +75,7 @@ void SetupCleanupProbe(BCCWrapper* bcc) {
   PX_CHECK_OK(bcc->AttachUProbe(uprobe));
 }
 
-void SetupPopulateProbe(BCCWrapper* bcc) {
+void SetupPopulateProbe(BCCWrapperImpl* bcc) {
   std::filesystem::path self_path = GetSelfPath().ValueOrDie();
   auto elf_reader_or_s = px::stirling::obj_tools::ElfReader::Create(self_path.string());
   PX_CHECK_OK(elf_reader_or_s.status());
@@ -101,30 +102,29 @@ void SetupPopulateProbe(BCCWrapper* bcc) {
 
 // NOLINTNEXTLINE : runtime/references.
 static void BM_userspace_update_remove(benchmark::State& state) {
-  BCCWrapper bcc_wrapper;
+  BCCWrapperImpl bcc_wrapper;
   std::string_view kProgram = "BPF_HASH(map, int, int);";
   PX_CHECK_OK(bcc_wrapper.InitBPFProgram(kProgram));
-  ebpf::BPFHashTable bpf_map = bcc_wrapper.GetHashTable<int, int>("map");
+  auto bpf_map = WrappedBCCMap<int, int>::Create(&bcc_wrapper, "map");
 
   for (auto _ : state) {
     for (int i = 0; i < kNumKeys; ++i) {
-      bpf_map.update_value(i, 2 * i + 1);
+      PX_UNUSED(bpf_map->SetValue(i, 2 * i + 1));
     }
 
     for (int i = 0; i < kNumKeys; ++i) {
-      bpf_map.remove_value(i);
+      PX_UNUSED(bpf_map->RemoveValue(i));
     }
   }
 
   for (int i = 0; i < kNumKeys; ++i) {
-    int val;
-    CHECK(!bpf_map.get_value(i, val).ok());
+    CHECK(!bpf_map->GetValue(i).ok());
   }
 }
 
 // NOLINTNEXTLINE : runtime/references.
 static void BM_bpf_triggered_update_remove(benchmark::State& state) {
-  BCCWrapper bcc_wrapper;
+  BCCWrapperImpl bcc_wrapper;
   std::string_view kProgram = R"(
 #include <linux/ptrace.h>
 
@@ -170,7 +170,7 @@ int map_populate_uprobe(struct pt_regs* ctx) {
   // kNumKeys)}));
   PX_CHECK_OK(bcc_wrapper.InitBPFProgram(
       absl::StrReplaceAll(kProgram, {{"kNumKeys", std::to_string(kNumKeys)}})));
-  ebpf::BPFHashTable bpf_map = bcc_wrapper.GetHashTable<int, int>("map");
+  auto bpf_map = WrappedBCCMap<int, int>::Create(&bcc_wrapper, "map");
 
   SetupCleanupProbe(&bcc_wrapper);
   SetupPopulateProbe(&bcc_wrapper);
@@ -186,41 +186,38 @@ int map_populate_uprobe(struct pt_regs* ctx) {
   }
 
   for (int i = 0; i < kNumKeys; ++i) {
-    int val;
-    CHECK(!bpf_map.get_value(i, val).ok());
+    CHECK(!bpf_map->GetValue(i).ok());
   }
 }
 
 // NOLINTNEXTLINE : runtime/references.
 static void BM_userspace_update_get_remove(benchmark::State& state) {
-  BCCWrapper bcc_wrapper;
+  BCCWrapperImpl bcc_wrapper;
   std::string_view kProgram = "BPF_HASH(map, int, int);";
   PX_CHECK_OK(bcc_wrapper.InitBPFProgram(kProgram));
-  ebpf::BPFHashTable bpf_map = bcc_wrapper.GetHashTable<int, int>("map");
+  auto bpf_map = WrappedBCCMap<int, int>::Create(&bcc_wrapper, "map");
 
   for (auto _ : state) {
     for (int i = 0; i < kNumKeys; ++i) {
-      bpf_map.update_value(i, 2 * i + 1);
+      PX_UNUSED(bpf_map->SetValue(i, 2 * i + 1));
     }
 
     for (int i = 0; i < kNumKeys; ++i) {
-      int val;
-      auto status = bpf_map.get_value(i, val);
-      if (status.ok() && val != 0) {
-        bpf_map.remove_value(i);
+      auto status = bpf_map->GetValue(i);
+      if (status.ok() && status.ValueOrDie() != 0) {
+        PX_CHECK_OK(bpf_map->RemoveValue(i));
       }
     }
   }
 
   for (int i = 0; i < kNumKeys; ++i) {
-    int val;
-    CHECK(!bpf_map.get_value(i, val).ok());
+    CHECK(!bpf_map->GetValue(i).ok());
   }
 }
 
 // NOLINTNEXTLINE : runtime/references.
 static void BM_bpf_triggered_update_get_remove(benchmark::State& state) {
-  BCCWrapper bcc_wrapper;
+  BCCWrapperImpl bcc_wrapper;
   std::string_view kProgram = R"(
 #include <linux/ptrace.h>
 
@@ -261,7 +258,7 @@ int map_populate_uprobe(struct pt_regs* ctx) {
 }
 )";
   PX_CHECK_OK(bcc_wrapper.InitBPFProgram(kProgram, {absl::Substitute("-DkNumKeys=$0", kNumKeys)}));
-  ebpf::BPFHashTable bpf_map = bcc_wrapper.GetHashTable<int, int>("map");
+  auto bpf_map = WrappedBCCMap<int, int>::Create(&bcc_wrapper, "map");
 
   SetupCleanupProbe(&bcc_wrapper);
   SetupPopulateProbe(&bcc_wrapper);
@@ -277,8 +274,7 @@ int map_populate_uprobe(struct pt_regs* ctx) {
   }
 
   for (int i = 0; i < kNumKeys; ++i) {
-    int val;
-    CHECK(!bpf_map.get_value(i, val).ok());
+    CHECK(!bpf_map->GetValue(i).ok());
   }
 }
 

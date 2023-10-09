@@ -81,6 +81,30 @@ class ProbeObject : public QLObject {
   std::shared_ptr<TracepointIR> probe_;
 };
 
+class TraceProgramObject : public QLObject {
+ public:
+  static constexpr TypeDescriptor TracePointProgramType = {
+      /* name */ "TraceProgram",
+      /* type */ QLObjectType::kTraceProgram,
+  };
+
+  static bool IsTraceProgram(const QLObjectPtr& ptr) {
+    return ptr->type() == TracePointProgramType.type();
+  }
+  const std::string& program() const { return program_; }
+  const std::vector<TracepointSelector>& selectors() const { return selectors_; }
+
+  TraceProgramObject(const pypa::AstPtr& ast, ASTVisitor* visitor, const std::string& program,
+                     const std::vector<TracepointSelector>& selectors)
+      : QLObject(TracePointProgramType, ast, visitor),
+        program_(std::move(program)),
+        selectors_(selectors) {}
+
+ private:
+  std::string program_;
+  std::vector<TracepointSelector> selectors_;
+};
+
 class TraceModule : public QLObject {
  public:
   static constexpr TypeDescriptor TraceModuleType = {
@@ -166,11 +190,28 @@ class TraceModule : public QLObject {
     name (str): The name of the tracepoint. Should be unique with the probe_fn.
     table_name (str): The table name to write the results. The table is created
       if it does not exist. The table schema must match if the table does exist.
-    probe_fn (px.ProbeFn): The tracepoint function.
+    probe_fn (Union[px.ProbeFn, str, pxtrace.TraceProgram, List[pxtrace.TraceProgram]]): The tracepoint function, BPFTrace program or pxtrace.TraceProgram to deploy.
     target (Union[px.UPID,px.SharedObject,pxtrace.PodProcess,pxtrace.LabelSelector]): The process or shared object
       to trace as specified by unique Vizier PID.
     ttl (px.Duration): The length of time that a tracepoint will stay alive, after
       which it will be removed.
+  )doc";
+
+  inline static constexpr char kTraceProgramID[] = "TraceProgram";
+  inline static constexpr char kTraceProgramDocstring[] = R"doc(
+  Creates a trace program. Selectors for supported hosts can be specified using key-value arguments.
+
+  :topic: pixie_state_management
+
+  Args:
+    program (str): The BPFtrace program string.
+    min_kernel (str, optional): The minimum kernel version that the tracepoint is supported on. Format is `<version>.<major>.<minor>`.
+    max_kernel (str, optional): The maximum kernel version that the tracepoint is supported on. Format is `<version>.<major>.<minor>`.
+    host_name (str, optional): Restrict the tracepoint to a specific host.
+
+  Returns:
+    TraceProgram: A pointer to the TraceProgram that can be passed as a probe_fn
+    to UpsertTracepoint.
   )doc";
 
   inline static constexpr char kDeleteTracepointID[] = "DeleteTracepoint";
