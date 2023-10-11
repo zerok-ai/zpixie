@@ -34,20 +34,20 @@ jobs:
       with:
         download_toplevel: 'true'
         BB_API_KEY: ${{ secrets.BB_IO_API_KEY }}
-    # - id: gcloud-creds
-    #   uses: ./.github/actions/gcloud_creds
-    #   with:
-    #     SERVICE_ACCOUNT_KEY: ${{ secrets.GH_RELEASE_SA_PEM_B64 }}
-        
-    - id: 'auth'
-      name: 'Authenticate to Google Cloud'
-      uses: 'google-github-actions/auth@v0'
+    - id: gcloud-creds
+      uses: ./.github/actions/gcloud_creds
       with:
-        credentials_json: '${{ secrets.GKE_SA_KEY_PROD }}'
+        SERVICE_ACCOUNT_KEY: ${{ secrets.GH_RELEASE_SA_PEM_B64 }}
+        
+    # - id: 'auth'
+    #   name: 'Authenticate to Google Cloud'
+    #   uses: 'google-github-actions/auth@v0'
+    #   with:
+    #     credentials_json: '${{ secrets.GKE_SA_KEY_PROD }}'
 
-    - name: login to docker registry
-      run: |
-        gcloud auth configure-docker $DOCKER_REG --quiet
+    # - name: login to docker registry
+    #   run: |
+    #     gcloud auth configure-docker $DOCKER_REG --quiet
 
     - name: Import GPG key
       env:
@@ -61,7 +61,7 @@ jobs:
         JOB_NAME: ${{ github.job }}
         COSIGN_PASSWORD: ${{secrets.COSIGN_PASSWORD}}
         COSIGN_PRIVATE_KEY: ${{secrets.COSIGN_PRIVATE_KEY}}
-        # GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.gcloud-creds.outputs.gcloud-creds }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.gcloud-creds.outputs.gcloud-creds }}
         BUILDBOT_GPG_KEY_ID: ${{ secrets.BUILDBOT_GPG_KEY_ID }}
         GH_REPO: ${{ github.repository }}
       shell: bash
@@ -84,7 +84,7 @@ jobs:
         ARTIFACT_MANIFEST_BUCKET: "pixie-dev-public"
         # Use the old style versions file instead of the new updates for the gcs manifest.
         MANIFEST_UPDATES: ""
-        # GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.gcloud-creds.outputs.gcloud-creds }}
+        GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.gcloud-creds.outputs.gcloud-creds }}
       run: ./ci/update_artifact_manifest.sh
     - uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce  # v3.1.2
       with:
