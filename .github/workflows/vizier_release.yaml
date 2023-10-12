@@ -39,15 +39,15 @@ jobs:
       with:
         SERVICE_ACCOUNT_KEY: ${{ secrets.GH_RELEASE_SA_PEM_B64 }}
         
-    # - id: 'auth'
-    #   name: 'Authenticate to Google Cloud'
-    #   uses: 'google-github-actions/auth@v0'
-    #   with:
-    #     credentials_json: '${{ secrets.GKE_SA_KEY_PROD }}'
+    - id: 'auth'
+      name: 'Authenticate to Google Cloud'
+      uses: 'google-github-actions/auth@v0'
+      with:
+        credentials_json: '${{ secrets.GKE_SA_KEY_PROD }}'
 
-    # - name: login to docker registry
-    #   run: |
-    #     gcloud auth configure-docker $DOCKER_REG --quiet
+    - name: login to docker registry
+      run: |
+        gcloud auth configure-docker $DOCKER_REG --quiet
 
     - name: Import GPG key
       env:
