@@ -8,6 +8,7 @@ permissions:
   contents: read
 env:
   VERSIONS_FILE: "VERSIONS.json"
+  DOCKER_REG: ${{ vars.DOCKER_REG }}
 jobs:
   get-dev-image:
     uses: ./.github/workflows/get_image.yaml
@@ -38,6 +39,7 @@ jobs:
       uses: ./.github/actions/gcloud_creds
       with:
         SERVICE_ACCOUNT_KEY: ${{ secrets.GH_RELEASE_SA_PEM_B64 }}
+        DOCKER_REG: ${{ vars.DOCKER_REG }}
         
     - id: 'auth'
       name: 'Authenticate to Google Cloud'

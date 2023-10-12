@@ -5,6 +5,9 @@ inputs:
   SERVICE_ACCOUNT_KEY:
     description: 'base64 encoded PEM file for the service account'
     required: true
+  DOCKER_REG:
+    description: 'base64 encoded PEM file for the service account'
+    required: false
 outputs:
   gcloud-creds:
     description: 'value for GOOGLE_APPLICATION_CREDENTIALS environment variable'
@@ -24,7 +27,8 @@ runs:
     shell: bash
     env:
       GOOGLE_APPLICATION_CREDENTIALS: ${{ steps.create-gcloud-key.outputs.gcloud-creds }}
+      DOCKER_REG: ${{ inputs.DOCKER_REG }}
     run: |
       service_account="$(jq -r '.client_email' "$GOOGLE_APPLICATION_CREDENTIALS")"
       gcloud auth activate-service-account "${service_account}" --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
-      gcloud auth configure-docker
+      gcloud auth configure-docker $DOCKER_REG --quiet
