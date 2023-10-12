@@ -8,7 +8,7 @@
 #include "./QueryBuilder.h"
 #include "./QueryManager.h"
 #include "./ZkTraceInfo.h"
-#include "/home/avin/.cache/bazel/_bazel_avin/54060b0ed2e63c063d495ae4fb1a7d19/execroot/px/external/com_github_redis_hiredis/hiredis.h"
+#include "/home/c2s-zerok/zk-runner-large-01/_work/_temp/_github_home/.cache/bazel/_bazel_root/023e93ed4d9f200e2bc96071d95caa86/external/com_github_redis_hiredis/hiredis.h"
 #include "src/zerok/common/ZkConfigProvider.h"
 #include "src/zerok/common/utils.h"
 #include "src/zerok/store/store.h"
