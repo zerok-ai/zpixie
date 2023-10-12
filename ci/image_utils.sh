@@ -16,12 +16,12 @@
 #
 # SPDX-License-Identifier: Apache-2.0
 
-sign_image() {
-  multiarch_image="$1"
-  image_digest="$2"
+# sign_image() {
+#   multiarch_image="$1"
+#   image_digest="$2"
 
-  cosign sign --key env://COSIGN_PRIVATE_KEY --yes -r "${multiarch_image}@${image_digest}"
-}
+#   cosign sign --key env://COSIGN_PRIVATE_KEY --yes -r "${multiarch_image}@${image_digest}"
+# }
 
 push_images_for_arch() {
   arch="$1"
@@ -60,7 +60,7 @@ push_multiarch_image() {
   pushed_digest=$(docker manifest push "${multiarch_image}")
   echo "ZEROK_AVIN_DEBUG01-09"
 
-  sign_image "${multiarch_image}" "${pushed_digest}"
+  # sign_image "${multiarch_image}" "${pushed_digest}"
 }
 
 push_all_multiarch_images() {
