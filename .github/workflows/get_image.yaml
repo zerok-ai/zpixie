@@ -18,7 +18,7 @@ permissions:
   contents: read
 jobs:
   get-image:
-    runs-on: zk-self-hosted
+    runs-on: zk-self-hosted-large
     outputs:
       image-with-tag: ${{ steps.get-version.outputs.image }}
     steps:
