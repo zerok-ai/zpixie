@@ -30,6 +30,7 @@ push_images_for_arch() {
   image_repo="$4"
 
   echo "ZEROK_AVIN_DEBUG01-05"
+  echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS"
 
   bazel run -c opt \
     --config=stamp \
