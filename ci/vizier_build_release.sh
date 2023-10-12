@@ -38,18 +38,20 @@ bazel run -c opt //src/utils/artifacts/versions_gen:versions_gen -- \
 # image_repo="gcr.io/pixie-oss/pixie-prod"
 image_repo="us-west1-docker.pkg.dev/black-scope-358204/vizier-test"
 
+echo "ZEROK_AVIN_DEBUG01"
 push_all_multiarch_images "//k8s/vizier:vizier_images_push" "//k8s/vizier:list_image_bundle" "${release_tag}" "${image_repo}"
+echo "ZEROK_AVIN_DEBUG02"
 
 bazel build -c opt \
   --config=stamp \
   --//k8s:image_repository="${image_repo}" \
   --//k8s:image_version="${release_tag}" \
   //k8s/vizier:vizier_yamls
-
+echo "ZEROK_AVIN_DEBUG03"
 yamls_tar="${repo_path}/bazel-bin/k8s/vizier/vizier_yamls.tar"
 
 upload_artifact_to_mirrors "vizier" "${release_tag}" "${yamls_tar}" "vizier_yamls.tar" AT_CONTAINER_SET_YAMLS
-
+echo "ZEROK_AVIN_DEBUG04"
 # Upload templated YAMLs.
 tmp_dir="$(mktemp -d)"
 bazel run -c opt //src/utils/template_generator:template_generator -- \
