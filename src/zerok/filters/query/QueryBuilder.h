@@ -215,7 +215,7 @@ class QueryBuilder {
     if (!ruleDoc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for simple rule. Expected an "
       //              "object. Line: "
-                << __LINE__ << std::endl;
+                // << __LINE__ << std::endl;
       return rule;  // Return nullptr if JSON is not an object
     }
 
