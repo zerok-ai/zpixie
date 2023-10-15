@@ -29,11 +29,8 @@ push_images_for_arch() {
   release_tag="$3"
   image_repo="$4"
 
-  echo "ZEROK_AVIN_DEBUG01-05"
   echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS"
-  echo "ZEROK_AVIN_DEBUG01-05-01"
   cat $GOOGLE_APPLICATION_CREDENTIALS
-  echo "ZEROK_AVIN_DEBUG01-05-02"
 
   bazel run -c opt \
     --config=stamp \
@@ -48,33 +45,25 @@ push_multiarch_image() {
   x86_image="${multiarch_image}-x86_64"
   aarch64_image="${multiarch_image}-aarch64"
   echo "Building ${multiarch_image} manifest"
-  echo "ZEROK_AVIN_DEBUG01-06"
   # If the multiarch manifest list already exists locally, remove it before building a new one.
   # otherwise, the docker manifest create step will fail because it can't amend manifests to an existing image.
   # We could use the --amend flag to `manifest create` but it doesn't seem to overwrite existing images with the same tag,
   # instead it seems to just ignore images that already exist in the local manifest.
   docker manifest rm "${multiarch_image}" || true
-  echo "ZEROK_AVIN_DEBUG01-07"
   docker manifest create "${multiarch_image}" "${x86_image}" "${aarch64_image}"
-  echo "ZEROK_AVIN_DEBUG01-08"
   pushed_digest=$(docker manifest push "${multiarch_image}")
-  echo "ZEROK_AVIN_DEBUG01-09"
 
   # sign_image "${multiarch_image}" "${pushed_digest}"
 }
 
 push_all_multiarch_images() {
-  echo "ZEROK_AVIN_DEBUG01-01"
   image_rule="$1"
   image_list_rule="$2"
   release_tag="$3"
   image_repo="$4"
 
-  echo "ZEROK_AVIN_DEBUG01-02"
   push_images_for_arch "x86_64" "${image_rule}" "${release_tag}" "${image_repo}"
-  echo "ZEROK_AVIN_DEBUG01-03"
   push_images_for_arch "aarch64" "${image_rule}" "${release_tag}" "${image_repo}"
-  echo "ZEROK_AVIN_DEBUG01-04"
 
   while read -r image;
   do

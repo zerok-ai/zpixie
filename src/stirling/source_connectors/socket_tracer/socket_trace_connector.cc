@@ -1269,7 +1269,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     }
   }
 
-  LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__ ;
+  // LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__ ;
 
   //HTTP Filters go here
   //Zerok Ends
@@ -1391,7 +1391,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
       workloadIds = tracesInfo.getWorkloadIdsString();
     }
   }
-  LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__;
+  // LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__;
   //Zerok Ends
 
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
@@ -1545,7 +1545,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string workloadIds = "";
 
   if(!zk::ZkConfig::isPgSqlEnabled()){
-    LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled false";
+    // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql enabled false";
     return;
   }
 
@@ -1554,20 +1554,20 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     std::string traceParent = ZkRulesExecutor::extractTraceparentValue(entry.req.payload);
     zk::ZkTraceInfo tracesInfo = zk::ZkTraceInfo(traceParent);
     if(!tracesInfo.isValid()){
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql trace not valid " << traceParent;
+      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql trace not valid " << traceParent;
       if(!zk::ZkConfig::isPgSqlNonTracedAllowed()){
-        LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced not allowed";
+        // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql nontraced not allowed";
         return;
       }
     }else{
-      LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql trace valid " << traceParent;
+      // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql trace valid " << traceParent;
       traceId = tracesInfo.getTraceId();
       spanId = tracesInfo.getSpanId();
       workloadIds = tracesInfo.getWorkloadIdsString();
     }
   }
 
-  LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql record processed ";
+  // LOG(INFO) << "\nAVIN_DEBUG_SQL_CONFIG pgsql record processed ";
 
   DataTable::RecordBuilder<&kPGSQLTable> r(data_table, entry.resp.timestamp_ns);
   r.Append<r.ColIndex("time_")>(entry.resp.timestamp_ns);

@@ -59,7 +59,7 @@ class ZkRedis : public ZkStore {
   bool connect() override {
     if (redisConnection == nullptr) {
       zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
-      std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
+      // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
       redisConnection = redisConnect(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort());
       bool authSuccess = auth(zkRedisConfig.getPassword().c_str());
       if (authSuccess) {
@@ -72,12 +72,12 @@ class ZkRedis : public ZkStore {
     if (redisConnection == nullptr || redisConnection->err) {
       if (redisConnection) {
         // Handle connection error
-        printf("AVIN_DEBUG_STORE01_ Connection error: %s\n", redisConnection->errstr);
+        printf("zk-log/stores Connection error: %s\n", redisConnection->errstr);
         disconnect();
         return false;
       } else {
         // Handle memory allocation error
-        printf("AVIN_DEBUG_STORE02_ Failed to allocate redis context\n");
+        printf("zk-log/stores Failed to allocate redis context\n");
       }
       return false;
     }
@@ -118,7 +118,7 @@ class ZkRedis : public ZkStore {
     if (reply == nullptr) {
       return false;
     } else if (reply->type == REDIS_REPLY_ERROR) {
-      std::cout << "\nAVIN_DEBUG Reply error auth: " << reply->type << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error auth: " << reply->type << std::endl;
       freeReplyObject(reply);
       return false;
     }
@@ -144,7 +144,7 @@ class ZkRedis : public ZkStore {
       return;
     } else if (reply->type == REDIS_REPLY_ERROR) {
       // Handle error
-      std::cout << "\nAVIN_DEBUG Reply error expire: " << reply->type << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error expire: " << reply->type << std::endl;
       freeReplyObject(reply);
       return;
     }
@@ -176,11 +176,11 @@ class ZkRedis : public ZkStore {
     }
     redisReply* reply = (redisReply*)redisCommand(redisConnection, "MULTI");
     if (reply == nullptr) {
-      std::cout << "\nAVIN_DEBUG Reply error startTransaction: reply null" << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error startTransaction: reply null" << std::endl;
       return false;
     } else if (reply->type == REDIS_REPLY_ERROR) {
       // Handle error
-      std::cout << "\nAVIN_DEBUG Reply error startTransaction: " << reply->type << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error startTransaction: " << reply->type << std::endl;
       freeReplyObject(reply);
       return false;
     }
@@ -194,11 +194,11 @@ class ZkRedis : public ZkStore {
     }
     redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXEC");
     if (reply == nullptr) {
-      std::cout << "\nAVIN_DEBUG Reply error endTransaction: reply null" << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error endTransaction: reply null" << std::endl;
       return false;
     } else if (reply->type == REDIS_REPLY_ERROR) {
       // Handle error
-      std::cout << "\nAVIN_DEBUG Reply error endTransaction: " << reply->type << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error endTransaction: " << reply->type << std::endl;
       freeReplyObject(reply);
       return false;
     }
@@ -231,11 +231,11 @@ class ZkRedis : public ZkStore {
     redisReply* reply =
         (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
     if (reply == nullptr) {
-      std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" << std::endl;
       return false;
     } else if (reply->type == REDIS_REPLY_ERROR) {
       // Handle error
-      std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
+      // std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
       freeReplyObject(reply);
       return false;
     }

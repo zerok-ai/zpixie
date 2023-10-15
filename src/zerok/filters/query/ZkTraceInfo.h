@@ -45,7 +45,7 @@ namespace zk {
                 }
                 traceId = splitString.at(1);
                 if(traceId == ""){
-                    printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
+                    // printf("\nzk-log/builder traceparent header value is invalid");
                     return *this;
                 }
                 spanId = splitString.at(2);

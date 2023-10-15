@@ -18,13 +18,13 @@ namespace zk{
                 long currentTimestampInMilliseconds = nanoseconds/1000000;
                 if(lastTimestampInMilliseconds == 0){
                     lastTimestampInMilliseconds = currentTimestampInMilliseconds;
-                    std::cout << "\nAVIN_DEBUG_QUERY_check01" << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_QUERY_check01" << std::endl;
                     return true;
                 }
 
                 if(currentTimestampInMilliseconds - lastTimestampInMilliseconds > ttlForRedisCheckInMilliseconds){
                     lastTimestampInMilliseconds = currentTimestampInMilliseconds;
-                    std::cout << "\nAVIN_DEBUG_QUERY_check02" << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_QUERY_check02" << std::endl;
                     return true;
                 }
                 return false;
@@ -40,13 +40,13 @@ namespace zk{
                         if(queryToVersion.count(key) > 0){
                             if(queryToVersion[key] != std::stoi(version)){
                                 queryToVersion[key] = std::stoi(version);
-                                std::cout << "\nAVIN_DEBUG_QUERY_change01" << std::endl;
+                                // std::cout << "\nAVIN_DEBUG_QUERY_change01" << std::endl;
                                 // printf("\nAVIN_DEBUG_QUERY_change01 ");
                                 expiredKeys.push_back(key);
                             }
                         }else{
                             queryToVersion[key] = std::stoi(version);
-                            std::cout << "\nAVIN_DEBUG_QUERY_change02" << std::endl;
+                            // std::cout << "\nAVIN_DEBUG_QUERY_change02" << std::endl;
                             // printf("\nAVIN_DEBUG_QUERY_change02 ");
                             expiredKeys.push_back(key);
                         }
@@ -57,8 +57,7 @@ namespace zk{
 
             static void initializeQueriesV2(){
                 if(isTtlExpiredPassed()){
-                    std::cout << "\nAVIN_DEBUG_QUERY_init01" << std::endl;
-                    // printf("\nAVIN_DEBUG_QUERY_init01 ");
+                    // std::cout << "\nAVIN_DEBUG_QUERY_init01" << std::endl;
                     //1 - Identify changed scenarios
                     std::vector<std::string> changedScenarios = identifyChangedScenarios();
 
@@ -72,11 +71,14 @@ namespace zk{
                     //1.5 - Check for the size of changedScenarios and return if it is 0
                     if(changedScenarios.size() == 0){
                         return;
+                    }else{
+                        std::cout << "\nzk-log/manager scenarios changed "
+                                  << changedScenarios.size() << std::endl;
                     }
                     //changedScenarios.push_back("2023");
                     //2 - for each such scenario, get the scenairo json from redis
                     for (const auto& scenairo : changedScenarios) {
-                        std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << std::endl;
+                        // std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << std::endl;
                         // printf("\nAVIN_DEBUG_QUERY_init02 ScenarioId processed - %s", scenairo.c_str());
                         //2.5 - Clear the queries corresponding to the scenario from protocolToScenarioToQueries for all the query types
                         for (const auto& queryTypeStringPair : protocolToScenarioToQueries) {
@@ -117,14 +119,14 @@ namespace zk{
                                     protocolToScenarioToQueries[queryTypeString][scenairo] = {};
                                 }
                                 //7 - insert the query against the protocol vector in the map
-                                std::cout << "\nAVIN_DEBUG_QUERY_init03 " << std::endl;
+                                // std::cout << "\nAVIN_DEBUG_QUERY_init03 " << std::endl;
                                 // printf("\nAVIN_DEBUG_QUERY_init03 ");
                                 protocolToScenarioToQueries[queryTypeString][scenairo].push_back(query);
                             }
                         }
                     }
 
-                    std::cout << "\nAVIN_DEBUG_QUERY_init04 " << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_QUERY_init04 " << std::endl;
                     // printf("\nAVIN_DEBUG_QUERY_init04 ");
                     protocolToQueries.clear();
                     for (const auto& queryTypeStringPair : protocolToScenarioToQueries) {
@@ -138,7 +140,7 @@ namespace zk{
                                     protocolToQueries[queryTypeString] = {};
                                 }
                                 //6 - insert the query against the protocol vector in the map
-                                std::cout << "\nAVIN_DEBUG_QUERY_init05 " << std::endl;
+                                // std::cout << "\nAVIN_DEBUG_QUERY_init05 " << std::endl;
                                 // printf("\nAVIN_DEBUG_QUERY_init05 ");
                                 protocolToQueries[queryTypeString].push_back(query);
                             }
@@ -149,7 +151,7 @@ namespace zk{
 
             static void init(){
                 if(!storeInitializedOnce){
-                    std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
+                    // std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
                     zkStoreReader = zk::ZkStoreProvider::instance(6);

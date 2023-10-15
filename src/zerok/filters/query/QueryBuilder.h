@@ -33,22 +33,22 @@ class QueryBuilder {
     std::vector<Query*> vector;
 
     if (!scenarioDoc.IsObject()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object."
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object."
+      //           << " line: " << __LINE__ << std::endl;
       return vector;  // Return empty vector if JSON is not an object
     }
 
     if (!scenarioDoc.HasMember("workloads")) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Missing 'workloads' field in the JSON."
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Missing 'workloads' field in the JSON."
+      //           << " line: " << __LINE__ << std::endl;
       return vector;  // Return empty vector if 'workloads' field is missing
     }
 
     const rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
     if (!workloadsDoc.IsObject()) {
-      std::cout
-          << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. 'workloads' field is not an object."
-          << " line: " << __LINE__ << std::endl;
+      // std::cout
+      //     << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. 'workloads' field is not an object."
+      //     << " line: " << __LINE__ << std::endl;
       return vector;  // Return empty vector if 'workloads' is not an object
     }
 
@@ -62,7 +62,7 @@ class QueryBuilder {
         query->workloadId = keyString;
         vector.push_back(query);
       } else {
-        std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key
+        std::cout << "zk-log/builder QueryBuilder Failed to parse workload with key: " << key
                   << " line: " << __LINE__ << std::endl;
         // Log warning or perform error handling as necessary
       }
@@ -75,8 +75,8 @@ class QueryBuilder {
       const char* jsonRule,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
     if (jsonRule == nullptr) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder JSON rule is nullptr."
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder JSON rule is nullptr."
+      //           << " line: " << __LINE__ << std::endl;
       return {};  // Return an empty vector or handle the error case appropriately
     }
     rapidjson::Document scenarioDoc;
@@ -106,8 +106,8 @@ class QueryBuilder {
     Query* query = nullptr;
 
     if (!doc.IsObject()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an object."
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an object."
+      //           << " line: " << __LINE__ << std::endl;
       return query;  // Return nullptr if JSON is not an object
     }
 
@@ -116,8 +116,8 @@ class QueryBuilder {
       std::string keyString(key);
       query->workloadId = keyString;
     } else {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key
+      //           << " line: " << __LINE__ << std::endl;
       // Log warning or perform error handling as necessary
     }
 
@@ -130,16 +130,16 @@ class QueryBuilder {
     Query* parsedQuery = nullptr;
 
     if (!doc.IsObject()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for query. Expected an object."
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for query. Expected an object."
+      //           << " line: " << __LINE__ << std::endl;
       return parsedQuery;  // Return nullptr if JSON is not an object
     }
 
     // Check for required fields in the JSON object
     if (!doc.HasMember("protocol") || !doc.HasMember("trace_role") || !doc.HasMember("service") ||
         !doc.HasMember("rule")) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Missing required fields in the query JSON."
-                << " line: " << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Missing required fields in the query JSON."
+      //           << " line: " << __LINE__ << std::endl;
       return parsedQuery;  // Return nullptr if any required field is missing
     }
 
@@ -213,8 +213,8 @@ class QueryBuilder {
 
     // Check if the rule document is an object
     if (!ruleDoc.IsObject()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for simple rule. Expected an "
-                   "object. Line: "
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for simple rule. Expected an "
+      //              "object. Line: "
                 << __LINE__ << std::endl;
       return rule;  // Return nullptr if JSON is not an object
     }
@@ -222,9 +222,9 @@ class QueryBuilder {
     // Check if the required fields exist in the rule document
     if (!ruleDoc.HasMember("id") || !ruleDoc.HasMember("datatype") ||
         !ruleDoc.HasMember("operator") || !ruleDoc.HasMember("value")) {
-      std::cout
-          << "AVIN_DEBUG_ QueryBuilder Missing required fields in the simple rule JSON. Line: "
-          << __LINE__ << std::endl;
+      // std::cout
+          // << "AVIN_DEBUG_ QueryBuilder Missing required fields in the simple rule JSON. Line: "
+          // << __LINE__ << std::endl;
       return rule;  // Return nullptr if any required field is missing
     }
 
@@ -241,16 +241,16 @@ class QueryBuilder {
 
     // Check if the field values are valid
     if (id.empty() || datatype.empty() || op.empty()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Invalid field values in the simple rule JSON. Line: "
-                << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid field values in the simple rule JSON. Line: "
+      //           << __LINE__ << std::endl;
       return rule;  // Return nullptr if any field value is invalid
     }
 
     // Check if the datatype is a valid FieldType
     FieldType fieldType = fieldTypeMap[datatype];
     if (fieldTypeMap.find(datatype) == fieldTypeMap.end()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Unknown datatype in the simple rule JSON. Line: "
-                << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Unknown datatype in the simple rule JSON. Line: "
+      //           << __LINE__ << std::endl;
       return rule;  // Return nullptr if the operator is unknown
     }
 
@@ -270,9 +270,10 @@ class QueryBuilder {
           long valueLong = std::stol(value);
           ((SimpleRuleInteger*)rule)->value = valueLong;
         } catch (const std::exception& e) {
-          std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse integer value in the simple rule "
-                       "JSON. Line: "
-                    << __LINE__ << std::endl;
+          std::cout
+              << "zk-log/builder QueryBuilder Failed to parse integer value in the simple rule "
+                 "JSON. Line: "
+              << __LINE__ << std::endl;
           delete rule;     // Delete the created rule object
           return nullptr;  // Return nullptr if failed to parse integer value
         }
@@ -280,14 +281,14 @@ class QueryBuilder {
         // TODO:AVIN Validate for long
         ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
       } else {
-        std::cout << "AVIN_DEBUG_ QueryBuilder Invalid value type in the simple rule JSON. Line: "
-                  << __LINE__ << std::endl;
+        // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid value type in the simple rule JSON. Line: "
+        //           << __LINE__ << std::endl;
         delete rule;     // Delete the created rule object
         return nullptr;  // Return nullptr if value type is invalid
       }
     } else {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Unsupported datatype in the simple rule JSON. Line: "
-                << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Unsupported datatype in the simple rule JSON. Line: "
+      //           << __LINE__ << std::endl;
       return rule;  // Return nullptr if the datatype is unsupported
     }
 
@@ -313,8 +314,8 @@ class QueryBuilder {
 
     // Check if the operator is a valid OperatorType
     if (operatorTypeMap.find(op) == operatorTypeMap.end()) {
-      std::cout << "AVIN_DEBUG_ QueryBuilder Unknown operator in the simple rule JSON. Line: "
-                << __LINE__ << std::endl;
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Unknown operator in the simple rule JSON. Line: "
+      //           << __LINE__ << std::endl;
       delete rule;     // Delete the created rule object
       return nullptr;  // Return nullptr if the operator is unknown
     }

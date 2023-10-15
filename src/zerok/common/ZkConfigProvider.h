@@ -22,11 +22,11 @@ namespace zk {
             static ZkPgSqlConfig zkPgSqlConfig;
             
             static ZkServiceConfig parseZkServiceConfig(const std::string& filename) {
-                std::cout << "AVIN_DEBUG_ Found parsing service config: " << std::endl;
+                // std::cout << "AVIN_DEBUG_ Found parsing service config: " << std::endl;
                 ZkServiceConfig localZkServiceConfig = ZkServiceConfig();
                 std::ifstream file(filename);
                 if (!file.is_open()) {
-                    std::cout << "AVIN_DEBUG_ Service Config Failed to open file: " << filename << std::endl;
+                    // std::cout << "AVIN_DEBUG_ Service Config Failed to open file: " << filename << std::endl;
                     return localZkServiceConfig;
                 }
 
@@ -58,7 +58,7 @@ namespace zk {
                     if (key == "allowNonTraced") {
                         localZkServiceConfig.setAllowAllCalls(value == "true" || value == "1" || value == "TRUE");
                         localZkServiceConfig.setInitialized(true);
-                        std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                        // std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
                     } 
                 }
 
@@ -68,11 +68,11 @@ namespace zk {
 
             // Parse the YAML-like file and extract the 'http' section
             static ZkHttpConfig parseHttpConfig(const std::string& filename) {
-                std::cout << "AVIN_DEBUG_ Found parsing http config: " << std::endl;
+                // std::cout << "AVIN_DEBUG_ Found parsing http config: " << std::endl;
                 ZkHttpConfig localZkHttpConfig = ZkHttpConfig();
                 std::ifstream file(filename);
                 if (!file.is_open()) {
-                    std::cout << "AVIN_DEBUG_ Http Config Failed to open file: " << filename << std::endl;
+                    // std::cout << "AVIN_DEBUG_ Http Config Failed to open file: " << filename << std::endl;
                     return localZkHttpConfig;
                 }
 
@@ -115,13 +115,13 @@ namespace zk {
                         // Store key-value pairs
                         if (key == "enabled") {
                             localZkHttpConfig.setEnabled(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
                         } else if (key == "traceEnabled") {
                             localZkHttpConfig.setTraceEnabled(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
                         } else if (key == "allowNonTraced") {
                             localZkHttpConfig.setAllowNonTraced(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
                         }
                     }
                 }
@@ -132,11 +132,11 @@ namespace zk {
 
             // Parse the YAML-like file and extract the 'mysql' section
             static ZkMySqlConfig parseMySqlConfig(const std::string& filename) {
-                std::cout << "AVIN_DEBUG_ Found parsing mysql config: " << std::endl;
+                // std::cout << "AVIN_DEBUG_ Found parsing mysql config: " << std::endl;
                 ZkMySqlConfig localZkMySqlConfig = ZkMySqlConfig();
                 std::ifstream file(filename);
                 if (!file.is_open()) {
-                    std::cout << "AVIN_DEBUG_ MySql Config Failed to open file: " << filename << std::endl;
+                    // std::cout << "AVIN_DEBUG_ MySql Config Failed to open file: " << filename << std::endl;
                     return localZkMySqlConfig;
                 }
 
@@ -179,13 +179,13 @@ namespace zk {
                         // Store key-value pairs
                         if (key == "enabled") {
                             localZkMySqlConfig.setEnabled(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
                         } else if (key == "traceEnabled") {
                             localZkMySqlConfig.setTraceEnabled(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
                         } else if (key == "allowNonTraced") {
                             localZkMySqlConfig.setAllowNonTraced(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
                         }
                     }
                 }
@@ -196,11 +196,11 @@ namespace zk {
 
             // Parse the YAML-like file and extract the 'pgsql' section
             static ZkPgSqlConfig parsePgSqlConfig(const std::string& filename) {
-                std::cout << "AVIN_DEBUG_ Found parsing pgsql config: " << std::endl;
+                // std::cout << "AVIN_DEBUG_ Found parsing pgsql config: " << std::endl;
                 ZkPgSqlConfig localZkPgSqlConfig = ZkPgSqlConfig();
                 std::ifstream file(filename);
                 if (!file.is_open()) {
-                    std::cout << "AVIN_DEBUG_ PgSql Config Failed to open file: " << filename << std::endl;
+                    // std::cout << "AVIN_DEBUG_ PgSql Config Failed to open file: " << filename << std::endl;
                     return localZkPgSqlConfig;
                 }
 
@@ -243,13 +243,13 @@ namespace zk {
                         // Store key-value pairs
                         if (key == "enabled") {
                             localZkPgSqlConfig.setEnabled(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found enabled: " << value << std::endl;
                         } else if (key == "traceEnabled") {
                             localZkPgSqlConfig.setTraceEnabled(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found traceEnableed: " << value << std::endl;
                         } else if (key == "allowNonTraced") {
                             localZkPgSqlConfig.setAllowNonTraced(value == "true" || value == "1" || value == "TRUE");
-                            std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found allowNonTraced: " << value << std::endl;
                         }
                     }
                 }
@@ -260,11 +260,11 @@ namespace zk {
 
             // Parse the YAML-like file and extract the 'redis' section
             static ZkRedisConfig parseRedisConfig(const std::string& filename) {
-                std::cout << "AVIN_DEBUG_ Found parsing redis config: " << std::endl;
+                // std::cout << "AVIN_DEBUG_ Found parsing redis config: " << std::endl;
                 ZkRedisConfig localZkRedisConfig = ZkRedisConfig("ZK_NULL", 0, 0);
                 std::ifstream file(filename);
                 if (!file.is_open()) {
-                    std::cout << "AVIN_DEBUG_ Redis Config Failed to open file: " << filename << std::endl;
+                    // std::cout << "AVIN_DEBUG_ Redis Config Failed to open file: " << filename << std::endl;
                     return localZkRedisConfig;
                 }
 
@@ -303,19 +303,15 @@ namespace zk {
                             continue;  // Skip malformed lines
                         }
 
-                        // Store key-value pairs
-                        std::cout << "AVIN_DEBUG_ Found host: " << localZkRedisConfig.getHost() << std::endl;
-                        // if (key == "host") {
-                        //     localZkRedisConfig.setHost(value);
-                        // } else 
+                        // std::cout << "AVIN_DEBUG_ Found host: " << localZkRedisConfig.getHost() << std::endl;
                         if (key == "port") {
                             int port = std::stoi(value);
                             localZkRedisConfig.setPort(port);
-                            std::cout << "AVIN_DEBUG_ Found port: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found port: " << value << std::endl;
                         } else if (key == "readTimeout") {
                             int readTimeout = std::stoi(value);
                             localZkRedisConfig.setReadTimeout(readTimeout);
-                            std::cout << "AVIN_DEBUG_ Found readTimeout: " << value << std::endl;
+                            // std::cout << "AVIN_DEBUG_ Found readTimeout: " << value << std::endl;
                         }
                     }
                 }
@@ -353,50 +349,50 @@ namespace zk {
                 //Redis config
                 ZkRedisConfig localZkRedisConfig = parseRedisConfig("/opt/zk-client-db-configmap.yaml");
                 if(localZkRedisConfig.getHost() != "ZK_NULL"){
-                    std::cout << "AVIN_DEBUG_ localZkRedisConfig parsed" << localZkRedisConfig.getHost() << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkRedisConfig parsed" << localZkRedisConfig.getHost() << std::endl;
                     zkRedisConfig = ZkRedisConfig(localZkRedisConfig.getHost(), localZkRedisConfig.getPort(), localZkRedisConfig.getReadTimeout());
                 }else{
-                    std::cout << "AVIN_DEBUG_ localZkRedisConfig not parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkRedisConfig not parsed" << std::endl;
                     zkRedisConfig = ZkRedisConfig("redis-master.zk-client.svc.cluster.local", 6379, 1000);
                 }
 
                 //Service configs
                 ZkServiceConfig localZkServiceConfig = parseZkServiceConfig("/opt/zpixie-configmap.yaml");
                 if(localZkServiceConfig.isInitialized()){
-                    std::cout << "AVIN_DEBUG_ localZkServiceConfig parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkServiceConfig parsed" << std::endl;
                     zkConfig = ZkServiceConfig(localZkServiceConfig.isAllowAllCalls());
                 }else{
-                    std::cout << "AVIN_DEBUG_ localZkServiceConfig not parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkServiceConfig not parsed" << std::endl;
                     zkConfig = ZkServiceConfig(false);
                 }
 
                 //PgSql Configs
                 ZkPgSqlConfig localZkPgSqlConfig = parsePgSqlConfig("/opt/zpixie-configmap.yaml");
                 if(localZkPgSqlConfig.isInitialized()){
-                    std::cout << "AVIN_DEBUG_ localZkPgSqlConfig parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkPgSqlConfig parsed" << std::endl;
                     zkPgSqlConfig = ZkPgSqlConfig(localZkPgSqlConfig.isEnabled(), localZkPgSqlConfig.isTraceEnabled(), localZkPgSqlConfig.isAllowNonTraced());
                 }else{
-                    std::cout << "AVIN_DEBUG_ localZkPgSqlConfig not parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkPgSqlConfig not parsed" << std::endl;
                     zkPgSqlConfig = ZkPgSqlConfig();
                 }
 
                 //MySql Configs
                 ZkMySqlConfig localZkMySqlConfig = parseMySqlConfig("/opt/zpixie-configmap.yaml");
                 if(localZkMySqlConfig.isInitialized()){
-                    std::cout << "AVIN_DEBUG_ localZkMySqlConfig parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkMySqlConfig parsed" << std::endl;
                     zkMySqlConfig = ZkMySqlConfig(localZkMySqlConfig.isEnabled(), localZkMySqlConfig.isTraceEnabled(), localZkMySqlConfig.isAllowNonTraced());
                 }else{
-                    std::cout << "AVIN_DEBUG_ localZkMySqlConfig not parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkMySqlConfig not parsed" << std::endl;
                     zkMySqlConfig = ZkMySqlConfig();
                 }
 
                 //Http Configs
                 ZkHttpConfig localZkHttpConfig = parseHttpConfig("/opt/zpixie-configmap.yaml");
                 if(localZkHttpConfig.isInitialized()){
-                    std::cout << "AVIN_DEBUG_ localZkHttpConfig parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkHttpConfig parsed" << std::endl;
                     zkHttpConfig = ZkHttpConfig(localZkHttpConfig.isEnabled(), localZkHttpConfig.isTraceEnabled(), localZkHttpConfig.isAllowNonTraced());
                 }else{
-                    std::cout << "AVIN_DEBUG_ localZkHttpConfig not parsed" << std::endl;
+                    // std::cout << "AVIN_DEBUG_ localZkHttpConfig not parsed" << std::endl;
                     zkHttpConfig = ZkHttpConfig();
                 }
                 
