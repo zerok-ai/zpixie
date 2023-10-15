@@ -57,7 +57,7 @@ int main(int argc, char** argv) {
 
   sole::uuid agent_id = sole::uuid4();
 
-  std::thread::id threadId = std::this_thread::get_id();
+  // std::thread::id threadId = std::this_thread::get_id();
   // LOG(INFO) << "\nAVIN_DEBUG_STORE_PEM_MAIN we are in pem main " << threadId;
 
   if (FLAGS_clock_converter == "grpc") {
