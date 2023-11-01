@@ -357,12 +357,12 @@ class ZkStoreProvider {
  public:
   static std::unique_ptr<zk::ZkStore> instance() {
     if (zkStore != nullptr) {
-      return zkStore;
+      return *(zkStore.get());
     }
     // ZkRedis* hiredisClient = new ZkRedis();
     std::unique_ptr<zk::ZkStore> hiredisClient = std::make_unique<ZkRedis>();
-    std::unique_ptr<zk::ZkStore> redisClient = hiredisClient;
-    ZkStoreProvider::zkStore = hiredisClient;
+    std::unique_ptr<zk::ZkStore> redisClient = std::move(hiredisClient);
+    ZkStoreProvider::zkStore = std::move(hiredisClient);
 
     // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
     // readerAsyncTask.Start();
@@ -370,20 +370,20 @@ class ZkStoreProvider {
     // zk::AsyncTask writerAsyncTask(&writerTask, 200);
     // writerAsyncTask.Start();
 
-    return redisClient;
+    return *(zkStore.get());
   }
 
-  static std::unique_ptr<zk::ZkStore> instance(int database) {
+  static zk::ZkStore& instance(int database) {
     if (storeProvider.find(database) != storeProvider.end()) {
-      return storeProvider[database];
+      return *(storeProvider[database].get());
     }
     // ZkRedis* hiredisClient = new ZkRedis(database);
     std::unique_ptr<zk::ZkStore> hiredisClient = std::make_unique<ZkRedis>(database);
     // ZkStore* redisClient = hiredisClient;
-    std::unique_ptr<zk::ZkStore> redisClient = hiredisClient;
-    storeProvider[database] = redisClient;
+    std::unique_ptr<zk::ZkStore> redisClient = std::move(hiredisClient);
+    storeProvider[database] = std::move(redisClient);
 
-    return redisClient;
+    return *(storeProvider[database].get());
   }
 };
 std::unique_ptr<zk::ZkStore> ZkStoreProvider::zkStore = nullptr;

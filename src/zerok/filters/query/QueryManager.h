@@ -180,9 +180,9 @@ namespace zk{
 
         public:
             static bool storeInitializedOnce;
-            static std::unique_ptr<zk::ZkStore> zkStoreReader;
-            static std::unique_ptr<zk::ZkStore> zkStoreWriter;
-            static std::unique_ptr<zk::ZkStore> zkStoreAttributedReader;
+            static zk::ZkStore& zkStoreReader;
+            static zk::ZkStore& zkStoreWriter;
+            static zk::ZkStore& zkStoreAttributedReader;
             static std::string uuid;
             static long lastTimestampInMilliseconds;
             static long ttlForRedisCheckInMilliseconds;
@@ -205,9 +205,9 @@ namespace zk{
 
     std::set<std::string> ZkQueryManager::possibleIdentifiers;
     std::map<std::string, std::vector<std::unique_ptr<Query>>> ZkQueryManager::protocolToQueries;
-    std::unique_ptr<zk::ZkStore> ZkQueryManager::zkStoreReader;
-    std::unique_ptr<zk::ZkStore> ZkQueryManager::zkStoreWriter;
-    std::unique_ptr<zk::ZkStore> ZkQueryManager::zkStoreAttributedReader;
+    zk::ZkStore& ZkQueryManager::zkStoreReader;
+    zk::ZkStore& ZkQueryManager::zkStoreWriter;
+    zk::ZkStore& ZkQueryManager::zkStoreAttributedReader;
     std::string ZkQueryManager::uuid;
     std::map<std::string, std::map<std::string, std::vector<std::unique_ptr<Query>>>> ZkQueryManager::protocolToScenarioToQueries;
     bool ZkQueryManager::storeInitializedOnce; 

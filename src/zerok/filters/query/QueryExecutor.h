@@ -44,7 +44,7 @@ class ZkQueryExecutor {
 
       const int ruleCount = 4;
       std::unique_ptr<SimpleRuleString> traceRuleArray[ruleCount] = {
-          traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
+          std::move(traceIdReqRuleSmall), std::move(traceIdReqRuleCaps), std::move(traceIdResRuleSmall), std::move(traceIdResRuleCaps)};
       std::string traceParent = "ZK_NULL";
       for (int ruleIdx = 0; ruleIdx < ruleCount; ruleIdx++) {
         traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);

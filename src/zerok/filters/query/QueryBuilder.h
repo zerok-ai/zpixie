@@ -76,7 +76,7 @@ class QueryBuilder {
       if (query) {
         std::string keyString(key);
         query->workloadId = keyString;
-        vector.push_back(query);
+        vector.push_back(std::move(query));
       } else {
         std::cout << "zk-log/builder QueryBuilder Failed to parse workload with key: " << key
                   << " line: " << __LINE__ << std::endl;
@@ -168,7 +168,7 @@ class QueryBuilder {
       static_cast<CompositeRule*>(andRule.get())->rules.push_back(parsedRule);
     }
 
-    parsedQuery->rule = andRule;
+    parsedQuery->rule = std::move(andRule);
     return parsedQuery;
   }
 
@@ -199,7 +199,7 @@ class QueryBuilder {
         vector.push_back(rule);
       }
     }
-    rule->rules = vector;
+    rule->rules = std::move(vector);
     return rule;
   }
 
@@ -312,7 +312,7 @@ class QueryBuilder {
     if (operatorTypeMap.find(op) == operatorTypeMap.end()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Unknown operator in the simple rule JSON. Line: "
       //           << __LINE__ << std::endl;
-      delete rule;     // Delete the created rule object
+      // delete rule;     // Delete the created rule object
       return nullptr;  // Return nullptr if the operator is unknown
     }
     rule->operatorType = operatorTypeMap[op];
