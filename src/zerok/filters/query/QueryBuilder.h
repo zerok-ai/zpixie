@@ -146,20 +146,26 @@ class QueryBuilder {
     parsedQuery->service = service;
 
     // Handle parsing errors and log warnings if necessary
-    std::unique_ptr<CompositeRule> andRule = std::make_unique<CompositeRule>();
-    andRule->condition = conditionTypeMap["AND"];
-    std::unique_ptr<SimpleRuleString> traceRule = std::make_unique<SimpleRuleString>();
+    // std::unique_ptr<CompositeRule> andRule = std::make_unique<CompositeRule>();
+    std::unique_ptr<Rule> andRule = std::make_unique<CompositeRule>();
+    // andRule->condition = conditionTypeMap["AND"];
+    static_cast<CompositeRule*>(andRule.get())->condition = conditionTypeMap["AND"];
+    std::unique_ptr<Rule> traceRule = std::make_unique<SimpleRuleString>();
     // std::unique_ptr<SimpleRuleString>(new SimpleRuleString());
-    traceRule->id = "trace_role";
-    traceRule->type = STRING;
-    traceRule->input = "string";
-    traceRule->value = parsedQuery->traceRole;
-    andRule->rules.push_back(traceRule);
+    // traceRule->id = "trace_role";
+    // traceRule->type = STRING;
+    // traceRule->input = "string";
+    // traceRule->value = parsedQuery->traceRole;
+    static_cast<SimpleRuleString*>(traceRule.get())->id = "trace_role";
+    static_cast<SimpleRuleString*>(traceRule.get())->type = STRING;
+    static_cast<SimpleRuleString*>(traceRule.get())->input = "string";
+    static_cast<SimpleRuleString*>(traceRule.get())->value = parsedQuery->traceRole;
+    static_cast<CompositeRule*>(andRule.get())->rules.push_back(traceRule);
     //////////
     const rapidjson::Value& ruleDoc = doc["rule"];
     std::unique_ptr<Rule> parsedRule = parse(ruleDoc, attributesMap);
     if (parsedRule != nullptr) {
-      andRule->rules.push_back(parsedRule);
+      static_cast<CompositeRule*>(andRule.get())->rules.push_back(parsedRule);
     }
 
     parsedQuery->rule = andRule;
@@ -199,7 +205,7 @@ class QueryBuilder {
 
   static std::unique_ptr<SimpleRule> parseSimpleRule(
       const rapidjson::Value& ruleDoc, const std::map<std::string, std::string> attributesMap) {
-    std::unique_ptr<SimpleRule> rule = nullptr
+    std::unique_ptr<SimpleRule> rule = nullptr;
 
     // Check if the rule document is an object
     if (!ruleDoc.IsObject()) {
@@ -250,7 +256,7 @@ class QueryBuilder {
     //     std::cout << "\nAVIN_DEBUG_QUERY_init02 http_req_headers processed " << std::endl;
     //   }
       rule = std::make_unique<SimpleRuleString>();
-      ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
+      static_cast<SimpleRuleString*>(rule.get())->value = ruleDoc["value"].GetString();
     } else if (fieldType == INTEGER) {
       rule = std::make_unique<SimpleRuleInteger>();
 
@@ -258,22 +264,22 @@ class QueryBuilder {
         std::string value = ruleDoc["value"].GetString();
         try {
           long valueLong = std::stol(value);
-          ((SimpleRuleInteger*)rule)->value = valueLong;
+          static_cast<SimpleRuleInteger*>(rule.get())->value = valueLong;
         } catch (const std::exception& e) {
           std::cout
               << "zk-log/builder QueryBuilder Failed to parse integer value in the simple rule "
                  "JSON. Line: "
               << __LINE__ << std::endl;
-          delete rule;     // Delete the created rule object
+          // delete rule;     // Delete the created rule object
           return nullptr;  // Return nullptr if failed to parse integer value
         }
       } else if (ruleDoc["value"].IsInt()) {
         // TODO:AVIN Validate for long
-        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+        static_cast<SimpleRuleInteger*>(rule.get())->value = ruleDoc["value"].GetInt();
       } else {
         // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid value type in the simple rule JSON. Line: "
         //           << __LINE__ << std::endl;
-        delete rule;     // Delete the created rule object
+        // delete rule;     // Delete the created rule object
         return nullptr;  // Return nullptr if value type is invalid
       }
     } else {

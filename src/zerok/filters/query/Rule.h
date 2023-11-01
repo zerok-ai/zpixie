@@ -26,7 +26,7 @@ class CompositeRule : public Rule {
 
   bool evaluate(std::map<std::string, std::string> propsMap) const override {
     if (condition == AND) {
-      for (std::unique_ptr<Rule> rule : rules) {
+      for (const auto& rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
         if (!evaluationResult) {
           return false;
@@ -35,7 +35,8 @@ class CompositeRule : public Rule {
 
       return true;
     } else if (condition == OR) {
-      for (std::unique_ptr<Rule> rule : rules) {
+      // for (std::unique_ptr<Rule> rule : rules) {
+      for (const auto& rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
         if (evaluationResult) {
           return true;

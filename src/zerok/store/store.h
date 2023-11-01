@@ -355,12 +355,12 @@ class ZkStoreProvider {
   static std::unique_ptr<zk::ZkStore> zkStore;
 
  public:
-  static ZkStore* instance() {
+  static std::unique_ptr<zk::ZkStore> instance() {
     if (zkStore != nullptr) {
       return zkStore;
     }
     // ZkRedis* hiredisClient = new ZkRedis();
-    std::unique_ptr<zk::ZkRedis> hiredisClient = std::make_unique<ZkRedis>();
+    std::unique_ptr<zk::ZkStore> hiredisClient = std::make_unique<ZkRedis>();
     std::unique_ptr<zk::ZkStore> redisClient = hiredisClient;
     ZkStoreProvider::zkStore = hiredisClient;
 
@@ -378,7 +378,7 @@ class ZkStoreProvider {
       return storeProvider[database];
     }
     // ZkRedis* hiredisClient = new ZkRedis(database);
-    std::unique_ptr<zk::ZkRedis> hiredisClient = std::make_unique<ZkRedis>(database);
+    std::unique_ptr<zk::ZkStore> hiredisClient = std::make_unique<ZkRedis>(database);
     // ZkStore* redisClient = hiredisClient;
     std::unique_ptr<zk::ZkStore> redisClient = hiredisClient;
     storeProvider[database] = redisClient;
