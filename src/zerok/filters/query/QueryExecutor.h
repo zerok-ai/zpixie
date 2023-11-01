@@ -1,5 +1,6 @@
 #include <iostream>
 #include <map>
+#include <memory>
 #include <random>
 #include <set>
 #include <string>
@@ -26,33 +27,24 @@ class ZkQueryExecutor {
     ZkQueryManager::refresh();
   }
 
-  static SimpleRuleString* generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
-    SimpleRuleString* traceIdRule = new SimpleRuleString();
-    traceIdRule->id = ruleId;
-    traceIdRule->type = STRING;
-    traceIdRule->input = "string";
-    traceIdRule->value = "/traceparent";
-    traceIdRule->json_path = "/traceparent";
-    if (isCaps) {
-      traceIdRule->json_path = "/Traceparent";
-    }
-    return traceIdRule;
-  }
-
   static ZkTraceInfo apply(std::string protocol, std::map<std::string, std::string> propsMap) {
     ZkTraceInfo zkTraceInfo = ZkTraceInfo();
     std::string traceId = "";
     std::string spanId = "";
     if (protocol == "HTTP") {
       /* Generate rules to check traceparent or Traceparent header in req_headers OR resp_headers */
-      SimpleRuleString* traceIdReqRuleSmall = generateTraceparentRuleV2("req_headers", false);
-      SimpleRuleString* traceIdReqRuleCaps = generateTraceparentRuleV2("req_headers", true);
-      SimpleRuleString* traceIdResRuleSmall = generateTraceparentRuleV2("resp_headers", false);
-      SimpleRuleString* traceIdResRuleCaps = generateTraceparentRuleV2("resp_headers", true);
+      std::unique_ptr<SimpleRuleString> traceIdReqRuleSmall =
+          generateTraceparentRuleV2("req_headers", false);
+      std::unique_ptr<SimpleRuleString> traceIdReqRuleCaps =
+          generateTraceparentRuleV2("req_headers", true);
+      std::unique_ptr<SimpleRuleString> traceIdResRuleSmall =
+          generateTraceparentRuleV2("resp_headers", false);
+      std::unique_ptr<SimpleRuleString> traceIdResRuleCaps =
+          generateTraceparentRuleV2("resp_headers", true);
 
       const int ruleCount = 4;
-      SimpleRuleString* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps,
-                                                     traceIdResRuleSmall, traceIdResRuleCaps};
+      std::unique_ptr<SimpleRuleString> traceRuleArray[ruleCount] = {
+          traceIdReqRuleSmall, traceIdReqRuleCaps, traceIdResRuleSmall, traceIdResRuleCaps};
       std::string traceParent = "ZK_NULL";
       for (int ruleIdx = 0; ruleIdx < ruleCount; ruleIdx++) {
         traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
@@ -86,7 +78,7 @@ class ZkQueryExecutor {
       // TODO: Check if trace id is present, if not return false
       if (ZkQueryManager::protocolToQueries.count(protocol) > 0) {
         // std::cout << "\nAVIN_DEBUG_STORE_apply0103" << std::endl;
-        std::vector<Query*> queries = ZkQueryManager::protocolToQueries[protocol];
+        std::vector<std::unique_ptr<Query>> queries = ZkQueryManager::protocolToQueries[protocol];
         if (!queries.empty()) {
           // std::cout << "\nAVIN_DEBUG_STORE_apply0104" << std::endl;
           for (const auto& query : queries) {
@@ -111,6 +103,20 @@ class ZkQueryExecutor {
       // TODO: Check if trace id is present, if not return false
     }
     return zkTraceInfo;
+  }
+ private:
+  static std::unique_ptr<SimpleRuleString> generateTraceparentRuleV2(std::string ruleId,
+                                                                     bool isCaps) {
+    std::unique_ptr<SimpleRuleString> traceIdRule = std::make_unique<SimpleRuleString>();
+    traceIdRule->id = ruleId;
+    traceIdRule->type = STRING;
+    traceIdRule->input = "string";
+    traceIdRule->value = "/traceparent";
+    traceIdRule->json_path = "/traceparent";
+    if (isCaps) {
+      traceIdRule->json_path = "/Traceparent";
+    }
+    return traceIdRule;
   }
 };
 

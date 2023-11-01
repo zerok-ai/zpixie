@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include <vector>
 #include "ConditionType.h"
@@ -21,11 +22,11 @@ class Rule {
 class CompositeRule : public Rule {
  public:
   ConditionType condition;
-  std::vector<Rule*> rules;
+  std::vector<std::unique_ptr<Rule>> rules;
 
   bool evaluate(std::map<std::string, std::string> propsMap) const override {
     if (condition == AND) {
-      for (Rule* rule : rules) {
+      for (std::unique_ptr<Rule> rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
         if (!evaluationResult) {
           return false;
@@ -34,7 +35,7 @@ class CompositeRule : public Rule {
 
       return true;
     } else if (condition == OR) {
-      for (Rule* rule : rules) {
+      for (std::unique_ptr<Rule> rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
         if (evaluationResult) {
           return true;

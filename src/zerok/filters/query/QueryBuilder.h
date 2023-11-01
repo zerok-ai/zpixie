@@ -1,6 +1,7 @@
 #pragma once
 
 #include <iostream>
+#include <memory>
 #include <random>
 #include <string>
 #include "ConditionType.h"
@@ -13,24 +14,39 @@
 namespace zk {
 class QueryBuilder {
  public:
-  static std::string generateRandomString(int length) {
-    const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const int charactersLength = characters.length();
+  // static std::string generateRandomString(int length) {
+  //   const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  //   const int charactersLength = characters.length();
 
-    std::random_device rd;
-    std::mt19937 generator(rd());
+  //   std::random_device rd;
+  //   std::mt19937 generator(rd());
 
-    std::string randomString;
-    for (int i = 0; i < length; ++i) {
-      randomString += characters[generator() % charactersLength];
+  //   std::string randomString;
+  //   for (int i = 0; i < length; ++i) {
+  //     randomString += characters[generator() % charactersLength];
+  //   }
+
+  //   return randomString;
+  // }
+
+  static std::vector<std::unique_ptr<Query> > extractQueriesFromScenario(
+      const char* jsonRule,
+      const std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap) {
+    if (jsonRule == nullptr) {
+      // std::cout << "AVIN_DEBUG_ QueryBuilder JSON rule is nullptr."
+      //           << " line: " << __LINE__ << std::endl;
+      return {};  // Return an empty vector or handle the error case appropriately
     }
-
-    return randomString;
+    rapidjson::Document scenarioDoc;
+    scenarioDoc.Parse(jsonRule);
+    return extractQueriesFromScenario(scenarioDoc, protocolToAttributesMap);
   }
-  static std::vector<Query*> extractQueriesFromScenario(
+
+ private:
+  static std::vector<std::unique_ptr<Query>> extractQueriesFromScenario(
       const rapidjson::Value& scenarioDoc,
-      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    std::vector<Query*> vector;
+      const std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap) {
+    std::vector<std::unique_ptr<Query>> vector;
 
     if (!scenarioDoc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object."
@@ -55,7 +71,7 @@ class QueryBuilder {
     for (auto& member : workloadsDoc.GetObject()) {
       const char* key = member.name.GetString();
       const rapidjson::Value& workloadDoc = workloadsDoc[key];
-      Query* query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
+      std::unique_ptr<Query> query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
 
       if (query) {
         std::string keyString(key);
@@ -70,43 +86,15 @@ class QueryBuilder {
 
     return vector;
   }
-
-  static std::vector<Query*> extractQueriesFromScenario(
-      const char* jsonRule,
-      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    if (jsonRule == nullptr) {
-      // std::cout << "AVIN_DEBUG_ QueryBuilder JSON rule is nullptr."
-      //           << " line: " << __LINE__ << std::endl;
-      return {};  // Return an empty vector or handle the error case appropriately
-    }
-    rapidjson::Document scenarioDoc;
-    scenarioDoc.Parse(jsonRule);
-    return extractQueriesFromScenario(scenarioDoc, protocolToAttributesMap);
-  }
-
-  // static std::vector<Query*> parseScenarios(const char* jsonRule){
-  //     rapidjson::Document doc;
-  //     doc.Parse(jsonRule);
-
-  //     std::vector<Query*> vector;
-  //     rapidjson::Value& scenariosDoc = doc["scenarios"];
-  //     int scenariosSize = static_cast<int>(scenariosDoc.Size());
-  //     for (int i = 0; i < scenariosSize; i++) {
-  //         rapidjson::Value& scenarioDoc = scenariosDoc[i];
-  //         std::vector<Query*> queriesFromOneScenario = extractQueriesFromScenario(scenarioDoc);
-  //         vector.insert(vector.end(), queriesFromOneScenario.begin(),
-  //         queriesFromOneScenario.end());
-  //     }
-  //     return vector;
-  // }
-
-  static Query* parseWorkload(
+  
+  static std::unique_ptr<Query> parseWorkload(
       const char* key, const rapidjson::Value& doc,
-      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    Query* query = nullptr;
+      const std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap) {
+    std::unique_ptr<Query> query = nullptr;
 
     if (!doc.IsObject()) {
-      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an object."
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an
+      // object."
       //           << " line: " << __LINE__ << std::endl;
       return query;  // Return nullptr if JSON is not an object
     }
@@ -124,10 +112,10 @@ class QueryBuilder {
     return query;
   }
 
-  static Query* parseQuery(
+  static std::unique_ptr<Query> parseQuery(
       const rapidjson::Value& doc,
-      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    Query* parsedQuery = nullptr;
+      const std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap) {
+    std::unique_ptr<Query> parsedQuery = nullptr;
 
     if (!doc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for query. Expected an object."
@@ -143,7 +131,8 @@ class QueryBuilder {
       return parsedQuery;  // Return nullptr if any required field is missing
     }
 
-    parsedQuery = new Query();
+    // parsedQuery = std::unique_ptr<Query>(new Query());
+    parsedQuery = std::make_unique<Query>();
     std::string protocolString = doc["protocol"].GetString();
     std::map<std::string, std::string> attributesMap = protocolToAttributesMap.at(protocolString);
     std::string traceRoleString = doc["trace_role"].GetString();
@@ -157,9 +146,10 @@ class QueryBuilder {
     parsedQuery->service = service;
 
     // Handle parsing errors and log warnings if necessary
-    CompositeRule* andRule = new CompositeRule();
+    std::unique_ptr<CompositeRule> andRule = std::make_unique<CompositeRule>();
     andRule->condition = conditionTypeMap["AND"];
-    SimpleRuleString* traceRule = new SimpleRuleString();
+    std::unique_ptr<SimpleRuleString> traceRule = std::make_unique<SimpleRuleString>();
+    // std::unique_ptr<SimpleRuleString>(new SimpleRuleString());
     traceRule->id = "trace_role";
     traceRule->type = STRING;
     traceRule->input = "string";
@@ -167,7 +157,7 @@ class QueryBuilder {
     andRule->rules.push_back(traceRule);
     //////////
     const rapidjson::Value& ruleDoc = doc["rule"];
-    Rule* parsedRule = parse(ruleDoc, attributesMap);
+    std::unique_ptr<Rule> parsedRule = parse(ruleDoc, attributesMap);
     if (parsedRule != nullptr) {
       andRule->rules.push_back(parsedRule);
     }
@@ -176,10 +166,9 @@ class QueryBuilder {
     return parsedQuery;
   }
 
- private:
-  static Rule* parse(const rapidjson::Value& doc,
-                     const std::map<std::string, std::string> attributesMap) {
-    Rule* parsedRule;
+  static std::unique_ptr<Rule> parse(
+      const rapidjson::Value& doc, const std::map<std::string, std::string> attributesMap) {
+    std::unique_ptr<Rule> parsedRule;
     bool isCompositeRule = doc.HasMember("condition");
     if (isCompositeRule) {
       parsedRule = parseCompositeRule(doc, attributesMap);
@@ -190,15 +179,16 @@ class QueryBuilder {
     return parsedRule;
   }
 
-  static Rule* parseCompositeRule(const rapidjson::Value& compositeRuleDoc,
-                                  const std::map<std::string, std::string> attributesMap) {
-    CompositeRule* rule = new CompositeRule();
+  static std::unique_ptr<CompositeRule> parseCompositeRule(
+      const rapidjson::Value& compositeRuleDoc,
+      const std::map<std::string, std::string> attributesMap) {
+    std::unique_ptr<CompositeRule> rule = std::make_unique<CompositeRule>();
     rule->condition = conditionTypeMap[compositeRuleDoc["condition"].GetString()];
     const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
-    std::vector<Rule*> vector;
+    std::vector<std::unique_ptr<Rule>> vector;
     int rulesDocSize = static_cast<int>(rulesDoc.Size());
     for (int i = 0; i < rulesDocSize; i++) {
-      Rule* rule = parse(rulesDoc[i], attributesMap);
+      std::unique_ptr<Rule> rule = parse(rulesDoc[i], attributesMap);
       if (rule != nullptr) {
         vector.push_back(rule);
       }
@@ -207,9 +197,9 @@ class QueryBuilder {
     return rule;
   }
 
-  static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc,
-                               const std::map<std::string, std::string> attributesMap) {
-    SimpleRule* rule = nullptr;
+  static std::unique_ptr<SimpleRule> parseSimpleRule(
+      const rapidjson::Value& ruleDoc, const std::map<std::string, std::string> attributesMap) {
+    std::unique_ptr<SimpleRule> rule = nullptr
 
     // Check if the rule document is an object
     if (!ruleDoc.IsObject()) {
@@ -259,10 +249,10 @@ class QueryBuilder {
     //   if (id == "http_req_headers") {
     //     std::cout << "\nAVIN_DEBUG_QUERY_init02 http_req_headers processed " << std::endl;
     //   }
-      rule = new SimpleRuleString();
+      rule = std::make_unique<SimpleRuleString>();
       ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
     } else if (fieldType == INTEGER) {
-      rule = new SimpleRuleInteger();
+      rule = std::make_unique<SimpleRuleInteger>();
 
       if (ruleDoc["value"].IsString()) {
         std::string value = ruleDoc["value"].GetString();

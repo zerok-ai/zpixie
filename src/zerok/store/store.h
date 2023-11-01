@@ -4,6 +4,7 @@
 #include <cstdarg>
 #include <iostream>
 #include <map>
+#include <memory>
 #include <string>
 #include "./db/memory.h"
 #include "hiredis.h"
@@ -350,16 +351,17 @@ class ZkRedis : public ZkStore {
 
 class ZkStoreProvider {
  private:
-  static std::map<int, ZkStore*> storeProvider;
-  static ZkStore* zkStore;
+  static std::map<int, std::unique_ptr<zk::ZkStore>> storeProvider;
+  static std::unique_ptr<zk::ZkStore> zkStore;
 
  public:
   static ZkStore* instance() {
     if (zkStore != nullptr) {
       return zkStore;
     }
-    ZkRedis* hiredisClient = new ZkRedis();
-    ZkStore* redisClient = hiredisClient;
+    // ZkRedis* hiredisClient = new ZkRedis();
+    std::unique_ptr<zk::ZkRedis> hiredisClient = std::make_unique<ZkRedis>();
+    std::unique_ptr<zk::ZkStore> redisClient = hiredisClient;
     ZkStoreProvider::zkStore = hiredisClient;
 
     // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
@@ -371,19 +373,21 @@ class ZkStoreProvider {
     return redisClient;
   }
 
-  static ZkStore* instance(int database) {
+  static std::unique_ptr<zk::ZkStore> instance(int database) {
     if (storeProvider.find(database) != storeProvider.end()) {
       return storeProvider[database];
     }
-    ZkRedis* hiredisClient = new ZkRedis(database);
-    ZkStore* redisClient = hiredisClient;
+    // ZkRedis* hiredisClient = new ZkRedis(database);
+    std::unique_ptr<zk::ZkRedis> hiredisClient = std::make_unique<ZkRedis>(database);
+    // ZkStore* redisClient = hiredisClient;
+    std::unique_ptr<zk::ZkStore> redisClient = hiredisClient;
     storeProvider[database] = redisClient;
 
     return redisClient;
   }
 };
-ZkStore* ZkStoreProvider::zkStore = nullptr;
-std::map<int, ZkStore*> ZkStoreProvider::storeProvider;
+std::unique_ptr<zk::ZkStore> ZkStoreProvider::zkStore = nullptr;
+std::map<int, std::unique_ptr<zk::ZkStore>> ZkStoreProvider::storeProvider;
 }  // namespace zk
 
 #endif  // STORE_H

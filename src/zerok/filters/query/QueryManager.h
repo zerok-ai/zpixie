@@ -83,7 +83,7 @@ namespace zk{
                         //2.5 - Clear the queries corresponding to the scenario from protocolToScenarioToQueries for all the query types
                         for (const auto& queryTypeStringPair : protocolToScenarioToQueries) {
                             std::string queryTypeString = queryTypeStringPair.first;
-                            std::map<std::string, std::vector<Query*> > scenarioToQueries = queryTypeStringPair.second;
+                            std::map<std::string, std::vector<std::unique_ptr<Query>>> scenarioToQueries = queryTypeStringPair.second;
                             if(scenarioToQueries.count(scenairo) > 0){
                                 scenarioToQueries[scenairo].clear();
                             }
@@ -99,7 +99,9 @@ namespace zk{
                         rapidjson::Value scenarioDocValue(scenarioJsonDocument, scenarioJsonDocument.GetAllocator());
 
                         //3 - extract the queries from scenario json by calling extractQueriesFromScenario on QueryBuilder
-                        std::vector<Query*> queries = QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str(), protocolToAttributesMap);
+                        std::vector<std::unique_ptr<Query>> queries =
+                            QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str(),
+                                                                     protocolToAttributesMap);
                         // if(scenairo == "2023"){
                         //     std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << " query.workloadId " << queries[0]->workloadId.c_str() << std::endl;
                         // }
@@ -131,10 +133,10 @@ namespace zk{
                     protocolToQueries.clear();
                     for (const auto& queryTypeStringPair : protocolToScenarioToQueries) {
                         std::string queryTypeString = queryTypeStringPair.first;
-                        std::map<std::string, std::vector<Query*> > scenarioToQueries = queryTypeStringPair.second;
+                        std::map<std::string, std::vector<std::unique_ptr<Query>>> scenarioToQueries = queryTypeStringPair.second;
                         for (const auto& scenario : scenarioToQueries) {
                             std::string scenarioId = scenario.first;
-                            std::vector<Query*> queries = scenario.second;
+                            std::vector<std::unique_ptr<Query>> queries = scenario.second;
                             for (const auto& query : queries) {
                                 if(protocolToQueries.count(queryTypeString) <= 0){
                                     protocolToQueries[queryTypeString] = {};
@@ -178,36 +180,36 @@ namespace zk{
 
         public:
             static bool storeInitializedOnce;
-            static zk::ZkStore* zkStoreReader;
-            static zk::ZkStore* zkStoreWriter;
-            static zk::ZkStore* zkStoreAttributedReader;
+            static std::unique_ptr<zk::ZkStore> zkStoreReader;
+            static std::unique_ptr<zk::ZkStore> zkStoreWriter;
+            static std::unique_ptr<zk::ZkStore> zkStoreAttributedReader;
             static std::string uuid;
             static long lastTimestampInMilliseconds;
             static long ttlForRedisCheckInMilliseconds;
             static std::set<std::string> possibleIdentifiers;
-            static std::map<std::string, std::vector<Query*> > protocolToQueries;
+            static std::map<std::string, std::vector<std::unique_ptr<Query>>> protocolToQueries;
             static std::map<std::string, int > queryToVersion;
-            static std::map<std::string, std::map<std::string, std::vector<Query*> > > protocolToScenarioToQueries;
+            static std::map<std::string, std::map<std::string, std::vector<std::unique_ptr<Query>>>> protocolToScenarioToQueries;
 
             static void refresh(){
                 init();
                 initializeQueriesV2();
             }
 
-            static void get(){
-                init();
-                initializeQueriesV2();
-            }
+            // static void get(){
+            //     init();
+            //     initializeQueriesV2();
+            // }
 
     };
 
     std::set<std::string> ZkQueryManager::possibleIdentifiers;
-    std::map<std::string, std::vector<Query*> > ZkQueryManager::protocolToQueries;
-    zk::ZkStore* ZkQueryManager::zkStoreReader; 
-    zk::ZkStore* ZkQueryManager::zkStoreWriter; 
-    zk::ZkStore* ZkQueryManager::zkStoreAttributedReader; 
+    std::map<std::string, std::vector<std::unique_ptr<Query>>> ZkQueryManager::protocolToQueries;
+    std::unique_ptr<zk::ZkStore> ZkQueryManager::zkStoreReader;
+    std::unique_ptr<zk::ZkStore> ZkQueryManager::zkStoreWriter;
+    std::unique_ptr<zk::ZkStore> ZkQueryManager::zkStoreAttributedReader;
     std::string ZkQueryManager::uuid;
-    std::map<std::string, std::map<std::string, std::vector<Query*> > > ZkQueryManager::protocolToScenarioToQueries;
+    std::map<std::string, std::map<std::string, std::vector<std::unique_ptr<Query>>>> ZkQueryManager::protocolToScenarioToQueries;
     bool ZkQueryManager::storeInitializedOnce; 
     long ZkQueryManager::lastTimestampInMilliseconds = 0;
     long ZkQueryManager::ttlForRedisCheckInMilliseconds;

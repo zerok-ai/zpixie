@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <memory>
 #include <vector>
 #include <unordered_map>
 #include "Rule.h"
@@ -45,11 +46,11 @@ namespace zk {
 
     class Query{
          public:
-            Rule* rule;
-            QueryType queryType;
-            std::string workloadId;
-            std::string traceRole;
-            std::string ns;
-            std::string service;
+          std::unique_ptr<Rule> rule;
+          QueryType queryType;
+          std::string workloadId;
+          std::string traceRole;
+          std::string ns;
+          std::string service;
     };
 }
