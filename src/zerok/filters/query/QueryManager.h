@@ -156,9 +156,9 @@ namespace zk{
                     // std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
-                    zkStoreReader = zk::ZkStoreProvider::instance(6);
-                    zkStoreWriter = zk::ZkStoreProvider::instance(1);
-                    zkStoreAttributedReader = zk::ZkStoreProvider::instance(4);
+                    zkStoreReader = &zk::ZkStoreProvider::instance(6);
+                    zkStoreWriter = &zk::ZkStoreProvider::instance(1);
+                    zkStoreAttributedReader = &zk::ZkStoreProvider::instance(4);
                     uuid = CommonUtils::generateUUID();
                     possibleIdentifiers.insert("*/*");
                     possibleIdentifiers.insert("NS01/*");
@@ -205,9 +205,9 @@ namespace zk{
 
     std::set<std::string> ZkQueryManager::possibleIdentifiers;
     std::map<std::string, std::vector<std::unique_ptr<Query>>> ZkQueryManager::protocolToQueries;
-    zk::ZkStore& ZkQueryManager::zkStoreReader;
-    zk::ZkStore& ZkQueryManager::zkStoreWriter;
-    zk::ZkStore& ZkQueryManager::zkStoreAttributedReader;
+    zk::ZkStore* ZkQueryManager::zkStoreReader = nullptr;
+    zk::ZkStore* ZkQueryManager::zkStoreWriter = nullptr;
+    zk::ZkStore* ZkQueryManager::zkStoreAttributedReader = nullptr;
     std::string ZkQueryManager::uuid;
     std::map<std::string, std::map<std::string, std::vector<std::unique_ptr<Query>>>> ZkQueryManager::protocolToScenarioToQueries;
     bool ZkQueryManager::storeInitializedOnce; 
