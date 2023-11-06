@@ -96,7 +96,8 @@ class ZkQueryExecutor {
       }
       // TODO: Check if trace id is present, if not return false
       if (ZkQueryManager::protocolToQueries.count(protocol) > 0) {
-        // std::cout << "\nAVIN_DEBUG_STORE_apply0103" << std::endl;
+        int count = ZkQueryManager::protocolToQueries.count(protocol);
+        std::cout << "\nzk-log/executor " << protocol << " queries found: " << count << std::endl;
         std::vector<Query*> queries = ZkQueryManager::protocolToQueries[protocol];
         if (!queries.empty()) {
           // std::cout << "\nAVIN_DEBUG_STORE_apply0104" << std::endl;
@@ -117,6 +118,8 @@ class ZkQueryExecutor {
             }
           }
         }
+      }else{
+        std::cout << "\nzk-log/executor " << protocol << " no queries found " << std::endl;
       }
     } else {
       // TODO: Check if trace id is present, if not return false
