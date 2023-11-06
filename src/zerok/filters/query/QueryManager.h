@@ -70,6 +70,8 @@ namespace zk{
 
                     //1.5 - Check for the size of changedScenarios and return if it is 0
                     if(changedScenarios.size() == 0){
+                        std::cout << "\nzk-log/manager scenarios changed "
+                                  << 0 << std::endl;
                         return;
                     }else{
                         std::cout << "\nzk-log/manager scenarios changed "
