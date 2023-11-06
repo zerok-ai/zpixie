@@ -145,6 +145,8 @@ class QueryBuilder {
       }
     }
 
+    std::cout << "zk-log/builder parsed : " << vector.size() << " queries " << std::endl;
+
     return vector;
   }
 

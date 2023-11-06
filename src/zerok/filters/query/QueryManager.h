@@ -106,6 +106,7 @@ namespace zk{
 
                         //3 - extract the queries from scenario json by calling extractQueriesFromScenario on QueryBuilder
                         std::vector<Query*> queries = QueryBuilder::extractQueriesFromScenario(scenarioJson.c_str(), protocolToAttributesMap);
+                        std::cout << "\nzk-log/manager " << scenairo << " queries found: " << queries.size() << std::endl;
                         // if(scenairo == "2023"){
                         //     std::cout << "\nAVIN_DEBUG_QUERY_init02 ScenarioId processed " << scenairo.c_str() << " query.workloadId " << queries[0]->workloadId.c_str() << std::endl;
                         // }
@@ -128,12 +129,14 @@ namespace zk{
                                 // std::cout << "\nAVIN_DEBUG_QUERY_init03 " << std::endl;
                                 // printf("\nAVIN_DEBUG_QUERY_init03 ");
                                 protocolToScenarioToQueries[queryTypeString][scenairo].push_back(query);
+                                std::cout << "\nzk-log/manager " << " mapped a query for " << scenairo << std::endl;
                             }
                         }
                     }
 
                     // std::cout << "\nAVIN_DEBUG_QUERY_init04 " << std::endl;
                     // printf("\nAVIN_DEBUG_QUERY_init04 ");
+                    std::cout << "\nzk-log/manager " << " queries cleared " << std::endl;
                     protocolToQueries.clear();
                     for (const auto& queryTypeStringPair : protocolToScenarioToQueries) {
                         std::string queryTypeString = queryTypeStringPair.first;
@@ -149,6 +152,7 @@ namespace zk{
                                 // std::cout << "\nAVIN_DEBUG_QUERY_init05 " << std::endl;
                                 // printf("\nAVIN_DEBUG_QUERY_init05 ");
                                 protocolToQueries[queryTypeString].push_back(query);
+                                std::cout << "\nzk-log/manager " << " queries saved " << std::endl;
                             }
                         }
                     }
