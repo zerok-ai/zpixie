@@ -145,8 +145,8 @@ class QueryBuilder {
       const char* key = member.name.GetString();
       const rapidjson::Value& workloadDoc = workloadsDoc[key];
 
-      if (doc.HasMember("executor")) {
-        std::string executorString = doc["executor"].GetString();
+      if (workloadDoc.HasMember("executor")) {
+        std::string executorString = workloadDoc["executor"].GetString();
         if (executorString != "EBPF") {
           std::cout << "zk-log/builder skipping non EBPF workload: " << key << std::endl;
           continue;
