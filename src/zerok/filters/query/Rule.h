@@ -23,6 +23,13 @@ class CompositeRule : public Rule {
   ConditionType condition;
   std::vector<Rule*> rules;
 
+  ~CompositeRule() override {
+    for (Rule* rule : rules) {
+      delete rule;
+    }
+    rules.clear();
+  }
+
   bool evaluate(std::map<std::string, std::string> propsMap) const override {
     if (condition == AND) {
       for (Rule* rule : rules) {

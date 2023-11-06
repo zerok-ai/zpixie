@@ -85,7 +85,13 @@ namespace zk{
                             std::string queryTypeString = queryTypeStringPair.first;
                             std::map<std::string, std::vector<Query*> > scenarioToQueries = queryTypeStringPair.second;
                             if(scenarioToQueries.count(scenairo) > 0){
-                                scenarioToQueries[scenairo].clear();
+                                std::vector<Query*>& queries = scenarioToQueries[scenairo];
+
+                                for (Query* query : queries) {
+                                  delete query;  // Delete the object pointed by the raw pointer
+                                }
+
+                                queries.clear();  // Clear the vector after deleting the objects
                             }
                         }
                         std::string scenarioJson = zkStoreReader->get(scenairo);

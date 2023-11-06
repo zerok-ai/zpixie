@@ -354,23 +354,6 @@ class ZkStoreProvider {
   static ZkStore* zkStore;
 
  public:
-  static ZkStore* instance() {
-    if (zkStore != nullptr) {
-      return zkStore;
-    }
-    ZkRedis* hiredisClient = new ZkRedis();
-    ZkStore* redisClient = hiredisClient;
-    ZkStoreProvider::zkStore = hiredisClient;
-
-    // zk::AsyncTask readerAsyncTask(&readerTask, 1000);
-    // readerAsyncTask.Start();
-
-    // zk::AsyncTask writerAsyncTask(&writerTask, 200);
-    // writerAsyncTask.Start();
-
-    return redisClient;
-  }
-
   static ZkStore* instance(int database) {
     if (storeProvider.find(database) != storeProvider.end()) {
       return storeProvider[database];

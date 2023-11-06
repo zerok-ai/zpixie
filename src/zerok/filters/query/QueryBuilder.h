@@ -13,64 +13,6 @@
 namespace zk {
 class QueryBuilder {
  public:
-  static std::string generateRandomString(int length) {
-    const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    const int charactersLength = characters.length();
-
-    std::random_device rd;
-    std::mt19937 generator(rd());
-
-    std::string randomString;
-    for (int i = 0; i < length; ++i) {
-      randomString += characters[generator() % charactersLength];
-    }
-
-    return randomString;
-  }
-  static std::vector<Query*> extractQueriesFromScenario(
-      const rapidjson::Value& scenarioDoc,
-      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    std::vector<Query*> vector;
-
-    if (!scenarioDoc.IsObject()) {
-      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object."
-      //           << " line: " << __LINE__ << std::endl;
-      return vector;  // Return empty vector if JSON is not an object
-    }
-
-    if (!scenarioDoc.HasMember("workloads")) {
-      // std::cout << "AVIN_DEBUG_ QueryBuilder Missing 'workloads' field in the JSON."
-      //           << " line: " << __LINE__ << std::endl;
-      return vector;  // Return empty vector if 'workloads' field is missing
-    }
-
-    const rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
-    if (!workloadsDoc.IsObject()) {
-      // std::cout
-      //     << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. 'workloads' field is not an object."
-      //     << " line: " << __LINE__ << std::endl;
-      return vector;  // Return empty vector if 'workloads' is not an object
-    }
-
-    for (auto& member : workloadsDoc.GetObject()) {
-      const char* key = member.name.GetString();
-      const rapidjson::Value& workloadDoc = workloadsDoc[key];
-      Query* query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
-
-      if (query) {
-        std::string keyString(key);
-        query->workloadId = keyString;
-        vector.push_back(query);
-      } else {
-        std::cout << "zk-log/builder QueryBuilder Failed to parse workload with key: " << key
-                  << " line: " << __LINE__ << std::endl;
-        // Log warning or perform error handling as necessary
-      }
-    }
-
-    return vector;
-  }
-
   static std::vector<Query*> extractQueriesFromScenario(
       const char* jsonRule,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
@@ -84,46 +26,7 @@ class QueryBuilder {
     return extractQueriesFromScenario(scenarioDoc, protocolToAttributesMap);
   }
 
-  // static std::vector<Query*> parseScenarios(const char* jsonRule){
-  //     rapidjson::Document doc;
-  //     doc.Parse(jsonRule);
-
-  //     std::vector<Query*> vector;
-  //     rapidjson::Value& scenariosDoc = doc["scenarios"];
-  //     int scenariosSize = static_cast<int>(scenariosDoc.Size());
-  //     for (int i = 0; i < scenariosSize; i++) {
-  //         rapidjson::Value& scenarioDoc = scenariosDoc[i];
-  //         std::vector<Query*> queriesFromOneScenario = extractQueriesFromScenario(scenarioDoc);
-  //         vector.insert(vector.end(), queriesFromOneScenario.begin(),
-  //         queriesFromOneScenario.end());
-  //     }
-  //     return vector;
-  // }
-
-  static Query* parseWorkload(
-      const char* key, const rapidjson::Value& doc,
-      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    Query* query = nullptr;
-
-    if (!doc.IsObject()) {
-      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an object."
-      //           << " line: " << __LINE__ << std::endl;
-      return query;  // Return nullptr if JSON is not an object
-    }
-
-    query = parseQuery(doc, protocolToAttributesMap);
-    if (query) {
-      std::string keyString(key);
-      query->workloadId = keyString;
-    } else {
-      // std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key
-      //           << " line: " << __LINE__ << std::endl;
-      // Log warning or perform error handling as necessary
-    }
-
-    return query;
-  }
-
+ private:
   static Query* parseQuery(
       const rapidjson::Value& doc,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
@@ -175,8 +78,91 @@ class QueryBuilder {
     parsedQuery->rule = andRule;
     return parsedQuery;
   }
+  
+  static Query* parseWorkload(
+      const char* key, const rapidjson::Value& doc,
+      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
+    Query* query = nullptr;
 
- private:
+    if (!doc.IsObject()) {
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an
+      // object."
+      //           << " line: " << __LINE__ << std::endl;
+      return query;  // Return nullptr if JSON is not an object
+    }
+
+    query = parseQuery(doc, protocolToAttributesMap);
+    if (query) {
+      std::string keyString(key);
+      query->workloadId = keyString;
+    } else {
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key
+      //           << " line: " << __LINE__ << std::endl;
+      // Log warning or perform error handling as necessary
+    }
+
+    return query;
+  }
+
+  static std::vector<Query*> extractQueriesFromScenario(
+      const rapidjson::Value& scenarioDoc,
+      const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
+    std::vector<Query*> vector;
+
+    if (!scenarioDoc.IsObject()) {
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object."
+      //           << " line: " << __LINE__ << std::endl;
+      return vector;  // Return empty vector if JSON is not an object
+    }
+
+    if (!scenarioDoc.HasMember("workloads")) {
+      // std::cout << "AVIN_DEBUG_ QueryBuilder Missing 'workloads' field in the JSON."
+      //           << " line: " << __LINE__ << std::endl;
+      return vector;  // Return empty vector if 'workloads' field is missing
+    }
+
+    const rapidjson::Value& workloadsDoc = scenarioDoc["workloads"];
+    if (!workloadsDoc.IsObject()) {
+      // std::cout
+      //     << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. 'workloads' field is not an object."
+      //     << " line: " << __LINE__ << std::endl;
+      return vector;  // Return empty vector if 'workloads' is not an object
+    }
+
+    for (auto& member : workloadsDoc.GetObject()) {
+      const char* key = member.name.GetString();
+      const rapidjson::Value& workloadDoc = workloadsDoc[key];
+      Query* query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
+
+      if (query) {
+        std::string keyString(key);
+        query->workloadId = keyString;
+        vector.push_back(query);
+      } else {
+        std::cout << "zk-log/builder QueryBuilder Failed to parse workload with key: " << key
+                  << " line: " << __LINE__ << std::endl;
+        // Log warning or perform error handling as necessary
+      }
+    }
+
+    return vector;
+  }
+
+  static std::string generateRandomString(int length) {
+    const std::string characters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    const int charactersLength = characters.length();
+
+    std::random_device rd;
+    std::mt19937 generator(rd());
+
+    std::string randomString;
+    for (int i = 0; i < length; ++i) {
+      randomString += characters[generator() % charactersLength];
+    }
+
+    return randomString;
+  }
+
   static Rule* parse(const rapidjson::Value& doc,
                      const std::map<std::string, std::string> attributesMap) {
     Rule* parsedRule;

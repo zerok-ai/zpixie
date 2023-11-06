@@ -20,12 +20,7 @@
 
 namespace zk {
 class ZkQueryExecutor {
- public:
-  static void init() {
-    zk::ZkConfigProvider::init();
-    ZkQueryManager::refresh();
-  }
-
+ private:
   static SimpleRuleString* generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
     SimpleRuleString* traceIdRule = new SimpleRuleString();
     traceIdRule->id = ruleId;
@@ -37,6 +32,12 @@ class ZkQueryExecutor {
       traceIdRule->json_path = "/Traceparent";
     }
     return traceIdRule;
+  }
+
+ public:
+  static void init() {
+    zk::ZkConfigProvider::init();
+    ZkQueryManager::refresh();
   }
 
   static ZkTraceInfo apply(std::string protocol, std::map<std::string, std::string> propsMap) {
@@ -60,6 +61,16 @@ class ZkQueryExecutor {
           break;
         }
       }
+
+      // Deletion
+      for (int i = 0; i < ruleCount; ++i) {
+        delete traceRuleArray[i];
+      }
+      // Setting the pointers to null to avoid potential dangling pointers
+      for (int i = 0; i < ruleCount; ++i) {
+        traceRuleArray[i] = nullptr;
+      }
+
       if (traceParent == "ZK_NULL") {
         /* no trace parent found in both req & resp headers */
         return zkTraceInfo;
