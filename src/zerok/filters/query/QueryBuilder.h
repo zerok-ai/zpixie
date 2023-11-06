@@ -46,12 +46,24 @@ class QueryBuilder {
       return parsedQuery;  // Return nullptr if any required field is missing
     }
 
-    parsedQuery = new Query();
+    // doc has a property field called "executor" - check if this is set to EBPF
+    // if not, return nullptr
+    if (doc.HasMember("executor")) {
+      std::string executorString = doc["executor"].GetString();
+      if (executorString != "EBPF") {
+        return parsedQuery;  // Return nullptr if executor is not EBPF
+      }
+    }
+
     std::string protocolString = doc["protocol"].GetString();
     std::map<std::string, std::string> attributesMap = protocolToAttributesMap.at(protocolString);
     std::string traceRoleString = doc["trace_role"].GetString();
     std::string serviceString = doc["service"].GetString();
     std::vector<std::string> splits = CommonUtils::splitString(serviceString, "/");
+    if (splits.size() != 2) {
+      return parsedQuery;
+    }
+    parsedQuery = new Query();
     std::string ns = splits.at(0);
     std::string service = splits.at(1);
     parsedQuery->traceRole = traceRoleString;
@@ -132,6 +144,15 @@ class QueryBuilder {
     for (auto& member : workloadsDoc.GetObject()) {
       const char* key = member.name.GetString();
       const rapidjson::Value& workloadDoc = workloadsDoc[key];
+
+      if (doc.HasMember("executor")) {
+        std::string executorString = doc["executor"].GetString();
+        if (executorString != "EBPF") {
+          std::cout << "zk-log/builder skipping non EBPF workload: " << key << std::endl;
+          continue;
+        }
+      }
+
       Query* query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
 
       if (query) {
@@ -139,7 +160,7 @@ class QueryBuilder {
         query->workloadId = keyString;
         vector.push_back(query);
       } else {
-        std::cout << "zk-log/builder QueryBuilder Failed to parse workload with key: " << key
+        std::cout << "zk-log/builder Failed to parse workload with key: " << key
                   << " line: " << __LINE__ << std::endl;
         // Log warning or perform error handling as necessary
       }
