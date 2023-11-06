@@ -166,7 +166,7 @@ namespace zk{
                     // std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
-                    zkStoreReader = zk::ZkStoreProvider::instance(6);
+                    zkStoreReader = zk::ZkStoreProvider::instance(2);
                     zkStoreWriter = zk::ZkStoreProvider::instance(1);
                     zkStoreAttributedReader = zk::ZkStoreProvider::instance(4);
                     uuid = CommonUtils::generateUUID();
