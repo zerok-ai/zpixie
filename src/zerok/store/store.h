@@ -144,6 +144,8 @@ class ZkRedis : public ZkStore {
     //   expire(key, expiryaInSeconds);
     //   endTransaction();
     // }
+    (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
+    (void)key;               // Cast to void to suppress the warning/error
   }
 
   bool checkForConnection() {
