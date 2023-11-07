@@ -11,6 +11,8 @@
 #include "FieldType.h"
 #include "OperatorType.h"
 #include "Rule.h"
+#include "SimpleRuleInteger.h"
+#include "SimpleRuleString.h"
 
 namespace zk {
 class SimpleRule : public Rule {
