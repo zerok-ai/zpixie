@@ -10,7 +10,7 @@ class SimpleRuleString : public SimpleRuleDefault {
  public:
   std::string value;
 
-  bool evaluateEquals(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateEquals(std::map<std::string, std::string> propsMap) const {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       std::string foundValue = this->extractValue(propsMap);
@@ -19,7 +19,7 @@ class SimpleRuleString : public SimpleRuleDefault {
     return false;
   };
 
-  bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       std::string foundValue = this->extractValue(propsMap);
@@ -28,7 +28,7 @@ class SimpleRuleString : public SimpleRuleDefault {
     return false;
   };
 
-  bool evaluateIn(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateIn(std::map<std::string, std::string> propsMap) const {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       std::string foundValue = this->extractValue(propsMap);
@@ -39,7 +39,7 @@ class SimpleRuleString : public SimpleRuleDefault {
     return false;
   };
 
-  bool evaluateNotIn(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateNotIn(std::map<std::string, std::string> propsMap) const {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       std::string foundValue = this->extractValue(propsMap);

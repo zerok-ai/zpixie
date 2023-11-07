@@ -89,20 +89,20 @@ class ZkQueryExecutor {
       if (ZkQueryManager::protocolToQueries.count(protocol) > 0) {
         int count = ZkQueryManager::protocolToQueries.count(protocol);
         std::cout << "\nzk-log/executor " << protocol << " queries found: " << count << std::endl;
-        std::vector<Query*> queries = ZkQueryManager::protocolToQueries[protocol];
+        std::vector<Query> queries = ZkQueryManager::protocolToQueries[protocol];
         if (!queries.empty()) {
           // std::cout << "\nAVIN_DEBUG_STORE_apply0104" << std::endl;
           for (const auto& query : queries) {
-            bool evaluation = query->rule->evaluate(propsMap);
-            std::cout << "\nzk-log/executor " << query->workloadId << ":eval--"
+            bool evaluation = query.rule.evaluate(propsMap);
+            std::cout << "\nzk-log/executor " << query.workloadId << ":eval--"
                       << evaluation << std::endl;
             int currentMinutes = CommonUtils::systemMinutes();
             // std::string traceIdsSetKey = query->workloadId + "_" + uuid + "_" +
             // std::to_string(currentMinutes/5);
             std::string traceIdsSetKey =
-                query->workloadId + "_" + std::to_string(currentMinutes / 5);
+                query.workloadId + "_" + std::to_string(currentMinutes / 5);
             if (evaluation) {
-              zkTraceInfo.addWorkloadId(query->workloadId);
+              zkTraceInfo.addWorkloadId(query.workloadId);
               // std::cout << "\nAVIN_DEBUG_STORE_apply0105" << std::endl;
               ZkQueryManager::zkStoreWriter->addToSetWithExpiry(900, traceIdsSetKey.c_str(),
                                                                 traceId.c_str(), nullptr);

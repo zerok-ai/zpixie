@@ -12,12 +12,31 @@
 #include "OperatorType.h"
 
 namespace zk {
+class CompositeRule;
+class SimpleRule;
+
 class Rule {
  public:
   bool evaluate(std::map<std::string, std::string> propsMap) const {
+    const Rule* basePtr = this;
+
+    if (CompositeRule* derivedPtr = dynamic_cast<CompositeRule*>(basePtr)) {
+      return derivedPtr->evaluate(propsMap);
+    } else if (SimpleRule* derived2Ptr = dynamic_cast<SimpleRule*>(basePtr)) {
+      return derived2Ptr->evaluate(propsMap);
+    }
+
     return false;
   };
   bool isInitialized() const {
+    const Rule* basePtr = this;
+
+    if (CompositeRule* derivedPtr = dynamic_cast<CompositeRule*>(basePtr)) {
+      return derivedPtr->isInitialized();
+    } else if (SimpleRule* derived2Ptr = dynamic_cast<SimpleRule*>(basePtr)) {
+      return derived2Ptr->isInitialized();
+    }
+
     return false;
   };
 };
@@ -27,14 +46,14 @@ class CompositeRule : public Rule {
   ConditionType condition = AND;
   std::vector<Rule> rules;
 
-  bool isInitialized() const override {
+  bool isInitialized() const {
     return true;
   }
 
-  bool evaluate(std::map<std::string, std::string> propsMap) const override {
+  bool evaluate(std::map<std::string, std::string> propsMap) const {
     if (condition == AND) {
       for (Rule rule : rules) {
-        bool evaluationResult = rule->evaluate(propsMap);
+        bool evaluationResult = rule.evaluate(propsMap);
         if (!evaluationResult) {
           return false;
         }
@@ -43,7 +62,7 @@ class CompositeRule : public Rule {
       return true;
     } else if (condition == OR) {
       for (Rule rule : rules) {
-        bool evaluationResult = rule->evaluate(propsMap);
+        bool evaluationResult = rule.evaluate(propsMap);
         if (evaluationResult) {
           return true;
         }
@@ -64,7 +83,7 @@ class SimpleRule : public Rule {
   std::string input;
   OperatorType operatorType;
 
-  bool isInitialized() const override { return !id.empty(); }
+  bool isInitialized() const { return !id.empty(); }
 
   // id can contain this string: req_body.#extractJSON("message").#upperCase()
   std::string evaluateIdAndExtractValue(std::map<std::string, std::string> propsMap) const {
@@ -163,7 +182,7 @@ class SimpleRule : public Rule {
     return evaluateIdAndExtractValue(propsMap);
   }
 
-  bool evaluate(std::map<std::string, std::string> propsMap) const override {
+  bool evaluate(std::map<std::string, std::string> propsMap) const {
     switch (operatorType) {
       case EXISTS:
         return evaluateExists(propsMap);
@@ -202,15 +221,115 @@ class SimpleRule : public Rule {
     return false;
   }
 
-  bool evaluateExists(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateNotExists(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateEquals(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateIn(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateNotIn(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateLessThan(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const {return false;};
-  bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateExists(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateExists(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateExists(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateNotExists(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateNotExists(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateNotExists(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateEquals(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateEquals(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateEquals(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateNotEquals(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateNotEquals(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateIn(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateIn(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateIn(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateNotIn(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateNotIn(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateNotIn(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateLessThan(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateLessThan(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateLessThan(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateLessThanEquals(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateLessThanEquals(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateGreaterThan(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateGreaterThan(propsMap);
+    }
+
+    return false;
+  };
+  bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const {
+    const SimpleRule* basePtr = this;
+
+    if (SimpleRuleInteger* derivedPtr = dynamic_cast<SimpleRuleInteger*>(basePtr)) {
+      return derivedPtr->evaluateGreaterThanEquals(propsMap);
+    } else if (SimpleRuleString* derived2Ptr = dynamic_cast<SimpleRuleString*>(basePtr)) {
+      return derived2Ptr->evaluateGreaterThanEquals(propsMap);
+    }
+
+    return false;
+  };
 };
 }  // namespace zk
