@@ -73,7 +73,7 @@ class QueryBuilder {
     // Handle parsing errors and log warnings if necessary
     CompositeRule andRule;
     andRule.condition = conditionTypeMap["AND"];
-    SimpleRuleString traceRule
+    SimpleRuleString traceRule;
     traceRule.id = "trace_role";
     traceRule.type = STRING;
     traceRule.input = "string";
@@ -158,7 +158,7 @@ class QueryBuilder {
 
       if (query.isInitialized()) {
         std::string keyString(key);
-        query->workloadId = keyString;
+        query.workloadId = keyString;
         vector.push_back(query);
       } else {
         std::cout << "zk-log/builder Failed to parse workload with key: " << key
@@ -219,7 +219,7 @@ class QueryBuilder {
 
   static Rule parseSimpleRule(const rapidjson::Value& ruleDoc,
                                const std::map<std::string, std::string> attributesMap) {
-    SimpleRuleDefault() uninitializedRule;
+    SimpleRuleDefault uninitializedRule;
     SimpleRule rule;
 
     // Check if the rule document is an object

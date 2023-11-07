@@ -14,9 +14,12 @@
 namespace zk {
 class Rule {
  public:
-  virtual ~Rule() = default;
-  virtual bool evaluate(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool isInitialized() const = 0;
+  bool evaluate(std::map<std::string, std::string> propsMap) const {
+    return false;
+  };
+  bool isInitialized() const {
+    return false;
+  };
 };
 
 class CompositeRule : public Rule {
@@ -30,7 +33,7 @@ class CompositeRule : public Rule {
 
   bool evaluate(std::map<std::string, std::string> propsMap) const override {
     if (condition == AND) {
-      for (Rule* rule : rules) {
+      for (Rule rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
         if (!evaluationResult) {
           return false;
@@ -39,7 +42,7 @@ class CompositeRule : public Rule {
 
       return true;
     } else if (condition == OR) {
-      for (Rule* rule : rules) {
+      for (Rule rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
         if (evaluationResult) {
           return true;
@@ -199,15 +202,15 @@ class SimpleRule : public Rule {
     return false;
   }
 
-  virtual bool evaluateExists(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateNotExists(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateEquals(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateIn(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateNotIn(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateLessThan(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const = 0;
+  bool evaluateExists(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateNotExists(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateEquals(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateIn(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateNotIn(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateLessThan(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const {return false;};
+  bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const {return false;};
 };
 }  // namespace zk
