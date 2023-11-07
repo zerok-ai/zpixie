@@ -16,18 +16,23 @@ class Rule {
  public:
   virtual ~Rule() = default;
   virtual bool evaluate(std::map<std::string, std::string> propsMap) const = 0;
+  virtual bool isInitialized() const = 0;
 };
 
 class CompositeRule : public Rule {
  public:
-  ConditionType condition;
-  std::vector<Rule*> rules;
+  ConditionType condition = AND;
+  std::vector<Rule> rules;
 
   ~CompositeRule() override {
     for (Rule* rule : rules) {
       delete rule;
     }
     rules.clear();
+  }
+
+  bool isInitialized() const override {
+    return true;
   }
 
   bool evaluate(std::map<std::string, std::string> propsMap) const override {
@@ -62,6 +67,8 @@ class SimpleRule : public Rule {
   FieldType type;
   std::string input;
   OperatorType operatorType;
+
+  bool isInitialized() const override { return !id.empty(); }
 
   // id can contain this string: req_body.#extractJSON("message").#upperCase()
   std::string evaluateIdAndExtractValue(std::map<std::string, std::string> propsMap) const {

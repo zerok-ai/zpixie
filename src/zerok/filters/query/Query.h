@@ -45,7 +45,7 @@ namespace zk {
 
     class Query{
          public:
-            Rule* rule;
+            Rule rule;
             QueryType queryType;
             std::string workloadId;
             std::string traceRole;
@@ -55,5 +55,7 @@ namespace zk {
             ~Query() {
               delete rule;  // Assuming `rule` is allocated using `new`
             }
+
+            bool isInitialized() { return !ns.empty(); }
     };
 }

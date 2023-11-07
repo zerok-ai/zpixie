@@ -21,15 +21,15 @@
 namespace zk {
 class ZkQueryExecutor {
  private:
-  static SimpleRuleString* generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
-    SimpleRuleString* traceIdRule = new SimpleRuleString();
-    traceIdRule->id = ruleId;
-    traceIdRule->type = STRING;
-    traceIdRule->input = "string";
-    traceIdRule->value = "/traceparent";
-    traceIdRule->json_path = "/traceparent";
+  static SimpleRuleString generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
+    SimpleRuleString traceIdRule = SimpleRuleString();
+    traceIdRule.id = ruleId;
+    traceIdRule.type = STRING;
+    traceIdRule.input = "string";
+    traceIdRule.value = "/traceparent";
+    traceIdRule.json_path = "/traceparent";
     if (isCaps) {
-      traceIdRule->json_path = "/Traceparent";
+      traceIdRule.json_path = "/Traceparent";
     }
     return traceIdRule;
   }
@@ -46,13 +46,13 @@ class ZkQueryExecutor {
     std::string spanId = "";
     if (protocol == "HTTP") {
       /* Generate rules to check traceparent or Traceparent header in req_headers OR resp_headers */
-      SimpleRuleString* traceIdReqRuleSmall = generateTraceparentRuleV2("req_headers", false);
-      SimpleRuleString* traceIdReqRuleCaps = generateTraceparentRuleV2("req_headers", true);
-      SimpleRuleString* traceIdResRuleSmall = generateTraceparentRuleV2("resp_headers", false);
-      SimpleRuleString* traceIdResRuleCaps = generateTraceparentRuleV2("resp_headers", true);
+      SimpleRuleString traceIdReqRuleSmall = generateTraceparentRuleV2("req_headers", false);
+      SimpleRuleString traceIdReqRuleCaps = generateTraceparentRuleV2("req_headers", true);
+      SimpleRuleString traceIdResRuleSmall = generateTraceparentRuleV2("resp_headers", false);
+      SimpleRuleString traceIdResRuleCaps = generateTraceparentRuleV2("resp_headers", true);
 
       const int ruleCount = 4;
-      SimpleRuleString* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps,
+      SimpleRuleString traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps,
                                                      traceIdResRuleSmall, traceIdResRuleCaps};
       std::string traceParent = "ZK_NULL";
       for (int ruleIdx = 0; ruleIdx < ruleCount; ruleIdx++) {
@@ -60,15 +60,6 @@ class ZkQueryExecutor {
         if (traceParent != "ZK_NULL") {
           break;
         }
-      }
-
-      // Deletion
-      for (int i = 0; i < ruleCount; ++i) {
-        delete traceRuleArray[i];
-      }
-      // Setting the pointers to null to avoid potential dangling pointers
-      for (int i = 0; i < ruleCount; ++i) {
-        traceRuleArray[i] = nullptr;
       }
 
       if (traceParent == "ZK_NULL") {

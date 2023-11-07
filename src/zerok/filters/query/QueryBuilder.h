@@ -13,7 +13,7 @@
 namespace zk {
 class QueryBuilder {
  public:
-  static std::vector<Query*> extractQueriesFromScenario(
+  static std::vector<Query> extractQueriesFromScenario(
       const char* jsonRule,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
     if (jsonRule == nullptr) {
@@ -27,10 +27,10 @@ class QueryBuilder {
   }
 
  private:
-  static Query* parseQuery(
+  static Query parseQuery(
       const rapidjson::Value& doc,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    Query* parsedQuery = nullptr;
+    Query parsedQuery;
 
     if (!doc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for query. Expected an object."
@@ -63,38 +63,37 @@ class QueryBuilder {
     if (splits.size() != 2) {
       return parsedQuery;
     }
-    parsedQuery = new Query();
     std::string ns = splits.at(0);
     std::string service = splits.at(1);
-    parsedQuery->traceRole = traceRoleString;
-    parsedQuery->queryType = queryTypeMap[protocolString];
-    parsedQuery->ns = ns;
-    parsedQuery->service = service;
+    parsedQuery.traceRole = traceRoleString;
+    parsedQuery.queryType = queryTypeMap[protocolString];
+    parsedQuery.ns = ns;
+    parsedQuery.service = service;
 
     // Handle parsing errors and log warnings if necessary
-    CompositeRule* andRule = new CompositeRule();
-    andRule->condition = conditionTypeMap["AND"];
-    SimpleRuleString* traceRule = new SimpleRuleString();
-    traceRule->id = "trace_role";
-    traceRule->type = STRING;
-    traceRule->input = "string";
-    traceRule->value = parsedQuery->traceRole;
-    andRule->rules.push_back(traceRule);
+    CompositeRule andRule;
+    andRule.condition = conditionTypeMap["AND"];
+    SimpleRuleString traceRule
+    traceRule.id = "trace_role";
+    traceRule.type = STRING;
+    traceRule.input = "string";
+    traceRule.value = parsedQuery.traceRole;
+    andRule.rules.push_back(traceRule);
     //////////
     const rapidjson::Value& ruleDoc = doc["rule"];
-    Rule* parsedRule = parse(ruleDoc, attributesMap);
-    if (parsedRule != nullptr) {
-      andRule->rules.push_back(parsedRule);
+    Rule parsedRule = parse(ruleDoc, attributesMap);
+    if (parsedRule.isInitialized()) {
+      andRule.rules.push_back(parsedRule);
     }
 
-    parsedQuery->rule = andRule;
+    parsedQuery.rule = andRule;
     return parsedQuery;
   }
   
-  static Query* parseWorkload(
+  static Query parseWorkload(
       const char* key, const rapidjson::Value& doc,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    Query* query = nullptr;
+    Query query;
 
     if (!doc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for workload. Expected an
@@ -104,9 +103,11 @@ class QueryBuilder {
     }
 
     query = parseQuery(doc, protocolToAttributesMap);
-    if (query) {
+    //check if query.workloadId is empty
+
+    if (query.isInitialized()) {
       std::string keyString(key);
-      query->workloadId = keyString;
+      query.workloadId = keyString;
     } else {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Failed to parse workload with key: " << key
       //           << " line: " << __LINE__ << std::endl;
@@ -116,10 +117,10 @@ class QueryBuilder {
     return query;
   }
 
-  static std::vector<Query*> extractQueriesFromScenario(
+  static std::vector<Query> extractQueriesFromScenario(
       const rapidjson::Value& scenarioDoc,
       const std::map<std::string, std::map<std::string, std::string> > protocolToAttributesMap) {
-    std::vector<Query*> vector;
+    std::vector<Query> vector;
 
     if (!scenarioDoc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format. Expected an object."
@@ -153,9 +154,9 @@ class QueryBuilder {
         }
       }
 
-      Query* query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
+      Query query = parseWorkload(key, workloadDoc, protocolToAttributesMap);
 
-      if (query) {
+      if (query.isInitialized()) {
         std::string keyString(key);
         query->workloadId = keyString;
         vector.push_back(query);
@@ -186,9 +187,9 @@ class QueryBuilder {
     return randomString;
   }
 
-  static Rule* parse(const rapidjson::Value& doc,
+  static Rule parse(const rapidjson::Value& doc,
                      const std::map<std::string, std::string> attributesMap) {
-    Rule* parsedRule;
+    Rule parsedRule;
     bool isCompositeRule = doc.HasMember("condition");
     if (isCompositeRule) {
       parsedRule = parseCompositeRule(doc, attributesMap);
@@ -199,33 +200,34 @@ class QueryBuilder {
     return parsedRule;
   }
 
-  static Rule* parseCompositeRule(const rapidjson::Value& compositeRuleDoc,
+  static Rule parseCompositeRule(const rapidjson::Value& compositeRuleDoc,
                                   const std::map<std::string, std::string> attributesMap) {
-    CompositeRule* rule = new CompositeRule();
-    rule->condition = conditionTypeMap[compositeRuleDoc["condition"].GetString()];
+    CompositeRule rule;
+    rule.condition = conditionTypeMap[compositeRuleDoc["condition"].GetString()];
     const rapidjson::Value& rulesDoc = compositeRuleDoc["rules"];
-    std::vector<Rule*> vector;
+    std::vector<Rule> vector;
     int rulesDocSize = static_cast<int>(rulesDoc.Size());
     for (int i = 0; i < rulesDocSize; i++) {
-      Rule* rule = parse(rulesDoc[i], attributesMap);
-      if (rule != nullptr) {
+      Rule rule = parse(rulesDoc[i], attributesMap);
+      if (rule.isInitialized()) {
         vector.push_back(rule);
       }
     }
-    rule->rules = vector;
+    rule.rules = vector;
     return rule;
   }
 
-  static Rule* parseSimpleRule(const rapidjson::Value& ruleDoc,
+  static Rule parseSimpleRule(const rapidjson::Value& ruleDoc,
                                const std::map<std::string, std::string> attributesMap) {
-    SimpleRule* rule = nullptr;
+    SimpleRuleDefault() uninitializedRule;
+    SimpleRule rule;
 
     // Check if the rule document is an object
     if (!ruleDoc.IsObject()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid JSON format for simple rule. Expected an "
       //              "object. Line: "
                 // << __LINE__ << std::endl;
-      return rule;  // Return nullptr if JSON is not an object
+      return uninitializedRule;  // Return nullptr if JSON is not an object
     }
 
     // Check if the required fields exist in the rule document
@@ -234,7 +236,7 @@ class QueryBuilder {
       // std::cout
           // << "AVIN_DEBUG_ QueryBuilder Missing required fields in the simple rule JSON. Line: "
           // << __LINE__ << std::endl;
-      return rule;  // Return nullptr if any required field is missing
+      return uninitializedRule;  // Return nullptr if any required field is missing
     }
 
     // Get the field values from the rule document
@@ -252,7 +254,7 @@ class QueryBuilder {
     if (id.empty() || datatype.empty() || op.empty()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid field values in the simple rule JSON. Line: "
       //           << __LINE__ << std::endl;
-      return rule;  // Return nullptr if any field value is invalid
+      return uninitializedRule;  // Return nullptr if any field value is invalid
     }
 
     // Check if the datatype is a valid FieldType
@@ -260,7 +262,7 @@ class QueryBuilder {
     if (fieldTypeMap.find(datatype) == fieldTypeMap.end()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Unknown datatype in the simple rule JSON. Line: "
       //           << __LINE__ << std::endl;
-      return rule;  // Return nullptr if the operator is unknown
+      return uninitializedRule;  // Return nullptr if the operator is unknown
     }
 
     // Create the appropriate SimpleRule based on the datatype
@@ -268,42 +270,40 @@ class QueryBuilder {
     //   if (id == "http_req_headers") {
     //     std::cout << "\nAVIN_DEBUG_QUERY_init02 http_req_headers processed " << std::endl;
     //   }
-      rule = new SimpleRuleString();
-      ((SimpleRuleString*)rule)->value = ruleDoc["value"].GetString();
+      rule = SimpleRuleString();
+      ((SimpleRuleString)rule).value = ruleDoc["value"].GetString();
     } else if (fieldType == INTEGER) {
-      rule = new SimpleRuleInteger();
+      rule = SimpleRuleInteger();
 
       if (ruleDoc["value"].IsString()) {
         std::string value = ruleDoc["value"].GetString();
         try {
           long valueLong = std::stol(value);
-          ((SimpleRuleInteger*)rule)->value = valueLong;
+          ((SimpleRuleInteger)rule).value = valueLong;
         } catch (const std::exception& e) {
           std::cout
               << "zk-log/builder QueryBuilder Failed to parse integer value in the simple rule "
                  "JSON. Line: "
               << __LINE__ << std::endl;
-          delete rule;     // Delete the created rule object
-          return nullptr;  // Return nullptr if failed to parse integer value
+          return uninitializedRule;  // Return nullptr if failed to parse integer value
         }
       } else if (ruleDoc["value"].IsInt()) {
         // TODO:AVIN Validate for long
-        ((SimpleRuleInteger*)rule)->value = ruleDoc["value"].GetInt();
+        ((SimpleRuleInteger)rule).value = ruleDoc["value"].GetInt();
       } else {
         // std::cout << "AVIN_DEBUG_ QueryBuilder Invalid value type in the simple rule JSON. Line: "
         //           << __LINE__ << std::endl;
-        delete rule;     // Delete the created rule object
-        return nullptr;  // Return nullptr if value type is invalid
+        return SimpleRuleDefault();  // Return nullptr if value type is invalid
       }
     } else {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Unsupported datatype in the simple rule JSON. Line: "
       //           << __LINE__ << std::endl;
-      return rule;  // Return nullptr if the datatype is unsupported
+      return uninitializedRule;  // Return nullptr if the datatype is unsupported
     }
 
     // Set the remaining fields of the rule object
-    rule->id = id;
-    rule->type = fieldType;
+    rule.id = id;
+    rule.type = fieldType;
     // if (ruleDoc.HasMember("key")) {
     //   rule->key = ruleDoc["key"].GetString();
     // }
@@ -317,7 +317,7 @@ class QueryBuilder {
         std::string jsonPathElement = jsonPathDoc[i].GetString();
         jsonPath = jsonPath + "/" + jsonPathElement;
       }
-      rule->json_path = jsonPath;
+      rule.json_path = jsonPath;
       // rule->json_path = ruleDoc["json_path"].GetString();
     }
 
@@ -325,10 +325,9 @@ class QueryBuilder {
     if (operatorTypeMap.find(op) == operatorTypeMap.end()) {
       // std::cout << "AVIN_DEBUG_ QueryBuilder Unknown operator in the simple rule JSON. Line: "
       //           << __LINE__ << std::endl;
-      delete rule;     // Delete the created rule object
-      return nullptr;  // Return nullptr if the operator is unknown
+      return uninitializedRule;  // Return nullptr if the operator is unknown
     }
-    rule->operatorType = operatorTypeMap[op];
+    rule.operatorType = operatorTypeMap[op];
 
     return rule;
   }
