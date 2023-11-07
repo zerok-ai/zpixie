@@ -24,13 +24,6 @@ class CompositeRule : public Rule {
   ConditionType condition = AND;
   std::vector<Rule> rules;
 
-  ~CompositeRule() override {
-    for (Rule* rule : rules) {
-      delete rule;
-    }
-    rules.clear();
-  }
-
   bool isInitialized() const override {
     return true;
   }

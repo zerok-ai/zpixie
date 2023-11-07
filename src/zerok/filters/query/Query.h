@@ -52,10 +52,6 @@ namespace zk {
             std::string ns;
             std::string service;
 
-            ~Query() {
-              delete rule;  // Assuming `rule` is allocated using `new`
-            }
-
             bool isInitialized() { return !ns.empty(); }
     };
 }
