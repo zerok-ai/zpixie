@@ -131,7 +131,7 @@ namespace px {
             resp_message.body_size, resp_message.body, ToJSONString(resp_message.headers), calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
         }
 
-        static zk::ZkTraceInfo httpEvaluate(std::map<std::string, std::string> propsMap){
+        static zk::ZkTraceInfo httpEvaluate(const std::map<std::string, std::string>& propsMap){
           // std::string myString = "";
           // for (const auto& pair : propsMap) {
           //     myString += pair.first + ": " + pair.second + "@@@@";

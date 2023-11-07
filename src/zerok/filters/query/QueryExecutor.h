@@ -40,7 +40,8 @@ class ZkQueryExecutor {
     ZkQueryManager::refresh();
   }
 
-  static ZkTraceInfo apply(std::string protocol, std::map<std::string, std::string> propsMap) {
+  static ZkTraceInfo apply(std::string protocol,
+                           const std::map<std::string, std::string>& propsMap) {
     ZkTraceInfo zkTraceInfo = ZkTraceInfo();
     std::string traceId = "";
     std::string spanId = "";

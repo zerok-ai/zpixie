@@ -15,7 +15,7 @@ namespace zk {
 class Rule {
  public:
   virtual ~Rule() = default;
-  virtual bool evaluate(std::map<std::string, std::string> propsMap) const = 0;
+  virtual bool evaluate(const std::map<std::string, std::string>& propsMap) const = 0;
 };
 
 class CompositeRule : public Rule {
@@ -30,7 +30,7 @@ class CompositeRule : public Rule {
     rules.clear();
   }
 
-  bool evaluate(std::map<std::string, std::string> propsMap) const override {
+  bool evaluate(const std::map<std::string, std::string>& propsMap) const override {
     if (condition == AND) {
       for (Rule* rule : rules) {
         bool evaluationResult = rule->evaluate(propsMap);
@@ -64,7 +64,7 @@ class SimpleRule : public Rule {
   OperatorType operatorType;
 
   // id can contain this string: req_body.#extractJSON("message").#upperCase()
-  std::string evaluateIdAndExtractValue(std::map<std::string, std::string> propsMap) const {
+  std::string evaluateIdAndExtractValue(const std::map<std::string, std::string>& propsMap) const {
     std::string idToEvaluate = extractId();
     std::string jsonPath = extractJsonPath(id);
     std::string foundValue = "";
@@ -100,7 +100,7 @@ class SimpleRule : public Rule {
 
   // function to extract value from json passed in the arguments
   // if json_path is empty then return the json as it is
-  std::string extractValueFromJson(std::map<std::string, std::string> propsMap,
+  std::string extractValueFromJson(const std::map<std::string, std::string>& propsMap,
                                    std::string idToEvaluate, std::string jsonPath) const {
     if (propsMap.count(idToEvaluate)) {
       const std::string json = propsMap[idToEvaluate];
@@ -156,11 +156,11 @@ class SimpleRule : public Rule {
     return "ZK_NULL";
   }
 
-  std::string extractValue(std::map<std::string, std::string> propsMap) const {
+  std::string extractValue(const std::map<std::string, std::string>& propsMap) const {
     return evaluateIdAndExtractValue(propsMap);
   }
 
-  bool evaluate(std::map<std::string, std::string> propsMap) const override {
+  bool evaluate(const std::map<std::string, std::string>& propsMap) const override {
     switch (operatorType) {
       case EXISTS:
         return evaluateExists(propsMap);
@@ -199,15 +199,15 @@ class SimpleRule : public Rule {
     return false;
   }
 
-  virtual bool evaluateExists(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateNotExists(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateEquals(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateIn(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateNotIn(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateLessThan(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const = 0;
-  virtual bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const = 0;
+  virtual bool evaluateExists(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateNotExists(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateEquals(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateNotEquals(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateIn(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateNotIn(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateLessThan(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateLessThanEquals(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateGreaterThan(const std::map<std::string, std::string>& propsMap) const = 0;
+  virtual bool evaluateGreaterThanEquals(const std::map<std::string, std::string>& propsMap) const = 0;
 };
 }  // namespace zk

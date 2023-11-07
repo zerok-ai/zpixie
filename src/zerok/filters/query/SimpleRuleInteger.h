@@ -8,7 +8,7 @@ class SimpleRuleInteger : public SimpleRuleDefault {
  public:
   long value;
 
-  bool evaluateEquals(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateEquals(const std::map<std::string, std::string>& propsMap) const override {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       long foundValue = std::stol(this->extractValue(propsMap));
@@ -17,7 +17,7 @@ class SimpleRuleInteger : public SimpleRuleDefault {
     return false;
   };
 
-  bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateNotEquals(const std::map<std::string, std::string>& propsMap) const override {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       long foundValue = std::stol(this->extractValue(propsMap));
@@ -26,7 +26,7 @@ class SimpleRuleInteger : public SimpleRuleDefault {
     return false;
   };
 
-  bool evaluateLessThan(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateLessThan(const std::map<std::string, std::string>& propsMap) const override {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       long foundValue = std::stol(this->extractValue(propsMap));
@@ -35,7 +35,7 @@ class SimpleRuleInteger : public SimpleRuleDefault {
     return false;
   }
 
-  bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateLessThanEquals(const std::map<std::string, std::string>& propsMap) const override {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       long foundValue = std::stol(this->extractValue(propsMap));
@@ -44,7 +44,7 @@ class SimpleRuleInteger : public SimpleRuleDefault {
     return false;
   }
 
-  bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateGreaterThan(const std::map<std::string, std::string>& propsMap) const override {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       long foundValue = std::stol(this->extractValue(propsMap));
@@ -53,7 +53,7 @@ class SimpleRuleInteger : public SimpleRuleDefault {
     return false;
   }
 
-  bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const override {
+  bool evaluateGreaterThanEquals(const std::map<std::string, std::string>& propsMap) const override {
     bool exists = this->evaluateExists(propsMap);
     if (exists) {
       long foundValue = std::stol(this->extractValue(propsMap));

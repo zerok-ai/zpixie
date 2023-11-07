@@ -5,29 +5,12 @@
 #include <iostream>
 #include <map>
 #include <string>
-#include "./db/memory.h"
 #include "hiredis.h"
 #include "src/zerok/common/ZkConfigProvider.h"
 #include "src/zerok/common/ZkRedisConfig.h"
 #include "src/zerok/filters/fetch/AsyncTask.h"
 
 namespace zk {
-
-void readerTask() {
-  std::string identifier = "abc01";
-  zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
-  std::string output = zkMemory->get(100);
-}
-
-void writerTask() {
-  std::string identifier = "abc01";
-  zk::ZkMemory* zkMemory = zk::ZkMemory::instance(identifier);
-  auto currentTime = std::chrono::high_resolution_clock::now();
-  auto nanoseconds =
-      std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
-  std::string timestampStr = std::to_string(nanoseconds);
-  zkMemory->push(timestampStr);
-}
 
 class ZkStore {
  public:

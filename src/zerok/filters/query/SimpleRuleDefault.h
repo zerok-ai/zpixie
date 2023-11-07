@@ -8,7 +8,7 @@
 namespace zk {
     class SimpleRuleDefault : public SimpleRule {
     public:
-        bool evaluateExists(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateExists(const std::map<std::string, std::string>& propsMap) const override{
             std::string resolvedId = this->extractId();
             //add a debug log
             std::cout << "zk-log/rule id: " << id << ", resolvedId: " << resolvedId << std::endl;
@@ -17,43 +17,43 @@ namespace zk {
             }
             return false;
         };
-        bool evaluateNotExists(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateNotExists(const std::map<std::string, std::string>& propsMap) const override{
             return evaluateExists(propsMap) ? false : true;
         };
-        bool evaluateEquals(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateEquals(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         };
-        bool evaluateNotEquals(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateNotEquals(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         };
-        bool evaluateIn(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateIn(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         };
         
-        bool evaluateNotIn(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateNotIn(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         };
 
-        bool evaluateLessThan(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateLessThan(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         }
 
-        bool evaluateLessThanEquals(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateLessThanEquals(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         }
 
-        bool evaluateGreaterThan(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateGreaterThan(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         }
 
-        bool evaluateGreaterThanEquals(std::map<std::string, std::string> propsMap) const override{
+        bool evaluateGreaterThanEquals(const std::map<std::string, std::string>& propsMap) const override{
             (void)propsMap; // Cast to void to suppress the warning/error
             return false;
         }
