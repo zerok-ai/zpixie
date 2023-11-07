@@ -3,7 +3,7 @@
 #include <iostream>
 #include <random>
 #include <string>
-#include "Rule.h"
+#include "SimpleRule.h"
 
 namespace zk {
     class SimpleRuleDefault : public SimpleRule {
