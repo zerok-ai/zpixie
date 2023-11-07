@@ -135,15 +135,15 @@ class ZkRedis : public ZkStore {
   }
 
   void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) override {
-    bool transactionStarted = startTransaction();
-    if (transactionStarted) {
-      va_list args;
-      va_start(args, key);
-      addToSet(key, args);
-      va_end(args);
-      expire(key, expiryaInSeconds);
-      endTransaction();
-    }
+    // bool transactionStarted = startTransaction();
+    // if (transactionStarted) {
+    //   va_list args;
+    //   va_start(args, key);
+    //   addToSet(key, args);
+    //   va_end(args);
+    //   expire(key, expiryaInSeconds);
+    //   endTransaction();
+    // }
   }
 
   bool checkForConnection() {
