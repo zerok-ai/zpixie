@@ -102,8 +102,11 @@ class SimpleRule : public Rule {
   // if json_path is empty then return the json as it is
   std::string extractValueFromJson(const std::map<std::string, std::string>& propsMap,
                                    std::string idToEvaluate, std::string jsonPath) const {
-    if (propsMap.count(idToEvaluate)) {
-      const std::string json = propsMap[idToEvaluate];
+    auto it = propsMap.find(idToEvaluate);
+    // if (propsMap.count(idToEvaluate)) {
+    if (it != propsMap.end()) {
+      // const std::string json = propsMap[idToEvaluate];
+      const std::string json = it->second;
       std::string finalJsonPath = "";
       if (jsonPath == "") {
         finalJsonPath = json_path;
