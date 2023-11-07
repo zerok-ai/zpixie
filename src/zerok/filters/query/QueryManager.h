@@ -63,7 +63,7 @@ namespace zk{
 
                     //1.2 - Extract the attributes from redis
                     std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap;
-                    std::map<std::string, std::string> attributesMap = zkStoreReader->hgetall("EBPF_0.1.0-alpha_HTTP");
+                    std::map<std::string, std::string> attributesMap = zkStoreAttributedReader->hgetall("EBPF_0.1.0-alpha_HTTP");
                     protocolToAttributesMap["HTTP"] = attributesMap;
                     // print the attributesMap map
                     std::cout << "\nzk-log/manager found attributes: " << std::endl;
