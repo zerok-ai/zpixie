@@ -65,8 +65,15 @@ namespace zk{
                     std::map<std::string, std::map<std::string, std::string>> protocolToAttributesMap;
                     std::map<std::string, std::string> attributesMap = zkStoreReader->hgetall("EBPF_0.1.0-alpha_HTTP");
                     protocolToAttributesMap["HTTP"] = attributesMap;
-                    //For testing ebpf attributes
-                    // protocolToAttributesMap["HTTP"]["http_req_headers"] = "req_headers.#extractJSON(\"/Host\")";
+                    // print the attributesMap map
+                    std::cout << "\nzk-log/manager found attributes: " << std::endl;
+                    for (const auto& attribute : attributesMap) {
+                        std::cout << "\nzk-log/manager attribute " << attribute.first.c_str() << " value " << attribute.second.c_str() << std::endl;
+                    }
+
+                    // For testing ebpf attributes
+                    //  protocolToAttributesMap["HTTP"]["http_req_headers"] =
+                    //  "req_headers.#extractJSON(\"/Host\")";
 
                     //1.5 - Check for the size of changedScenarios and return if it is 0
                     if(changedScenarios.size() == 0){

@@ -1,5 +1,8 @@
 #pragma once
 
+#include <iostream>
+#include <random>
+#include <string>
 #include "Rule.h"
 
 namespace zk {
@@ -7,6 +10,8 @@ namespace zk {
     public:
         bool evaluateExists(std::map<std::string, std::string> propsMap) const override{
             std::string resolvedId = this->extractId();
+            //add a debug log
+            std::cout << "zk-log/rule id: " << id << ", resolvedId: " << resolvedId << std::endl;
             if(propsMap.count(resolvedId)){
                 return true;
             }
