@@ -158,7 +158,7 @@ class ZkRedis : public ZkStore {
       // expire(key, expiryaInSeconds);
     //   endTransaction();
     // }
-    (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
+    // (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
     // (void)key;               // Cast to void to suppress the warning/error
   }
 
@@ -225,7 +225,6 @@ class ZkRedis : public ZkStore {
       finalArgs += arg;
       arg = va_arg(args, const char*);
     }
-    (void)key;
     // std::cout << "DerivedClass finalArgs. " << finalArgs << std::endl;
 
     // redisReply* reply =
