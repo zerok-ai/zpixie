@@ -155,7 +155,7 @@ class ZkRedis : public ZkStore {
       va_start(args, key);
       addToSet(key, args);
       va_end(args);
-      // expire(key, expiryaInSeconds);
+      expire(key, expiryaInSeconds);
     //   endTransaction();
     // }
     // (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
@@ -227,18 +227,18 @@ class ZkRedis : public ZkStore {
     }
     // std::cout << "DerivedClass finalArgs. " << finalArgs << std::endl;
 
-    // redisReply* reply =
-    //     (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
-    // if (reply == nullptr) {
-    //   // std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" << std::endl;
-    //   return false;
-    // } else if (reply->type == REDIS_REPLY_ERROR) {
-    //   // Handle error
-    //   // std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
-    //   freeReplyObject(reply);
-    //   return false;
-    // }
-    // freeReplyObject(reply);
+    redisReply* reply =
+        (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
+    if (reply == nullptr) {
+      // std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" << std::endl;
+      return false;
+    } else if (reply->type == REDIS_REPLY_ERROR) {
+      // Handle error
+      // std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
+      freeReplyObject(reply);
+      return false;
+    }
+    freeReplyObject(reply);
     return true;
   }
 
