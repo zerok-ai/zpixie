@@ -134,18 +134,32 @@ class ZkRedis : public ZkStore {
     freeReplyObject(reply);
   }
 
+  // void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) override {
+  //   // bool transactionStarted = startTransaction();
+  //   // if (transactionStarted) {
+  //   //   va_list args;
+  //   //   va_start(args, key);
+  //   //   addToSet(key, args);
+  //   //   va_end(args);
+  //   //   expire(key, expiryaInSeconds);
+  //   //   endTransaction();
+  //   // }
+  //   (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
+  //   (void)key;               // Cast to void to suppress the warning/error
+  // }
+
   void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) override {
     // bool transactionStarted = startTransaction();
     // if (transactionStarted) {
-    //   va_list args;
-    //   va_start(args, key);
-    //   addToSet(key, args);
-    //   va_end(args);
-    //   expire(key, expiryaInSeconds);
+      va_list args;
+      va_start(args, key);
+      addToSet(key, args);
+      va_end(args);
+      expire(key, expiryaInSeconds);
     //   endTransaction();
     // }
-    (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
-    (void)key;               // Cast to void to suppress the warning/error
+    // (void)expiryaInSeconds;  // Cast to void to suppress the warning/error
+    // (void)key;               // Cast to void to suppress the warning/error
   }
 
   bool checkForConnection() {
