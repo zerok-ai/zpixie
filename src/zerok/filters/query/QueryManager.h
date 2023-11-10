@@ -75,13 +75,16 @@ namespace zk{
 
             static void initializeUpidsMap(){
                 if(isUpidsTtlExpiredPassed()){
-                    std::map<std::string, std::string> upidsMap = zkStoreUpIdsReader->hgetall("upids");
+                    std::map<std::string, std::string> upidsMap =
+                        zkStoreUpIdsReader->hgetall("px_upids_service_map");
                     if(upidsMap.size() > 0){
                         for (const auto& upidPair : upidsMap) {
                             std::string upid = upidPair.first;
                             std::string value = upidPair.second;
                             std::cout << "\nzk-log/manager upid " << upid << " value " << value << std::endl;
                         }
+                    }else{
+                        std::cout << "\nzk-log/manager no upids" << std::endl;
                     }
                     upidsServiceMap = upidsMap;
                 }
