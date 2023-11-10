@@ -158,7 +158,8 @@ namespace px {
               //Debug values END 
 
               propsMap["time_"] = std::to_string(static_cast<long>(time));
-              propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
+              // propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
+              propsMap["upid"] = upid.String();
               // Note that there is a string copy here,
               // But std::move is not allowed because we re-use conn object.
               propsMap["remote_addr"] = remoteAddr;
@@ -208,7 +209,8 @@ namespace px {
           //Debug values END 
 
           propsMap["time_"] = std::to_string(static_cast<long>(resp_stream->timestamp_ns));
-          propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
+          // propsMap["upid"] = std::to_string(absl::Uint128High64(upid.value())) + std::to_string(absl::Uint128Low64(upid.value()));
+          propsMap["upid"] = upid.String();
           // Note that there is a string copy here,
           // But std::move is not allowed because we re-use conn object.
           propsMap["remote_addr"] = conn_tracker.remote_endpoint().AddrStr();

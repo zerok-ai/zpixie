@@ -34,6 +34,54 @@ class ZkQueryExecutor {
     return traceIdRule;
   }
 
+  static bool validateServiceIdentifier(Query* query, std::string upid) {
+    // get service identifier using upid from ZkQueryManager::upidsServiceMap
+    std::string upIdServiceIdentifier = "";
+    if (ZkQueryManager::upidsServiceMap.count(upid) > 0) {
+      upIdServiceIdentifier = ZkQueryManager::upidsServiceMap[upid];
+    }
+
+    std::string queryNs = query->ns;
+    std::string queryService = query->service;
+    std::string queryServiceIdentifier = queryNs + "/" + queryService;
+        // case when queryNs is * and queryService is *, return true
+    if (queryNs == "*" && queryService == "*") {
+      std::cout << "\nzk-log/executor " << query->workloadId
+                << " query-service: " << queryServiceIdentifier
+                << " upid-service: " << upIdServiceIdentifier << " case01-true" << std::endl;
+      return true;
+    }
+
+    // case when queryNs is * and queryService is not
+    if (upIdServiceIdentifier.find("/" + queryService) != std::string::npos) {
+      std::cout << "\nzk-log/executor " << query->workloadId
+                << " query-service: " << queryServiceIdentifier
+                << " upid-service: " << upIdServiceIdentifier << " case02-true" << std::endl;
+      return true;
+    }
+
+    // case when queryNs is not * and queryService is
+    if (upIdServiceIdentifier.find(queryNs  + "/") != std::string::npos) {
+      std::cout << "\nzk-log/executor " << query->workloadId
+                << " query-service: " << queryServiceIdentifier
+                << " upid-service: " << upIdServiceIdentifier << " case03-true" << std::endl;
+      return true;
+    }
+
+    // case when queryNs/queryService is present in upIdServiceIdentifier
+    if (upIdServiceIdentifier.find(queryNs + "/" + queryService) != std::string::npos) {
+      std::cout << "\nzk-log/executor " << query->workloadId
+                << " query-service: " << queryServiceIdentifier
+                << " upid-service: " << upIdServiceIdentifier << " case04-true" << std::endl;
+      return true;
+    }
+
+    std::cout << "\nzk-log/executor " << query->workloadId
+              << " query-service: " << queryServiceIdentifier
+              << " upid-service: " << upIdServiceIdentifier << " case05-false" << std::endl;
+    return false;
+  }
+
  public:
   static void init() {
     zk::ZkConfigProvider::init();
@@ -103,14 +151,24 @@ class ZkQueryExecutor {
         if (!queries.empty()) {
           // std::cout << "\nAVIN_DEBUG_STORE_apply0104" << std::endl;
           for (const auto& query : queries) {
+            auto it = propsMap.find("upid");
+            std::string foundUpid = "";
+            if (it != propsMap.end()) {
+              foundUpid = it->second;
+            }
+            bool upidValidation = validateServiceIdentifier(query, foundUpid);
+            if (!upidValidation) {
+              continue;
+            }
+
             bool evaluation = query->rule->evaluate(propsMap);
             std::cout << "\nzk-log/executor " << query->workloadId << ":eval--"
                       << evaluation << std::endl;
-            int currentMinutes = CommonUtils::systemMinutes();
-            // std::string traceIdsSetKey = query->workloadId + "_" + uuid + "_" +
-            // std::to_string(currentMinutes/5);
-            std::string traceIdsSetKey =
-                query->workloadId + "_" + std::to_string(currentMinutes / 5);
+            //Old Set key
+            // int currentMinutes = CommonUtils::systemMinutes();
+            // std::string traceIdsSetKey =
+            //     query->workloadId + "_" + std::to_string(currentMinutes / 5);
+            std::string traceIdsSetKey = query->workloadId + "_latest";
             if (evaluation) {
               zkTraceInfo.addWorkloadId(query->workloadId);
               // std::cout << "\nAVIN_DEBUG_STORE_apply0105" << std::endl;

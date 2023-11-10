@@ -30,6 +30,24 @@ namespace zk{
                 return false;
             }
 
+            static bool isUpidsTtlExpiredPassed(){
+                auto currentTime = std::chrono::high_resolution_clock::now();
+                auto nanoseconds = std::chrono::duration_cast<std::chrono::nanoseconds>(currentTime.time_since_epoch()).count();
+                long currentTimestampInMilliseconds = nanoseconds/1000000;
+                if(lastTimestampUpidsSyncInMilliseconds == 0){
+                    lastTimestampUpidsSyncInMilliseconds = currentTimestampInMilliseconds;
+                    // std::cout << "\nAVIN_DEBUG_QUERY_check01" << std::endl;
+                    return true;
+                }
+
+                if (currentTimestampInMilliseconds - lastTimestampUpidsSyncInMilliseconds > ttlForUpidsCheckInMilliseconds) {
+                    lastTimestampUpidsSyncInMilliseconds = currentTimestampInMilliseconds;
+                    // std::cout << "\nAVIN_DEBUG_QUERY_check02" << std::endl;
+                    return true;
+                }
+                return false;
+            }
+
             static std::vector<std::string> identifyChangedScenarios(){
                 std::vector<std::string> expiredKeys;
                 std::map<std::string, std::string> keyVersionMap = zkStoreReader->hgetall("zk_value_version");
@@ -53,6 +71,20 @@ namespace zk{
                     }
                 }
                 return expiredKeys;
+            }
+
+            static void initializeUpidsMap(){
+                if(isUpidsTtlExpiredPassed()){
+                    std::map<std::string, std::string> upidsMap = zkStoreUpIdsReader->hgetall("upids");
+                    if(upidsMap.size() > 0){
+                        for (const auto& upidPair : upidsMap) {
+                            std::string upid = upidPair.first;
+                            std::string value = upidPair.second;
+                            std::cout << "\nzk-log/manager upid " << upid << " value " << value << std::endl;
+                        }
+                    }
+                    upidsServiceMap = upidsMap;
+                }
             }
 
             static void initializeQueriesV2(){
@@ -122,24 +154,24 @@ namespace zk{
                         //4 - for each query, check if the query is allowed as per the possibleIdentifiers set
                         for (const auto& query : queries) {
                             std::string identifier = query->ns + "/" + query->service;
-                            if (possibleIdentifiers.count(identifier) > 0){
-                                //5 - if protocolToScenarioToQueries doesn;t contain the expected protocol, 
-                                // initialize the map entry with that protocol
-                                std::string queryTypeString(queryTypeStringMap[query->queryType]);
-                                if(protocolToScenarioToQueries.count(queryTypeString) <= 0){
-                                    protocolToScenarioToQueries[queryTypeString] = {};
-                                }
-                                //6 - if protocolToScenarioToQueries[queryTypeString] doesn't contain the scenario, 
-                                // initialize the map entry with that scenario
-                                if(protocolToScenarioToQueries[queryTypeString].count(scenairo) <= 0){
-                                    protocolToScenarioToQueries[queryTypeString][scenairo] = {};
-                                }
-                                //7 - insert the query against the protocol vector in the map
-                                // std::cout << "\nAVIN_DEBUG_QUERY_init03 " << std::endl;
-                                // printf("\nAVIN_DEBUG_QUERY_init03 ");
-                                protocolToScenarioToQueries[queryTypeString][scenairo].push_back(query);
-                                std::cout << "\nzk-log/manager " << " mapped a query for " << scenairo << std::endl;
+                            // if (possibleIdentifiers.count(identifier) > 0){
+                            //5 - if protocolToScenarioToQueries doesn;t contain the expected protocol, 
+                            // initialize the map entry with that protocol
+                            std::string queryTypeString(queryTypeStringMap[query->queryType]);
+                            if(protocolToScenarioToQueries.count(queryTypeString) <= 0){
+                                protocolToScenarioToQueries[queryTypeString] = {};
                             }
+                            //6 - if protocolToScenarioToQueries[queryTypeString] doesn't contain the scenario, 
+                            // initialize the map entry with that scenario
+                            if(protocolToScenarioToQueries[queryTypeString].count(scenairo) <= 0){
+                                protocolToScenarioToQueries[queryTypeString][scenairo] = {};
+                            }
+                            //7 - insert the query against the protocol vector in the map
+                            // std::cout << "\nAVIN_DEBUG_QUERY_init03 " << std::endl;
+                            // printf("\nAVIN_DEBUG_QUERY_init03 ");
+                            protocolToScenarioToQueries[queryTypeString][scenairo].push_back(query);
+                            std::cout << "\nzk-log/manager " << " mapped a query for " << scenairo << std::endl;
+                            // }
                         }
                     }
 
@@ -173,9 +205,11 @@ namespace zk{
                     // std::cout << "\nAVIN_DEBUG_QUERY_init00 " << std::endl;
                     storeInitializedOnce = true;
                     ttlForRedisCheckInMilliseconds = 300000;
+                    ttlForUpidsCheckInMilliseconds = 60000;
                     zkStoreReader = zk::ZkStoreProvider::instance(2);
                     zkStoreWriter = zk::ZkStoreProvider::instance(1);
                     zkStoreAttributedReader = zk::ZkStoreProvider::instance(4);
+                    zkStoreUpIdsReader = zk::ZkStoreProvider::instance(5);
                     uuid = CommonUtils::generateUUID();
                     possibleIdentifiers.insert("*/*");
                     possibleIdentifiers.insert("NS01/*");
@@ -193,16 +227,24 @@ namespace zk{
                 if(!writerConnected){
                     zkStoreWriter->connect();
                 }
+                bool upIdReaderConnected = zkStoreUpIdsReader->connect();
+                if (!upIdReaderConnected) {
+                    zkStoreUpIdsReader->connect();
+                }
             }
 
         public:
             static bool storeInitializedOnce;
+            static std::map<std::string, std::string> upidsServiceMap;
             static zk::ZkStore* zkStoreReader;
             static zk::ZkStore* zkStoreWriter;
             static zk::ZkStore* zkStoreAttributedReader;
+            static zk::ZkStore* zkStoreUpIdsReader;
             static std::string uuid;
             static long lastTimestampInMilliseconds;
+            static long lastTimestampUpidsSyncInMilliseconds;
             static long ttlForRedisCheckInMilliseconds;
+            static long ttlForUpidsCheckInMilliseconds;
             static std::set<std::string> possibleIdentifiers;
             static std::map<std::string, std::vector<Query*> > protocolToQueries;
             static std::map<std::string, int > queryToVersion;
@@ -211,11 +253,13 @@ namespace zk{
             static void refresh(){
                 init();
                 initializeQueriesV2();
+                initializeUpidsMap();
             }
 
             static void get(){
                 init();
                 initializeQueriesV2();
+                initializeUpidsMap();
             }
 
     };
@@ -225,10 +269,14 @@ namespace zk{
     zk::ZkStore* ZkQueryManager::zkStoreReader; 
     zk::ZkStore* ZkQueryManager::zkStoreWriter; 
     zk::ZkStore* ZkQueryManager::zkStoreAttributedReader; 
+    zk::ZkStore* ZkQueryManager::zkStoreUpIdsReader; 
     std::string ZkQueryManager::uuid;
     std::map<std::string, std::map<std::string, std::vector<Query*> > > ZkQueryManager::protocolToScenarioToQueries;
+    std::map<std::string, std::string> ZkQueryManager::upidsServiceMap;
     bool ZkQueryManager::storeInitializedOnce; 
     long ZkQueryManager::lastTimestampInMilliseconds = 0;
+    long ZkQueryManager::lastTimestampUpidsSyncInMilliseconds = 0;
     long ZkQueryManager::ttlForRedisCheckInMilliseconds;
+    long ZkQueryManager::ttlForUpidsCheckInMilliseconds;
     std::map<std::string, int > ZkQueryManager::queryToVersion;
 }
