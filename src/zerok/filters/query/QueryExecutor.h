@@ -47,6 +47,7 @@ class ZkQueryExecutor {
         // case when queryNs is * and queryService is *, return true
     if (queryNs == "*" && queryService == "*") {
       std::cout << "\nzk-log/executor " << query->workloadId
+                << " upid: " << upid
                 << " query-service: " << queryServiceIdentifier
                 << " upid-service: " << upIdServiceIdentifier << " case01-true" << std::endl;
       return true;
@@ -55,6 +56,7 @@ class ZkQueryExecutor {
     // case when queryNs is * and queryService is not
     if (upIdServiceIdentifier.find("/" + queryService) != std::string::npos) {
       std::cout << "\nzk-log/executor " << query->workloadId
+                << " upid: " << upid
                 << " query-service: " << queryServiceIdentifier
                 << " upid-service: " << upIdServiceIdentifier << " case02-true" << std::endl;
       return true;
@@ -62,7 +64,8 @@ class ZkQueryExecutor {
 
     // case when queryNs is not * and queryService is
     if (upIdServiceIdentifier.find(queryNs  + "/") != std::string::npos) {
-      std::cout << "\nzk-log/executor " << query->workloadId
+      std::cout << "\nzk-log/executor " << query->workloadId 
+                << " upid: " << upid
                 << " query-service: " << queryServiceIdentifier
                 << " upid-service: " << upIdServiceIdentifier << " case03-true" << std::endl;
       return true;
@@ -70,13 +73,15 @@ class ZkQueryExecutor {
 
     // case when queryNs/queryService is present in upIdServiceIdentifier
     if (upIdServiceIdentifier.find(queryNs + "/" + queryService) != std::string::npos) {
-      std::cout << "\nzk-log/executor " << query->workloadId
+      std::cout << "\nzk-log/executor " << query->workloadId 
+                << " upid: " << upid
                 << " query-service: " << queryServiceIdentifier
                 << " upid-service: " << upIdServiceIdentifier << " case04-true" << std::endl;
       return true;
     }
 
     std::cout << "\nzk-log/executor " << query->workloadId
+              << " upid: " << upid
               << " query-service: " << queryServiceIdentifier
               << " upid-service: " << upIdServiceIdentifier << " case05-false" << std::endl;
     return false;
