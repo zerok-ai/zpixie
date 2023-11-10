@@ -54,7 +54,7 @@ class ZkQueryExecutor {
     }
 
     // case when queryNs is * and queryService is not
-    if (upIdServiceIdentifier.find("/" + queryService) != std::string::npos) {
+    if (queryNs == "*" && upIdServiceIdentifier.find("/" + queryService) != std::string::npos) {
       std::cout << "\nzk-log/executor " << query->workloadId
                 << " upid: " << upid
                 << " query-service: " << queryServiceIdentifier
@@ -63,7 +63,7 @@ class ZkQueryExecutor {
     }
 
     // case when queryNs is not * and queryService is
-    if (upIdServiceIdentifier.find(queryNs  + "/") != std::string::npos) {
+    if (queryService == "*" && upIdServiceIdentifier.find(queryNs + "/") != std::string::npos) {
       std::cout << "\nzk-log/executor " << query->workloadId 
                 << " upid: " << upid
                 << " query-service: " << queryServiceIdentifier
