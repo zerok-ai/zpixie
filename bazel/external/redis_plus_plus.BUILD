@@ -16,13 +16,8 @@
 
 load("@rules_cc//cc:defs.bzl", "cc_library")
 
-# licenses(["notice"])
-# # MIT LICENSE
-
-# exports_files(["license.txt"])
-
 cc_library(
-    name = "hiredis",
+    name = "redis_plus_plus",
     srcs = glob(["*.c", "**/*.c"], exclude = ["examples/**", "ssl.c"],),
     hdrs = glob(["*.h", "**/*.h", "dict.c",]),
     includes = [],

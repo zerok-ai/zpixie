@@ -18,13 +18,6 @@ load("//bazel:pl_build_system.bzl", "pl_cc_library", "pl_cc_test")
 # load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive")
 package(default_visibility = ["//src/zerok:__subpackages__"])
 
-# http_archive(
-#     name = "hiredis",
-#     sha256 = "fe6d21741ec7f3fc9df409d921f47dfc73a4d8ff64f4ac6f1d95f951bf7f53d6",
-#     url = "https://github.com/redis/hiredis/archive/refs/tags/v1.1.0.tar.gz",
-#     strip_prefix = "hiredis-1.1.0",
-# )
-
 pl_cc_library(
     name = "cc_library",
     srcs = glob(
