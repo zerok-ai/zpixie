@@ -1,14 +1,12 @@
 #include <sys/time.h>
 #include <stdlib.h>
-#include <string>
 #include <stdarg.h>
 #include <string.h>
 #include <pthread.h>
 #include <time.h>
-
 #include "hiredispool.h"
 #include "log.h"
-
+#include <stdio.h>
 #include "hiredis.h"
 
 #define MAX_REDIS_SOCKS 1000
@@ -20,7 +18,7 @@ static int redis_close_socket(REDIS_INSTANCE *inst, REDIS_SOCKET * redisocket);
 
 int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
 {
-    std::cout << "zk-log/stores DEBUG01 redis_pool_create " << std::endl;
+    printf("%s\n", "zk-log/stores DEBUG01 redis_pool_create");
     int i;
     char* host;
     int port;
@@ -29,12 +27,12 @@ int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
     inst = malloc(sizeof(REDIS_INSTANCE));
     memset(inst, 0, sizeof(REDIS_INSTANCE));
 
-    std::cout << "zk-log/stores DEBUG02 redis_pool_create " << std::endl;
+    printf("%s\n", "zk-log/stores DEBUG02 redis_pool_create ");
 
     inst->config = malloc(sizeof(REDIS_CONFIG));
     memset(inst->config, 0, sizeof(REDIS_CONFIG));
 
-    std::cout << "zk-log/stores DEBUG03 redis_pool_create " << std::endl;
+    printf("%s\n", "zk-log/stores DEBUG03 redis_pool_create ");
 
     if (config->endpoints == NULL || config->num_endpoints < 1) {
         log_(L_ERROR|L_CONS, "%s: Must provide 1 redis endpoint", __func__);
@@ -42,7 +40,7 @@ int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
         return -1;
     }
 
-    std::cout << "zk-log/stores DEBUG04 redis_pool_create " << std::endl;
+    printf("%s\n", "zk-log/stores DEBUG04 redis_pool_create ");
 
     /* Assign config */
     inst->config->endpoints = malloc(sizeof(REDIS_ENDPOINT) * config->num_endpoints);
@@ -53,7 +51,7 @@ int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
     inst->config->num_redis_socks = config->num_redis_socks;
     inst->config->connect_failure_retry_delay = config->connect_failure_retry_delay;
 
-    std::cout << "zk-log/stores DEBUG05 redis_pool_create " << std::endl;
+    printf("%s\n", "zk-log/stores DEBUG05 redis_pool_create ");
 
     /* Check config */
     if (inst->config->num_redis_socks > MAX_REDIS_SOCKS) {
@@ -65,7 +63,7 @@ int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
         return -1;
     }
 
-    std::cout << "zk-log/stores DEBUG06 redis_pool_create " << std::endl;
+    printf("%s\n", "zk-log/stores DEBUG06 redis_pool_create ");
 
     if (inst->config->connect_timeout <= 0)
         inst->config->connect_timeout = 0;
@@ -83,7 +81,7 @@ int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
             return -1;
         }
         log_(L_INFO, "%s: Got redis endpoint @%d: %s:%d", __func__, i, host, port);
-        std::cout << "zk-log/stores DEBUG07 redis_pool_create " << host << std::endl;
+        printf("%s %s\n", "zk-log/stores DEBUG07 redis_pool_create ", host);
     }
 
     log_(L_INFO, "%s: Attempting to connect to above endpoints "
@@ -92,7 +90,7 @@ int redis_pool_create(const REDIS_CONFIG* config, REDIS_INSTANCE** instance)
         inst->config->connect_timeout, inst->config->net_readwrite_timeout);
 
     if (redis_init_socketpool(inst) < 0) {
-        std::cout << "zk-log/stores DEBUG08 redis_pool_create " << std::endl;
+        printf("%s\n", "zk-log/stores DEBUG08 redis_pool_create ");
         redis_pool_destroy(inst);
         return -1;
     }
@@ -140,7 +138,7 @@ static int redis_init_socketpool(REDIS_INSTANCE * inst)
     for (i = 0; i < inst->config->num_redis_socks; i++) {
         DEBUG("%s: starting %d", __func__, i);
 
-        std::cout << "zk-log/stores DEBUG01 redis_init_socketpool " << std::endl;
+        printf("%s\n", "zk-log/stores DEBUG01 redis_init_socketpool ");
 
         redisocket = malloc(sizeof(REDIS_SOCKET));
         redisocket->conn = NULL;
@@ -149,7 +147,7 @@ static int redis_init_socketpool(REDIS_INSTANCE * inst)
         redisocket->state = sockunconnected;
         redisocket->inuse = 0;
 
-        std::cout << "zk-log/stores DEBUG02 redis_init_socketpool " << std::endl;
+        printf("%s\n", "zk-log/stores DEBUG02 redis_init_socketpool ");
 
         rcode = pthread_mutex_init(&redisocket->mutex, NULL);
         if (rcode != 0) {
@@ -165,7 +163,7 @@ static int redis_init_socketpool(REDIS_INSTANCE * inst)
              *  possibly also inst->connect_after
              */
             if (connect_single_socket(redisocket, inst) == 0) {
-                std::cout << "zk-log/stores DEBUG03 redis_init_socketpool " << std::endl;
+                printf("%s\n", "zk-log/stores DEBUG03 redis_init_socketpool ");
                 success = 1;
             }
         }

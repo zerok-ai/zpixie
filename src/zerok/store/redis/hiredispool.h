@@ -12,8 +12,6 @@
 #define HIREDISPOOL_H
 
 #include <stdarg.h>
-#include <iostream>
-#include <string>
 
 #ifdef __cplusplus
 extern "C" {
