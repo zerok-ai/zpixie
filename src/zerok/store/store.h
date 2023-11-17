@@ -46,11 +46,11 @@ class ZkRedis : public ZkStore {
       return true;
     }
     zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
-    // REDIS_ENDPOINT endpoints[1] = {{zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort()}};
-    REDIS_ENDPOINT endpoints[1];
+    REDIS_ENDPOINT endpoints[1] = {{"redis-master.zk-client.svc.cluster.local", 6379}};
     std::string host = zkRedisConfig.getHost();
-    strcpy(endpoints[0].host, host.c_str());
-    endpoints[0].port = zkRedisConfig.getPort();
+    // REDIS_ENDPOINT endpoints[1];
+    // strcpy(endpoints[0].host, host.c_str());
+    // endpoints[0].port = zkRedisConfig.getPort();
 
     std::cout << "zk-log/stores Connecting with redis " << host << std::endl;
     // printf("zk-log/stores Connecting with redis " + host + "\n");
@@ -64,8 +64,8 @@ class ZkRedis : public ZkStore {
     if (authSuccess) {
       select();
     }else{
-      return false;
       printf("zk-log/stores Failed to allocate redis context\n");
+      return false;
     }
     return true;
   }
