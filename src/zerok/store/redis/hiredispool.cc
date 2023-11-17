@@ -8,7 +8,7 @@
 #include "hiredispool.h"
 #include "log.h"
 
-#include "hiredis/hiredis.h"
+#include "hiredis.h"
 
 #define MAX_REDIS_SOCKS 1000
 
