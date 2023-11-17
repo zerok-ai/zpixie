@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include "hiredis.h"
+#include "redis/log.h"
 #include "redis/RedisClient.h"
 #include "src/zerok/common/ZkConfigProvider.h"
 #include "src/zerok/common/ZkRedisConfig.h"
@@ -45,6 +46,8 @@ class ZkRedis : public ZkStore {
     if(redisConnection.isInitialized() == true){
       return true;
     }
+    LOG_CONFIG c = {9, LOG_DEST_FILES, "log/test_log.log", "test_log", 0, 1};
+    log_set_config(&c);
     zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
     REDIS_ENDPOINT endpoints[1] = {{"redis-master.zk-client.svc.cluster.local", 6379}};
     std::string host = zkRedisConfig.getHost();
