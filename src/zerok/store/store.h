@@ -52,12 +52,13 @@ class ZkRedis : public ZkStore {
     strcpy(endpoints[0].host, host.c_str());
     endpoints[0].port = zkRedisConfig.getPort();
 
+    printf("zk-log/stores Connecting with redis " + host + "::" + zkRedisConfig.getPort() + "\n");
+
     REDIS_CONFIG conf = {
         (REDIS_ENDPOINT*)&endpoints, 1, 500, 500, 20, 1,
     };
 
-    RedisClient client(conf);
-    redisConnection = client;
+    redisConnection = RedisClient(conf);
     bool authSuccess = auth(zkRedisConfig.getPassword().c_str());
     if (authSuccess) {
       select();
