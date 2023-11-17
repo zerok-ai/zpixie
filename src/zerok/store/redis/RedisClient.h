@@ -12,7 +12,7 @@
 
 #include "hiredispool.h"
 
-#include "hiredis/hiredis.h"
+#include "hiredis.h"
 
 #include <stdexcept>
 #include <string>
