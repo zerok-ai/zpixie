@@ -264,7 +264,7 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return "";
     }
-    RedisReplyPtr reply = redisConnection.redisCommand("HGET %s", key.c_str()));
+    RedisReplyPtr reply = redisConnection.redisCommand("HGET %s", key.c_str());
     if (reply.isNull()) {
       return "";
     }
