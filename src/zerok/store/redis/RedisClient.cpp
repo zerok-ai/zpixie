@@ -29,3 +29,28 @@ RedisReplyPtr RedisClient::redisvCommand(const char* format, va_list ap) {
 
   return RedisReplyPtr(reply);
 }
+
+RedisClient& RedisClient::operator=(const RedisClient& other) {
+  // Check for self-assignment
+  if (this == &other) {
+    return *this;
+  }
+
+  // Release current resources if needed
+  redis_pool_destroy(inst);  // Assuming you need to release the existing resources
+
+  // Copy data from 'other' to 'this'
+  inst = nullptr;       // Set to nullptr to ensure correct behavior in case of exceptions during
+                        // resource allocation
+  initialized = false;  // Reset the initialization flag
+
+  if (redis_pool_create(other.inst->config, &inst) >= 0) {
+    initialized = true;
+  } else {
+    // Handle failure to create a new pool (throw an exception or log an error)
+    log_(L_ERROR | L_CONS, "Failed to create a new Redis connection pool during assignment");
+  }
+
+  // Ensure the assignment is complete
+  return *this;
+}
