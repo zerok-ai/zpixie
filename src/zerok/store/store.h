@@ -6,6 +6,7 @@
 #include <map>
 #include <string>
 #include "hiredis.h"
+#include "redis/RedisClient.h"
 #include "src/zerok/common/ZkConfigProvider.h"
 #include "src/zerok/common/ZkRedisConfig.h"
 #include "src/zerok/filters/fetch/AsyncTask.h"
@@ -30,42 +31,66 @@ class ZkStore {
 
 class ZkRedis : public ZkStore {
  private:
-  redisContext* redisConnection;
+  // redisContext* redisConnection;
+  RedisClient redisConnection;
   int database = 0;
   // bool setOnce = false;
 
  public:
-  ZkRedis() : redisConnection(nullptr) {}
+  ZkRedis() : ZkStore() {}
 
-  ZkRedis(int databaseNum) : redisConnection(nullptr) { database = databaseNum; }
+  ZkRedis(int databaseNum) : ZkStore() { database = databaseNum; }
 
   bool connect() override {
-    if (redisConnection == nullptr) {
-      zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
-      // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
-      redisConnection = redisConnect(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort());
-      bool authSuccess = auth(zkRedisConfig.getPassword().c_str());
-      if (authSuccess) {
-        select();
-      }
-    } else {
-      // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
-      // printf("AVIN_DEBUG_STORE00_ Already connected\n");
+    if(redisConnection.isInitialized() == true){
+      return true;
     }
-    if (redisConnection == nullptr || redisConnection->err) {
-      if (redisConnection) {
-        // Handle connection error
-        printf("zk-log/stores Connection error: %s\n", redisConnection->errstr);
-        disconnect();
-        return false;
-      } else {
-        // Handle memory allocation error
-        printf("zk-log/stores Failed to allocate redis context\n");
-      }
+    zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
+    REDIS_ENDPOINT endpoints[1] = {{zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort()}};
+
+    REDIS_CONFIG conf = {
+        (REDIS_ENDPOINT*)&endpoints, 1, 500, 500, 20, 1,
+    };
+
+    RedisClient client(conf);
+    redisConnection = client;
+    bool authSuccess = auth(zkRedisConfig.getPassword().c_str());
+    if (authSuccess) {
+      select();
+    }else{
       return false;
+      printf("zk-log/stores Failed to allocate redis context\n");
     }
     return true;
   }
+
+  // bool connect() override {
+  //   if (redisConnection == nullptr) {
+  //     zk::ZkRedisConfig zkRedisConfig = zk::ZkConfigProvider::getZkRedisConfig();
+  //     // std::cout << "\nAVIN_DEBUG_STORE00_ Connecting " << zkRedisConfig.getHost() << std::endl;
+  //     redisConnection = redisConnect(zkRedisConfig.getHost().c_str(), zkRedisConfig.getPort());
+  //     bool authSuccess = auth(zkRedisConfig.getPassword().c_str());
+  //     if (authSuccess) {
+  //       select();
+  //     }
+  //   } else {
+  //     // std::cout << "\nAVIN_DEBUG_STORE00_ Already Connected\n" << std::endl;
+  //     // printf("AVIN_DEBUG_STORE00_ Already connected\n");
+  //   }
+  //   if (redisConnection == nullptr || redisConnection->err) {
+  //     if (redisConnection) {
+  //       // Handle connection error
+  //       printf("zk-log/stores Connection error: %s\n", redisConnection->errstr);
+  //       disconnect();
+  //       return false;
+  //     } else {
+  //       // Handle memory allocation error
+  //       printf("zk-log/stores Failed to allocate redis context\n");
+  //     }
+  //     return false;
+  //   }
+  //   return true;
+  // }
 
   bool select() {
     if (checkForConnection() == false) {
@@ -76,15 +101,11 @@ class ZkRedis : public ZkStore {
     }
 
     // If you want to select a different database, use redisCommand to send the SELECT command
-    redisReply* reply = (redisReply*)redisCommand(redisConnection, "SELECT %d", database);
-    if (reply == nullptr) {
-      return false;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("SELECT %d", database);
+    if (!reply.notNull()) {
       return false;
     }
 
-    freeReplyObject(reply);
     return true;
   }
 
@@ -96,42 +117,29 @@ class ZkRedis : public ZkStore {
       return true;
     }
 
-    // If you want to select a different database, use redisCommand to send the SELECT command
-    redisReply* reply = (redisReply*)redisCommand(redisConnection, "AUTH %s", password);
-    if (reply == nullptr) {
-      return false;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // std::cout << "\nAVIN_DEBUG Reply error auth: " << reply->type << std::endl;
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("AUTH %s", password);
+    if (!reply.notNull()) {
       return false;
     }
 
-    freeReplyObject(reply);
     return true;
   }
 
   void disconnect() override {
-    if (redisConnection) {
-      redisFree(redisConnection);
-      redisConnection = nullptr;
-    }
+    // if (redisConnection) {
+    //   redisFree(redisConnection);
+    //   redisConnection = nullptr;
+    // }
   }
 
   void expire(const char* key, const int expiryaInSeconds) {
     if (checkForConnection() == false) {
       return;
     }
-    redisReply* reply =
-        (redisReply*)redisCommand(redisConnection, "EXPIRE %s %d", key, expiryaInSeconds);
-    if (reply == nullptr) {
-      return;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      // std::cout << "\nAVIN_DEBUG Reply error expire: " << reply->type << std::endl;
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("EXPIRE %s %d", key, expiryaInSeconds);
+    if (!reply.notNull()) {
       return;
     }
-    freeReplyObject(reply);
   }
 
   void addToSetWithExpiry(const int expiryaInSeconds, const char* key, ...) override {
@@ -147,7 +155,7 @@ class ZkRedis : public ZkStore {
   }
 
   bool checkForConnection() {
-    if (redisConnection == nullptr || redisConnection->err) {
+    if(redisConnection.isInitialized() == false){
       return false;
     }
     return true;
@@ -157,17 +165,10 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return false;
     }
-    redisReply* reply = (redisReply*)redisCommand(redisConnection, "MULTI");
-    if (reply == nullptr) {
-      // std::cout << "\nAVIN_DEBUG Reply error startTransaction: reply null" << std::endl;
-      return false;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      // std::cout << "\nAVIN_DEBUG Reply error startTransaction: " << reply->type << std::endl;
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("MULTI");
+    if (reply.isNull()) {
       return false;
     }
-    freeReplyObject(reply);
     return true;
   }
 
@@ -175,17 +176,10 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return false;
     }
-    redisReply* reply = (redisReply*)redisCommand(redisConnection, "EXEC");
-    if (reply == nullptr) {
-      // std::cout << "\nAVIN_DEBUG Reply error endTransaction: reply null" << std::endl;
-      return false;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      // std::cout << "\nAVIN_DEBUG Reply error endTransaction: " << reply->type << std::endl;
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("EXEC");
+    if (!reply.notNull()) {
       return false;
     }
-    freeReplyObject(reply);
     return true;
   }
 
@@ -211,18 +205,10 @@ class ZkRedis : public ZkStore {
     }
     // std::cout << "DerivedClass finalArgs. " << finalArgs << std::endl;
 
-    redisReply* reply =
-        (redisReply*)redisCommand(redisConnection, "SADD %s %s", key, finalArgs.c_str());
-    if (reply == nullptr) {
-      // std::cout << "\nAVIN_DEBUG Reply error addToSet: reply null" << std::endl;
-      return false;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      // std::cout << "\nAVIN_DEBUG Reply error addToSet: " << reply->type << std::endl;
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("SADD %s %s", key, finalArgs.c_str());
+    if (!reply.notNull()) {
       return false;
     }
-    freeReplyObject(reply);
     return true;
   }
 
@@ -231,16 +217,10 @@ class ZkRedis : public ZkStore {
       return false;
     }
     // printf("AVIN_DEBUG_STORE04_ store.set\n");
-    redisReply* reply =
-        (redisReply*)redisCommand(redisConnection, "SET %s %s", key.c_str(), value.c_str());
-    if (reply == nullptr) {
-      return false;
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("SET %s %s", key.c_str(), value.c_str());
+    if (!reply.notNull()) {
       return false;
     }
-    freeReplyObject(reply);
     return true;
   }
 
@@ -253,20 +233,11 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return "";
     }
-    // printf("AVIN_DEBUG_STORE07_ store.get\n");
-    redisReply* reply =
-        static_cast<redisReply*>(redisCommand(redisConnection, "GET %s", key.c_str()));
-    // redisReply* reply = (redisReply*)redisCommand(redisConnection, "GET %s", key.c_str());
-    if (reply == nullptr) {
-      return "";
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      // printf("AVIN_DEBUG_STORE08_ store.get %s\n", reply ? reply->str : "Unknown error");
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("GET %s", key.c_str());
+    if (!reply.notNull()) {
       return "";
     }
-    std::string value = reply->str;
-    freeReplyObject(reply);
+    std::string value = reply.get()->str;
     return value;
   }
 
@@ -274,20 +245,14 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return std::vector<std::string>();
     }
-    redisReply* reply =
-        static_cast<redisReply*>(redisCommand(redisConnection, "HKEYS %s", key.c_str()));
-    if (reply == nullptr) {
-      return std::vector<std::string>();
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("HKEYS %s", key.c_str());
+    if (reply.isNull()) {
       return std::vector<std::string>();
     }
     std::vector<std::string> keys;
-    for (int i = 0; static_cast<size_t>(i) < reply->elements; i++) {
-      keys.push_back(reply->element[i]->str);
+    for (int i = 0; static_cast<size_t>(i) < reply.get()->elements; i++) {
+      keys.push_back(reply.get()->element[i]->str);
     }
-    freeReplyObject(reply);
     return keys;
   }
 
@@ -295,17 +260,11 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return "";
     }
-    redisReply* reply =
-        static_cast<redisReply*>(redisCommand(redisConnection, "HGET %s", key.c_str()));
-    if (reply == nullptr) {
-      return "";
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("HGET %s", key.c_str()));
+    if (reply.isNull()) {
       return "";
     }
-    std::string value = reply->str;
-    freeReplyObject(reply);
+    std::string value = reply.get()->str;
     return value;
   }
 
@@ -313,20 +272,14 @@ class ZkRedis : public ZkStore {
     if (checkForConnection() == false) {
       return std::map<std::string, std::string>();
     }
-    redisReply* reply =
-        static_cast<redisReply*>(redisCommand(redisConnection, "HGETALL %s", key.c_str()));
-    if (reply == nullptr) {
-      return std::map<std::string, std::string>();
-    } else if (reply->type == REDIS_REPLY_ERROR) {
-      // Handle error
-      freeReplyObject(reply);
+    RedisReplyPtr reply = redisConnection.redisCommand("HGETALL %s", key.c_str());
+    if (reply.isNull()) {
       return std::map<std::string, std::string>();
     }
     std::map<std::string, std::string> values;
-    for (int i = 0; static_cast<size_t>(i) < reply->elements; i += 2) {
-      values[reply->element[i]->str] = reply->element[i + 1]->str;
+    for (int i = 0; static_cast<size_t>(i) < reply.get()->elements; i += 2) {
+      values[reply.get()->element[i]->str] = reply.get()->element[i + 1]->str;
     }
-    freeReplyObject(reply);
     return values;
   }
 };

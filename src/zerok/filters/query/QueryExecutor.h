@@ -8,7 +8,6 @@
 #include "./QueryBuilder.h"
 #include "./QueryManager.h"
 #include "./ZkTraceInfo.h"
-#include "hiredis.h"
 #include "src/zerok/common/ZkConfigProvider.h"
 #include "src/zerok/common/utils.h"
 #include "src/zerok/store/store.h"
