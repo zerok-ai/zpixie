@@ -52,7 +52,7 @@ class ZkRedis : public ZkStore {
     strcpy(endpoints[0].host, host.c_str());
     endpoints[0].port = zkRedisConfig.getPort();
 
-    printf("zk-log/stores Connecting with redis " + host + "::" + zkRedisConfig.getPort() + "\n");
+    printf("zk-log/stores Connecting with redis " + host + "::%d\n", zkRedisConfig.getPort());
 
     REDIS_CONFIG conf = {
         (REDIS_ENDPOINT*)&endpoints, 1, 500, 500, 20, 1,
