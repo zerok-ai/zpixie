@@ -21,15 +21,16 @@
 namespace zk {
 class ZkQueryExecutor {
  private:
-  static SimpleRuleString* generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
-    SimpleRuleString* traceIdRule = new SimpleRuleString();
-    traceIdRule->id = ruleId;
-    traceIdRule->type = STRING;
-    traceIdRule->input = "string";
-    traceIdRule->value = "/traceparent";
-    traceIdRule->json_path = "/traceparent";
+  static bool doQueryEval;
+  static SimpleRuleString generateTraceparentRuleV2(std::string ruleId, bool isCaps) {
+    SimpleRuleString traceIdRule = SimpleRuleString();
+    traceIdRule.id = ruleId;
+    traceIdRule.type = STRING;
+    traceIdRule.input = "string";
+    traceIdRule.value = "/traceparent";
+    traceIdRule.json_path = "/traceparent";
     if (isCaps) {
-      traceIdRule->json_path = "/Traceparent";
+      traceIdRule.json_path = "/Traceparent";
     }
     return traceIdRule;
   }
@@ -90,7 +91,9 @@ class ZkQueryExecutor {
  public:
   static void init() {
     zk::ZkConfigProvider::init();
-    ZkQueryManager::refresh();
+    if (doQueryEval) {
+      ZkQueryManager::refresh();
+    }
   }
 
   static ZkTraceInfo apply(std::string protocol,
@@ -100,30 +103,31 @@ class ZkQueryExecutor {
     std::string spanId = "";
     if (protocol == "HTTP") {
       /* Generate rules to check traceparent or Traceparent header in req_headers OR resp_headers */
-      SimpleRuleString* traceIdReqRuleSmall = generateTraceparentRuleV2("req_headers", false);
-      SimpleRuleString* traceIdReqRuleCaps = generateTraceparentRuleV2("req_headers", true);
-      SimpleRuleString* traceIdResRuleSmall = generateTraceparentRuleV2("resp_headers", false);
-      SimpleRuleString* traceIdResRuleCaps = generateTraceparentRuleV2("resp_headers", true);
+      SimpleRuleString traceIdReqRuleSmall = generateTraceparentRuleV2("req_headers", false);
+      SimpleRuleString traceIdReqRuleCaps = generateTraceparentRuleV2("req_headers", true);
+      SimpleRuleString traceIdResRuleSmall = generateTraceparentRuleV2("resp_headers", false);
+      SimpleRuleString traceIdResRuleCaps = generateTraceparentRuleV2("resp_headers", true);
 
       const int ruleCount = 4;
-      SimpleRuleString* traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps,
+      SimpleRuleString traceRuleArray[ruleCount] = {traceIdReqRuleSmall, traceIdReqRuleCaps,
                                                      traceIdResRuleSmall, traceIdResRuleCaps};
       std::string traceParent = "ZK_NULL";
       for (int ruleIdx = 0; ruleIdx < ruleCount; ruleIdx++) {
-        traceParent = traceRuleArray[ruleIdx]->extractValue(propsMap);
+        traceParent = traceRuleArray[ruleIdx].extractValue(propsMap);
         if (traceParent != "ZK_NULL") {
           break;
         }
       }
 
-      // Deletion
-      for (int i = 0; i < ruleCount; ++i) {
-        delete traceRuleArray[i];
-      }
-      // Setting the pointers to null to avoid potential dangling pointers
-      for (int i = 0; i < ruleCount; ++i) {
-        traceRuleArray[i] = nullptr;
-      }
+      // // Deletion
+      // for (int i = 0; i < ruleCount; ++i) {
+      //   delete traceRuleArray[i];
+      // }
+
+      // // Setting the pointers to null to avoid potential dangling pointers
+      // for (int i = 0; i < ruleCount; ++i) {
+      //   traceRuleArray[i] = nullptr;
+      // }
 
       if (traceParent == "ZK_NULL") {
         /* no trace parent found in both req & resp headers */
@@ -135,6 +139,10 @@ class ZkQueryExecutor {
       zkTraceInfo.fromTraceParent(traceParent);
       if (zkTraceInfo.isValid() == false) {
         // printf("\nAVIN_DEBUG_STORE_apply03 traceparent header value is invalid");
+        return zkTraceInfo;
+      }
+
+      if (!doQueryEval) {
         return zkTraceInfo;
       }
 
