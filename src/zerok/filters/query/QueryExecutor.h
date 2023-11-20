@@ -200,4 +200,6 @@ class ZkQueryExecutor {
   }
 };
 
+bool ZkQueryExecutor::doQueryEval = false;
+
 }  // namespace zk
