@@ -16,7 +16,7 @@ jobs:
       image-base-name: "dev_image_with_extras"
   build-release:
     name: Build Release
-    runs-on: zk-self-hosted-large
+    runs-on: zk-self-hosted
     needs: get-dev-image
     container:
       image: ${{ needs.get-dev-image.outputs.image-with-tag }}
@@ -102,7 +102,7 @@ jobs:
         path: index.yaml
   create-github-release:
     name: Create Release on Github
-    runs-on: zk-self-hosted-large
+    runs-on: zk-self-hosted
     needs: build-release
     permissions:
       contents: write
@@ -134,7 +134,7 @@ jobs:
   create-helm-chart:
     if: ${{ !contains(github.event.ref, '-') }}
     name: Create Helm chart on Github
-    runs-on: zk-self-hosted-large
+    runs-on: zk-self-hosted
     needs: build-release
     concurrency: gh-pages
     permissions:
@@ -167,7 +167,7 @@ jobs:
         git push origin "gh-pages"
       # yamllint enable rule:indentation
   update-gh-artifacts-manifest:
-    runs-on: zk-self-hosted-large
+    runs-on: zk-self-hosted
     needs: [get-dev-image, create-github-release]
     environment: prod
     container:
