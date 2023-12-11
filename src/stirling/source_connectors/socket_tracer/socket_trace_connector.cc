@@ -1803,6 +1803,8 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
   using TFrameType = typename TProtocolTraits::frame_type;
 
   VLOG(3) << absl::StrCat("Connection\n", DebugString<TProtocolTraits>(*tracker, ""));
+  
+  LOG(INFO) << "\nGot the stream ";
 
   // Make sure the tracker's frames containers have been properly initialized.
   // This is a nop if the containers are already of the right type.
@@ -1815,7 +1817,7 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
     for (auto& record : records) {
       TProtocolTraits::ConvertTimestamps(
           &record, [&](uint64_t mono_time) { return ConvertToRealTime(mono_time); });
-      AppendMessage(ctx, *tracker, std::move(record), data_table);
+      // AppendMessage(ctx, *tracker, std::move(record), data_table);
     }
   }
 
