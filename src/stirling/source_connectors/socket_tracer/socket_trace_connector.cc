@@ -1818,6 +1818,7 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
       TProtocolTraits::ConvertTimestamps(
           &record, [&](uint64_t mono_time) { return ConvertToRealTime(mono_time); });
       // AppendMessage(ctx, *tracker, std::move(record), data_table);
+      (void)ctx;
     }
   }
 
