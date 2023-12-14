@@ -61,6 +61,7 @@
 #include "src/stirling/source_connectors/dynamic_tracer/dynamic_tracing/dynamic_tracer.h"
 #include "src/stirling/source_connectors/tcp_stats/tcp_stats_connector.h"
 
+//Zerok
 DEFINE_string(stirling_sources, gflags::StringFromEnv("PL_STIRLING_SOURCES", "kProd"),
               "Choose sources to enable. [kAll|kProd|kMetrics|kTracers|kProfiler|kTCPStats] or "
               "comma separated list of "
@@ -95,8 +96,10 @@ const std::vector<SourceRegistry::RegistryElement> kAllSources = {
 std::vector<std::string_view> GetSourceNamesForGroup(SourceConnectorGroup group) {
   switch (group) {
     case SourceConnectorGroup::kNone:
+      LOG(INFO) << absl::Substitute("zk/stirling group kNone");
       return {};
     case SourceConnectorGroup::kProd:
+      LOG(INFO) << absl::Substitute("zk/stirling group kProd");
       return {
         ProcessStatsConnector::kName,
         NetworkStatsConnector::kName,
@@ -107,6 +110,7 @@ std::vector<std::string_view> GetSourceNamesForGroup(SourceConnectorGroup group)
         StirlingErrorConnector::kName,
       };
     case SourceConnectorGroup::kAll:
+      LOG(INFO) << absl::Substitute("zk/stirling group kAll");
       return {
         ProcessStatsConnector::kName,
         NetworkStatsConnector::kName,
@@ -119,24 +123,29 @@ std::vector<std::string_view> GetSourceNamesForGroup(SourceConnectorGroup group)
         StirlingErrorConnector::kName,
       };
     case SourceConnectorGroup::kTracers:
+      LOG(INFO) << absl::Substitute("zk/stirling group kTracers");
       return {
         SocketTraceConnector::kName
       };
     case SourceConnectorGroup::kMetrics:
+      LOG(INFO) << absl::Substitute("zk/stirling group kMetrics");
       return {
         ProcessStatsConnector::kName,
         NetworkStatsConnector::kName,
         JVMStatsConnector::kName
       };
     case SourceConnectorGroup::kProfiler:
+      LOG(INFO) << absl::Substitute("zk/stirling group kProfiler");
       return {
         PerfProfileConnector::kName
       };
     case SourceConnectorGroup::kTCPStats:
+      LOG(INFO) << absl::Substitute("zk/stirling group kTCPStats");
       return {
        TCPStatsConnector::kName
       };
     default:
+      LOG(INFO) << absl::Substitute("zk/stirling group default");
       // To keep GCC happy.
       DCHECK(false);
       return {};
@@ -150,8 +159,10 @@ std::vector<std::string_view> GetSourceNamesFromFlag() {
     std::optional<SourceConnectorGroup> group =
         magic_enum::enum_cast<SourceConnectorGroup>(FLAGS_stirling_sources);
     if (group.has_value()) {
+      LOG(INFO) << absl::Substitute("zk/stirling group has value");
       source_names = GetSourceNamesForGroup(group.value());
     } else {
+      LOG(INFO) << absl::Substitute("zk/stirling group has no value");
       source_names = absl::StrSplit(FLAGS_stirling_sources, ",", absl::SkipWhitespace());
     }
   }
@@ -165,6 +176,16 @@ StatusOr<std::unique_ptr<SourceRegistry>> CreateSourceRegistry(
   for (const auto name : source_names) {
     LOG(INFO) << absl::Substitute("zk/stirling Source Name: $0", name);
   }
+
+  /*
+  zk/stirling Source Name: process_stats
+  zk/stirling Source Name: network_stats
+  zk/stirling Source Name: jvm_stats
+  zk/stirling Source Name: socket_tracer
+  zk/stirling Source Name: perf_profiler
+  zk/stirling Source Name: proc_exit_tracer
+  zk/stirling Source Name: stirling_error
+  */
 
   for (const auto name : source_names) {
     bool found = false;
