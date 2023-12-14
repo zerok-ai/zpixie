@@ -163,6 +163,10 @@ StatusOr<std::unique_ptr<SourceRegistry>> CreateSourceRegistry(
   auto registry = std::make_unique<SourceRegistry>();
 
   for (const auto name : source_names) {
+    LOG(INFO) << absl::Substitute("zk/stirling Source Name: $0", name);
+  }
+
+  for (const auto name : source_names) {
     bool found = false;
     for (const auto& source : kAllSources) {
       if (name == source.name) {
