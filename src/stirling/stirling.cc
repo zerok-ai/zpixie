@@ -101,11 +101,11 @@ std::vector<std::string_view> GetSourceNamesForGroup(SourceConnectorGroup group)
     case SourceConnectorGroup::kProd:
       LOG(INFO) << absl::Substitute("zk/stirling group kProd");
       return {
-        ProcessStatsConnector::kName,
-        NetworkStatsConnector::kName,
-        JVMStatsConnector::kName,
+        // ProcessStatsConnector::kName,
+        // NetworkStatsConnector::kName,
+        // JVMStatsConnector::kName,
         SocketTraceConnector::kName,
-        PerfProfileConnector::kName,
+        // PerfProfileConnector::kName,
         proc_exit_tracer::ProcExitConnector::kName,
         StirlingErrorConnector::kName,
       };
