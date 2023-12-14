@@ -74,12 +74,18 @@ namespace {
 #define REGISTRY_PAIR(source) \
   { SourceRegistry::CreateRegistryElement<source>(source::kName) }
 const std::vector<SourceRegistry::RegistryElement> kAllSources = {
-    REGISTRY_PAIR(JVMStatsConnector),          REGISTRY_PAIR(PIDRuntimeConnector),
-    REGISTRY_PAIR(ProcStatConnector),          REGISTRY_PAIR(SeqGenConnector),
-    REGISTRY_PAIR(SocketTraceConnector),       REGISTRY_PAIR(ProcessStatsConnector),
-    REGISTRY_PAIR(NetworkStatsConnector),      REGISTRY_PAIR(PerfProfileConnector),
-    REGISTRY_PAIR(PIDCPUUseBPFTraceConnector), REGISTRY_PAIR(proc_exit_tracer::ProcExitConnector),
-    REGISTRY_PAIR(StirlingErrorConnector),     REGISTRY_PAIR(TCPStatsConnector),
+    // REGISTRY_PAIR(JVMStatsConnector),          
+    REGISTRY_PAIR(PIDRuntimeConnector),
+    // REGISTRY_PAIR(ProcStatConnector),          
+    // REGISTRY_PAIR(SeqGenConnector),
+    REGISTRY_PAIR(SocketTraceConnector),       
+    // REGISTRY_PAIR(ProcessStatsConnector),
+    // REGISTRY_PAIR(NetworkStatsConnector),      
+    // REGISTRY_PAIR(PerfProfileConnector),
+    // REGISTRY_PAIR(PIDCPUUseBPFTraceConnector), 
+    REGISTRY_PAIR(proc_exit_tracer::ProcExitConnector),
+    REGISTRY_PAIR(StirlingErrorConnector),     
+    REGISTRY_PAIR(TCPStatsConnector),
 };
 #undef REGISTRY_PAIR
 
