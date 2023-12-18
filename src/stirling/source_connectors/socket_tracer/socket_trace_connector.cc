@@ -1239,6 +1239,7 @@ std::string PXInfoString(const ConnTracker& conn_tracker, const TRecordType& rec
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::http::Record record, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage HTTP";
   protocols::http::Message& req_message = record.req;
   protocols::http::Message& resp_message = record.resp;
 
@@ -1320,6 +1321,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::http2::Record record, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage HTTP2";
   using ::px::grpc::MethodInputOutput;
   using ::px::stirling::grpc::ParseReqRespBody;
 
@@ -1445,6 +1447,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mysql::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage MySQL";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1499,6 +1502,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::cass::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage Cassandra";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1523,6 +1527,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::dns::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage DNS";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1547,6 +1552,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::pgsql::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage Postgres";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1603,6 +1609,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mux::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage Mux";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1624,6 +1631,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::amqp::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage AMQP";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1673,6 +1681,7 @@ endpoint_role_t Swapendpoint_role_t(endpoint_role_t role) {
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::redis::Record entry, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage Redis";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1701,6 +1710,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::nats::Record record, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage NATs";
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1723,6 +1733,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
 template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::kafka::Record record, DataTable* data_table) {
+  LOG(INFO) << "\nzk/socket appendMessage Kafka";
   constexpr size_t kMaxKafkaBodyBytes = 65536;
 
   auto const& conn_id = conn_tracker.conn_id();
@@ -1814,7 +1825,7 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
 
   VLOG(3) << absl::StrCat("Connection\n", DebugString<TProtocolTraits>(*tracker, ""));
   
-  LOG(INFO) << "\nzk/socket ";
+  // LOG(INFO) << "\nzk/socket ";
 
   // Make sure the tracker's frames containers have been properly initialized.
   // This is a nop if the containers are already of the right type.
@@ -1827,10 +1838,10 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
     for (auto& record : records) {
       TProtocolTraits::ConvertTimestamps(
           &record, [&](uint64_t mono_time) { return ConvertToRealTime(mono_time); });
-      // AppendMessage(ctx, *tracker, std::move(record), data_table);
-      protocols::http::Message& req_message = record.req;
-      std::string reqPath = req_message.req_path;
-      LOG(INFO) << "\nzk/socket record req path " << reqPath;
+      AppendMessage(ctx, *tracker, std::move(record), data_table);
+      // protocols::http::Message& req_message = record.req;
+      // std::string reqPath = req_message.req_path;
+      // LOG(INFO) << "\nzk/socket record req path " << reqPath;
       (void)ctx;
     }
   }
