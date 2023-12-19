@@ -153,29 +153,29 @@ Status Manager::Init() {
 
   LOG(INFO) << "Hostname: " << info_.hostname;
 
-  // Set up the agent NATS connector.
-  agent_nats_connector_ = std::make_unique<Manager::VizierNATSConnector>(
-      nats_addr_, kAgentPubTopic /*pub_topic*/,
-      absl::Substitute(kAgentSubTopicPattern, info_.agent_id.str()) /*sub topic*/,
-      SSL::DefaultNATSCreds());
+  // // Set up the agent NATS connector.
+  // agent_nats_connector_ = std::make_unique<Manager::VizierNATSConnector>(
+  //     nats_addr_, kAgentPubTopic /*pub_topic*/,
+  //     absl::Substitute(kAgentSubTopicPattern, info_.agent_id.str()) /*sub topic*/,
+  //     SSL::DefaultNATSCreds());
 
   // The first step is to connect to stats and register the agent.
   // Downstream dependencies like stirling/carnot depend on knowing
   // ASID and metadata state, which is only available after registration is
   // complete.
-  PX_RETURN_IF_ERROR(agent_nats_connector_->Connect(dispatcher_.get()));
+  // PX_RETURN_IF_ERROR(agent_nats_connector_->Connect(dispatcher_.get()));
   // Attach the message handler for agent nats:
-  agent_nats_connector_->RegisterMessageHandler(
-      std::bind(&Manager::NATSMessageHandler, this, std::placeholders::_1));
+  // agent_nats_connector_->RegisterMessageHandler(
+  //     std::bind(&Manager::NATSMessageHandler, this, std::placeholders::_1));
 
-  registration_handler_ = std::make_shared<RegistrationHandler>(
-      dispatcher_.get(), &info_, agent_nats_connector_.get(),
-      std::bind(&Manager::PostRegisterHook, this, std::placeholders::_1),
-      std::bind(&Manager::PostReregisterHook, this, std::placeholders::_1));
+  // registration_handler_ = std::make_shared<RegistrationHandler>(
+  //     dispatcher_.get(), &info_, agent_nats_connector_.get(),
+  //     std::bind(&Manager::PostRegisterHook, this, std::placeholders::_1),
+  //     std::bind(&Manager::PostReregisterHook, this, std::placeholders::_1));
 
-  PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kRegisterAgentResponse,
-                                     registration_handler_));
-  registration_handler_->RegisterAgent();
+  // PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kRegisterAgentResponse,
+  //                                    registration_handler_));
+  // registration_handler_->RegisterAgent();
 
   return InitImpl();
 }
@@ -226,24 +226,24 @@ Status Manager::RegisterBackgroundHelpers() {
   chan_cache_garbage_collect_timer_->EnableTimer(kChanCacheCleanupChansionPeriod);
 
   // Add Heartbeat and execute query handlers.
-  heartbeat_handler_ = std::make_shared<HeartbeatMessageHandler>(
-      dispatcher_.get(), mds_manager_.get(), relation_info_manager_.get(), &info_,
-      agent_nats_connector_.get());
+  // heartbeat_handler_ = std::make_shared<HeartbeatMessageHandler>(
+  //     dispatcher_.get(), mds_manager_.get(), relation_info_manager_.get(), &info_,
+  //     agent_nats_connector_.get());
 
-  auto heartbeat_nack_handler = std::make_shared<HeartbeatNackMessageHandler>(
-      dispatcher_.get(), &info_, agent_nats_connector_.get(),
-      std::bind(&Manager::ReregisterHook, this));
+  // auto heartbeat_nack_handler = std::make_shared<HeartbeatNackMessageHandler>(
+  //     dispatcher_.get(), &info_, agent_nats_connector_.get(),
+  //     std::bind(&Manager::ReregisterHook, this));
 
-  PX_CHECK_OK(
-      RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatAck, heartbeat_handler_));
-  PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatNack,
-                                     heartbeat_nack_handler));
+  // PX_CHECK_OK(
+  //     RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatAck, heartbeat_handler_));
+  // PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatNack,
+  //                                    heartbeat_nack_handler));
 
   // Attach message handler for config updates.
-  auto config_manager =
-      std::make_shared<ConfigManager>(dispatcher_.get(), &info_, agent_nats_connector_.get());
-  PX_RETURN_IF_ERROR(RegisterMessageHandler(messages::VizierMessage::MsgCase::kConfigUpdateMessage,
-                                            config_manager));
+  // auto config_manager =
+  //     std::make_shared<ConfigManager>(dispatcher_.get(), &info_, agent_nats_connector_.get());
+  // PX_RETURN_IF_ERROR(RegisterMessageHandler(messages::VizierMessage::MsgCase::kConfigUpdateMessage,
+  //                                           config_manager));
 
   return Status::OK();
 }
