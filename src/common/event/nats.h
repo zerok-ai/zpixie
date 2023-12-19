@@ -87,6 +87,7 @@ class NATSConnector : public NATSConnectorBase {
     // Attach the message reader.
     // natsConnection_Subscribe(&nats_subscription_, nats_connection_, sub_topic_.c_str(),
     //                          NATSMessageCallbackHandler, this);
+    (void)base_dispatcher;
     return Status::OK();
   }
 
