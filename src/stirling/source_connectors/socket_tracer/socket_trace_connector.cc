@@ -1821,7 +1821,7 @@ void SocketTraceConnector::WriteDataEvent(const SocketDataEvent& event) {
 
 template <typename TProtocolTraits>
 
-void SocketTraceConnector::printStackTrace() {
+void printStackTrace() {
   void* callstack[128];
   int frames = backtrace(callstack, 128);
   char** strs = backtrace_symbols(callstack, frames);
