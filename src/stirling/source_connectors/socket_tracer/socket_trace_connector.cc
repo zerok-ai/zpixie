@@ -1815,12 +1815,6 @@ void SocketTraceConnector::WriteDataEvent(const SocketDataEvent& event) {
   }
 }
 
-//-----------------------------------------------------------------------------
-// TransferData Helpers
-//-----------------------------------------------------------------------------
-
-template <typename TProtocolTraits>
-
 void printStackTrace() {
   void* callstack[128];
   int frames = backtrace(callstack, 128);
@@ -1833,6 +1827,12 @@ void printStackTrace() {
 
   free(strs);
 }
+
+//-----------------------------------------------------------------------------
+// TransferData Helpers
+//-----------------------------------------------------------------------------
+
+template <typename TProtocolTraits>
 
 void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tracker,
                                           DataTable* data_table) {
