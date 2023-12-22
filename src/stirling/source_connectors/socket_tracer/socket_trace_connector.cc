@@ -1263,6 +1263,7 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string workloadIds = "";
   std::string reqPath = req_message.req_path;
 
+  LOG(INFO) << "\nzk/socket appendMessage HTTP reqPath" << reqPath;
 
   if(!zk::ZkConfig::isHttpEnabled()){
     return;
@@ -1815,19 +1816,6 @@ void SocketTraceConnector::WriteDataEvent(const SocketDataEvent& event) {
   }
 }
 
-void printStackTrace() {
-  void* callstack[128];
-  int frames = backtrace(callstack, 128);
-  char** strs = backtrace_symbols(callstack, frames);
-
-  std::cout << "zk/socket Call stack:\n";
-  for (int i = 0; i < frames; ++i) {
-    std::cout << strs[i] << "\n";
-  }
-
-  free(strs);
-}
-
 //-----------------------------------------------------------------------------
 // TransferData Helpers
 //-----------------------------------------------------------------------------
@@ -1858,7 +1846,6 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
       // std::string reqPath = req_message.req_path;
       // LOG(INFO) << "\nzk/socket record req path " << reqPath;
       (void)ctx;
-      printStackTrace();
     }
   }
 
