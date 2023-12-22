@@ -51,7 +51,8 @@
 #include "src/zerok/filters/query/ZkTraceInfo.h"
 #include "src/zerok/filters/query/ZkConfig.h"
 #include "src/stirling/source_connectors/socket_tracer/socket_trace_connector_zk.h"
-
+#include <execinfo.h>
+#include <iostream>
 // 50 X less often than the normal sampling frequency. Based on the conn_stats_table.h's
 // sampling period of 5 seconds, and other tables' 100 milliseconds.
 DEFINE_uint32(
@@ -1819,6 +1820,20 @@ void SocketTraceConnector::WriteDataEvent(const SocketDataEvent& event) {
 //-----------------------------------------------------------------------------
 
 template <typename TProtocolTraits>
+
+void SocketTraceConnector::printStackTrace() {
+  void* callstack[128];
+  int frames = backtrace(callstack, 128);
+  char** strs = backtrace_symbols(callstack, frames);
+
+  std::cout << "zk/socket Call stack:\n";
+  for (int i = 0; i < frames; ++i) {
+    std::cout << strs[i] << "\n";
+  }
+
+  free(strs);
+}
+
 void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tracker,
                                           DataTable* data_table) {
   using TFrameType = typename TProtocolTraits::frame_type;
@@ -1843,6 +1858,7 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
       // std::string reqPath = req_message.req_path;
       // LOG(INFO) << "\nzk/socket record req path " << reqPath;
       (void)ctx;
+      printStackTrace();
     }
   }
 
