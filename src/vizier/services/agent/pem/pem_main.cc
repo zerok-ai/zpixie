@@ -28,7 +28,7 @@
 #include "src/common/system/kernel_version.h"
 #include "src/shared/version/version.h"
 
-DEFINE_string(nats_url, gflags::StringFromEnv("PL_NATS_URL", "pl-nats"),
+DEFINE_string(nats_url, gflags::StringFromEnv("PL_NATS_URL", "zk-ebpf-nats"),
               "The host address of the nats cluster");
 DEFINE_string(pod_name, gflags::StringFromEnv("PL_POD_NAME", ""),
               "The name of the POD the PEM is running on");

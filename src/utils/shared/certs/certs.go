@@ -123,7 +123,7 @@ func getVizierDNSNamesForNamespace(namespace string) []string {
 		fmt.Sprintf("*.%s.pod.cluster.local", namespace),
 		fmt.Sprintf("*.pl-etcd.%s.svc", namespace),
 		fmt.Sprintf("*.pl-etcd.%s.svc.cluster.local", namespace),
-		"pl-nats",
+		"zk-ebpf-nats",
 		"pl-etcd",
 		"localhost",
 	}
@@ -134,9 +134,9 @@ func getCloudDNSNamesForNamespace(namespace string) []string {
 		fmt.Sprintf("*.%s", namespace),
 		fmt.Sprintf("*.%s.svc.cluster.local", namespace),
 		fmt.Sprintf("*.%s.pod.cluster.local", namespace),
-		fmt.Sprintf("*.pl-nats.%s.svc", namespace),
-		"*.pl-nats",
-		"pl-nats",
+		fmt.Sprintf("*.zk-ebpf-nats.%s.svc", namespace),
+		"*.zk-ebpf-nats",
+		"zk-ebpf-nats",
 		"*.local",
 		"localhost",
 	}

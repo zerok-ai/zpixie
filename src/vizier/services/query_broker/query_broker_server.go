@@ -148,9 +148,9 @@ func main() {
 	// Connect to NATS.
 	var natsConn *nats.Conn
 	if viper.GetBool("disable_ssl") {
-		natsConn, err = nats.Connect("pl-nats")
+		natsConn, err = nats.Connect("zk-ebpf-nats")
 	} else {
-		natsConn, err = nats.Connect("pl-nats",
+		natsConn, err = nats.Connect("zk-ebpf-nats",
 			nats.ClientCert(viper.GetString("client_tls_cert"), viper.GetString("client_tls_key")),
 			nats.RootCAs(viper.GetString("tls_ca_cert")))
 	}

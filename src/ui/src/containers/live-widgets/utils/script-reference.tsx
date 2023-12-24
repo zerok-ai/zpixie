@@ -41,7 +41,7 @@ const useStyles = makeStyles(({ palette }: Theme) => createStyles({
 /**
  * DeepLink is used when we are creating a deep link to another script for an input
  * value based on the semantic type of the column the value belongs to. For example,
- * the value `pl/pl-nats-0` would deep link to `px/pod` when the semantic type is
+ * the value `pl/zk-ebpf-nats-0` would deep link to `px/pod` when the semantic type is
  * equal to ST_POD_NAME.
  */
 export interface DeepLinkProps {

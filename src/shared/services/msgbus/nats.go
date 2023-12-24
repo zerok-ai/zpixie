@@ -26,7 +26,7 @@ import (
 )
 
 func init() {
-	pflag.String("nats_url", "pl-nats", "The url of the nats message bus")
+	pflag.String("nats_url", "zk-ebpf-nats", "The url of the nats message bus")
 }
 
 // MustConnectNATS attempts to connect to the NATS message bus.

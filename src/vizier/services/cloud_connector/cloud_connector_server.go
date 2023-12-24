@@ -48,7 +48,7 @@ import (
 
 func init() {
 	pflag.String("cluster_id", "", "The Cluster ID to use for Pixie Cloud")
-	pflag.String("nats_url", "pl-nats", "The URL of NATS")
+	pflag.String("nats_url", "zk-ebpf-nats", "The URL of NATS")
 	pflag.Duration("max_expected_clock_skew", 2000, "Duration in ms of expected maximum clock skew in a cluster")
 	pflag.Duration("renew_period", 5000, "Duration in ms of the time to wait to renew lease")
 	pflag.String("pod_namespace", "pl", "The namespace this pod runs in.")

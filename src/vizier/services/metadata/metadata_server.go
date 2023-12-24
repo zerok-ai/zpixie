@@ -72,7 +72,7 @@ func init() {
 	pflag.Duration("max_expected_clock_skew", 2000, "Duration in ms of expected maximum clock skew in a cluster")
 	pflag.Duration("renew_period", 5000, "Duration in ms of the time to wait to renew lease")
 	pflag.String("pod_namespace", "pl", "The namespace this pod runs in. Used for leader elections")
-	pflag.String("nats_url", "pl-nats", "The URL of NATS")
+	pflag.String("nats_url", "zk-ebpf-nats", "The URL of NATS")
 	pflag.Bool("use_etcd_operator", false, "Whether the etcd operator should be used instead of the persistent version.")
 	pflag.StringSlice("metadata_namespaces", []string{v1.NamespaceAll}, "The list of namespaces to watch for metadata.")
 
@@ -182,7 +182,7 @@ func main() {
 	}
 
 	if err != nil {
-		log.WithError(err).Fatal("Could not connect to NATS. Please check for the `pl-nats` pods in the namespace to confirm they are healthy and running.")
+		log.WithError(err).Fatal("Could not connect to NATS. Please check for the `zk-ebpf-nats` pods in the namespace to confirm they are healthy and running.")
 	}
 
 	nc.SetErrorHandler(func(conn *nats.Conn, subscription *nats.Subscription, err error) {

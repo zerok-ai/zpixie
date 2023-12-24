@@ -353,7 +353,7 @@ func (s *Bridge) RunStream() {
 		backOffOpts.MaxElapsedTime = 10 * time.Minute
 		err = backoff.Retry(connectNats, backOffOpts)
 		if err != nil {
-			log.WithError(err).Fatal("Could not connect to NATS. Please check for the `pl-nats` pods in the namespace to confirm they are healthy and running.")
+			log.WithError(err).Fatal("Could not connect to NATS. Please check for the `zk-ebpf-nats` pods in the namespace to confirm they are healthy and running.")
 		}
 		log.Info("Successfully connected to NATS")
 		s.nc = nc
@@ -369,7 +369,7 @@ func (s *Bridge) RunStream() {
 	log.WithField("topic", natsTopic).Trace("Subscribing to NATS")
 	natsSub, err := s.nc.ChanSubscribe(natsTopic, s.natsCh)
 	if err != nil {
-		log.WithError(err).Fatal("Could not subscribe to NATS. Please check for the `pl-nats` pods in the namespace to confirm they are healthy and running.")
+		log.WithError(err).Fatal("Could not subscribe to NATS. Please check for the `zk-ebpf-nats` pods in the namespace to confirm they are healthy and running.")
 	}
 	defer func() {
 		err := natsSub.Unsubscribe()
@@ -381,7 +381,7 @@ func (s *Bridge) RunStream() {
 	log.WithField("topic", messagebus.MetricsTopic).Trace("Subscribing to Metrics topic on NATS")
 	natsMetricsSub, err := s.nc.ChanSubscribe(messagebus.MetricsTopic, s.natsMetricsCh)
 	if err != nil {
-		log.WithError(err).Fatal("Could not subscribe to Metrics topic on NATS. Please check for the `pl-nats` pods in the namespace to confirm they are healthy and running.")
+		log.WithError(err).Fatal("Could not subscribe to Metrics topic on NATS. Please check for the `zk-ebpf-nats` pods in the namespace to confirm they are healthy and running.")
 	}
 	defer func() {
 		err := natsMetricsSub.Unsubscribe()
