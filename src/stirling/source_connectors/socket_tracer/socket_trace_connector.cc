@@ -1262,8 +1262,11 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string spanId = "";
   std::string workloadIds = "";
   std::string reqPath = req_message.req_path;
-
+  std::string req_message_body = req_message.body;
+  std::string resp_message_body = resp_message.resp_message;
   LOG(INFO) << "\nzk/socket appendMessage HTTP reqPath" << reqPath;
+  LOG(INFO) << "\nzk/socket appendMessage HTTP req_message.body " << req_message_body;
+  LOG(INFO) << "\nzk/socket appendMessage HTTP resp_message.resp_message " << resp_message_body;
 
   if(!zk::ZkConfig::isHttpEnabled()){
     return;
