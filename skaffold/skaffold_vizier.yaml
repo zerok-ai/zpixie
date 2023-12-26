@@ -9,36 +9,36 @@ build:
       target: //src/vizier/services/agent/pem:pem_image.tar
       args:
       - --compilation_mode=dbg
-  - image: vizier-kelvin_image
-    context: .
-    bazel:
-      target: //src/vizier/services/agent/kelvin:kelvin_image.tar
-      args:
-      - --compilation_mode=dbg
+  # - image: vizier-kelvin_image
+  #   context: .
+  #   bazel:
+  #     target: //src/vizier/services/agent/kelvin:kelvin_image.tar
+  #     args:
+  #     - --compilation_mode=dbg
   - image: vizier-metadata_server_image
     context: .
     bazel:
       target: //src/vizier/services/metadata:metadata_server_image.tar
       args:
       - --compilation_mode=dbg
-  - image: vizier-query_broker_server_image
-    context: .
-    bazel:
-      target: //src/vizier/services/query_broker:query_broker_server_image.tar
-      args:
-      - --compilation_mode=dbg
-  - image: vizier-cloud_connector_server_image
-    context: .
-    bazel:
-      target: //src/vizier/services/cloud_connector:cloud_connector_server_image.tar
-      args:
-      - --compilation_mode=dbg
-  - image: vizier-cert_provisioner_image
-    context: .
-    bazel:
-      target: //src/utils/cert_provisioner:cert_provisioner_image.tar
-      args:
-      - --compilation_mode=dbg
+  # - image: vizier-query_broker_server_image
+  #   context: .
+  #   bazel:
+  #     target: //src/vizier/services/query_broker:query_broker_server_image.tar
+  #     args:
+  #     - --compilation_mode=dbg
+  # - image: vizier-cloud_connector_server_image
+  #   context: .
+  #   bazel:
+  #     target: //src/vizier/services/cloud_connector:cloud_connector_server_image.tar
+  #     args:
+  #     - --compilation_mode=dbg
+  # - image: vizier-cert_provisioner_image
+  #   context: .
+  #   bazel:
+  #     target: //src/utils/cert_provisioner:cert_provisioner_image.tar
+  #     args:
+  #     - --compilation_mode=dbg
   tagPolicy:
     dateTime: {}
   local:
