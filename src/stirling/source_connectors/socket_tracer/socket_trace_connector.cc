@@ -1389,6 +1389,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string spanId = "";
   std::string workloadIds = "";
 
+  LOG(INFO) << "\nzk/socket appendMessage GRPC reqPath" << reqPath;
+  LOG(INFO) << "\nzk/socket appendMessage GRPC req_message.body " << reqBody;
+  LOG(INFO) << "\nzk/socket appendMessage GRPC resp_message.resp_message " << respBody;
 
   if(!zk::ZkConfig::isHttpEnabled()){
     return;
