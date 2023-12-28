@@ -1834,7 +1834,7 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
 
   VLOG(3) << absl::StrCat("Connection\n", DebugString<TProtocolTraits>(*tracker, ""));
   
-  // LOG(INFO) << "\nzk/socket ";
+  LOG(INFO) << "\nzk/socket test";
 
   // Make sure the tracker's frames containers have been properly initialized.
   // This is a nop if the containers are already of the right type.
@@ -1848,9 +1848,9 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
       TProtocolTraits::ConvertTimestamps(
           &record, [&](uint64_t mono_time) { return ConvertToRealTime(mono_time); });
       // AppendMessage(ctx, *tracker, std::move(record), data_table);
-      protocols::http::Message& req_message = record.req;
-      std::string reqPath = req_message.req_path;
-      LOG(INFO) << "\nzk/socket record req path " << reqPath;
+      // protocols::http::Message& req_message = record.req;
+      // std::string reqPath = req_message.req_path;
+      // LOG(INFO) << "\nzk/socket record req path " << reqPath;
       (void)ctx;
     }
   }
