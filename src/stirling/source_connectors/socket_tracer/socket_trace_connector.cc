@@ -1848,9 +1848,9 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
       TProtocolTraits::ConvertTimestamps(
           &record, [&](uint64_t mono_time) { return ConvertToRealTime(mono_time); });
       // AppendMessage(ctx, *tracker, std::move(record), data_table);
-      // protocols::http::Message& req_message = record.req;
-      // std::string reqPath = req_message.req_path;
-      // LOG(INFO) << "\nzk/socket record req path " << reqPath;
+      protocols::http::Message& req_message = record.req;
+      std::string reqPath = req_message.req_path;
+      LOG(INFO) << "\nzk/socket record req path " << reqPath;
       (void)ctx;
     }
   }
