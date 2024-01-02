@@ -216,6 +216,11 @@ REPOSITORY_LOCATIONS = dict(
         strip_prefix = "hiredis-1.1.0",
         urls = ["https://github.com/redis/hiredis/archive/refs/tags/v1.1.0.tar.gz"],
     ),
+    com_github_zaphoyd_websocketpp = dict(
+        sha256 = "6ce889d85ecdc2d8fa07408d6787e7352510750daa66b5ad44aacb47bea76755",
+        strip_prefix = "websocketpp-0.8.2",
+        urls = ["https://github.com/zaphoyd/websocketpp/archive/refs/tags/0.8.2.tar.gz"],
+    ),
     com_github_jbeder_yamlcpp = dict(
         sha256 = "e643119f1d629a77605f02096cc3ac211922d48e3db12249b06a3db810dd8756",
         strip_prefix = "yaml-cpp-yaml-cpp-0.6.0",
