@@ -1285,6 +1285,10 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
     }
   }
 
+  if(true){
+    return;
+  }
+
   // LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__ ;
 
   //HTTP Filters go here
@@ -1414,6 +1418,10 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   // LOG(INFO) << "\nAVIN_DEBUG_ http reqPath processed " << " reqPath " << reqPath << " line " << __LINE__;
   //Zerok Ends
 
+  if (true) {
+    return;
+  }
+
   DataTable::RecordBuilder<&kHTTPTable> r(data_table, resp_stream->timestamp_ns);
   r.Append<r.ColIndex("time_")>(time);
   r.Append<r.ColIndex("upid")>(upid.value());
@@ -1463,6 +1471,9 @@ void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracke
   std::string spanId = "";
   std::string workloadIds = "";
 
+  if (true) {
+    return;
+  }
 
   if(!zk::ZkConfig::isMySqlEnabled()){
     return;
@@ -1511,6 +1522,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::cass::Record entry, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage Cassandra";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1536,6 +1550,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::dns::Record entry, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage DNS";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1561,6 +1578,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::pgsql::Record entry, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage Postgres";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1618,6 +1638,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::mux::Record entry, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage Mux";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1640,6 +1663,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::amqp::Record entry, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage AMQP";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1690,6 +1716,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::redis::Record entry, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage Redis";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1719,6 +1748,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::nats::Record record, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage NATs";
+  if (true) {
+    return;
+  }
   auto const& conn_id = conn_tracker.conn_id();
   md::UPID upid(ctx->GetASID(), conn_id.upid.pid, conn_id.upid.start_time_ticks);
 
@@ -1742,6 +1774,9 @@ template <>
 void SocketTraceConnector::AppendMessage(ConnectorContext* ctx, const ConnTracker& conn_tracker,
                                          protocols::kafka::Record record, DataTable* data_table) {
   LOG(INFO) << "\nzk/socket appendMessage Kafka";
+  if (true) {
+    return;
+  }
   constexpr size_t kMaxKafkaBodyBytes = 65536;
 
   auto const& conn_id = conn_tracker.conn_id();
@@ -1848,9 +1883,9 @@ void SocketTraceConnector::TransferStream(ConnectorContext* ctx, ConnTracker* tr
       TProtocolTraits::ConvertTimestamps(
           &record, [&](uint64_t mono_time) { return ConvertToRealTime(mono_time); });
 
-      ZkRulesExecutor::send("testing message");
+      AppendMessage(ctx, *tracker, std::move(record), data_table);
+      // ZkRulesExecutor::send("testing message");
       // TODO:Zerok:Socket
-      //  AppendMessage(ctx, *tracker, std::move(record), data_table);
       //  protocols::http::Message& req_message = record.req;
       //  std::string reqPath = req_message.req_path;
       //  LOG(INFO) << "\nzk/socket record req path " << reqPath;

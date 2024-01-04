@@ -143,8 +143,11 @@ namespace px {
           //     myString += pair.first + ": " + pair.second + "@@@@";
           // }
           // LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
-          zk::ZkTraceInfo data = zk::ZkQueryExecutor::apply("HTTP", propsMap);
-          return data;
+          std::string json = ToJSONString(propsMap);
+          client.zkSend(json);
+          return zk::ZkTraceInfo();
+          // zk::ZkTraceInfo data = zk::ZkQueryExecutor::apply("HTTP", propsMap);
+          // return data;
         }
 
         static zk::ZkTraceInfo httpEvaluate(uint64_t time, md::UPID upid, std::string remoteAddr, 
