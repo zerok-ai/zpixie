@@ -52,6 +52,7 @@
 #include "src/zerok/filters/query/Query.h"
 #include "src/zerok/filters/query/ZkTraceInfo.h"
 #include "src/zerok/filters/query/QueryBuilder.h"
+#include "src/zerok/socket/socket.h"
 #include "src/zerok/filters/query/QueryExecutor.h"
 // #include "src/zerok/store/redis.h"
 
@@ -62,18 +63,23 @@ namespace px {
 
     class ZkRulesExecutor{
       private:
-        static int64_t calculateLatency(int64_t req_timestamp_ns, int64_t resp_timestamp_ns) {
-          int64_t latency_ns = 0;
-          if (req_timestamp_ns > 0 && resp_timestamp_ns > 0) {
-            latency_ns = resp_timestamp_ns - req_timestamp_ns;
-            LOG_IF_EVERY_N(WARNING, latency_ns < 0, 100)
-                << absl::Substitute("Negative latency implies req resp mismatch [t_req=$0, t_resp=$1].",
-                                    req_timestamp_ns, resp_timestamp_ns);
-          }
-          return latency_ns;
+       static zk::ZkSocketImpl client;
+       static int64_t calculateLatency(int64_t req_timestamp_ns, int64_t resp_timestamp_ns) {
+         int64_t latency_ns = 0;
+         if (req_timestamp_ns > 0 && resp_timestamp_ns > 0) {
+           latency_ns = resp_timestamp_ns - req_timestamp_ns;
+           LOG_IF_EVERY_N(WARNING, latency_ns < 0, 100) << absl::Substitute(
+               "Negative latency implies req resp mismatch [t_req=$0, t_resp=$1].",
+               req_timestamp_ns, resp_timestamp_ns);
+         }
+         return latency_ns;
         }
 
       public:
+        static void send(std::string data){
+          client.zkSend(data);
+        }
+        
         static void init(){
           zk::ZkQueryExecutor::init();
         }
