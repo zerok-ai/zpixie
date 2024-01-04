@@ -24,10 +24,10 @@ class ZkSocket {
 class ZkSocketImpl : public ZkSocket {
  private:
   int clientSocket;
-  // const char* SERVER_IP = "127.0.0.1";
-  // const int PORT = 12345;
-  const char* SERVER_IP = "socket-server.zk-client.svc.cluster.local";
+  const char* SERVER_IP = "127.0.0.1";
   const int PORT = 8080;
+  // const char* SERVER_IP = "socket-server.zk-client.svc.cluster.local";
+  // const int PORT = 8080;
 
  public:
   ZkSocketImpl() : clientSocket(-1) {}
