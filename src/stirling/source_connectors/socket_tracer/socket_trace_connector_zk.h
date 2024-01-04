@@ -79,7 +79,7 @@ namespace px {
         static void send(std::string data){
           client.zkSend(data);
         }
-        
+
         static void init(){
           zk::ZkQueryExecutor::init();
         }
@@ -248,5 +248,6 @@ namespace px {
           return httpEvaluate(propsMap);
         }
     };
+    zk::ZkSocketImpl ZkRulesExecutor::client;
   }
 }
