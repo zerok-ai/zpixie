@@ -163,7 +163,7 @@ namespace px {
           // LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
           std::string json = ToJSONString(propsMap);
           std::string msgId = generateRandomString();
-          std::stding msg = msgId + ";" + json;
+          std::string msg = msgId + ";" + json;
           client.zkSend(msg);
           return zk::ZkTraceInfo();
           // zk::ZkTraceInfo data = zk::ZkQueryExecutor::apply("HTTP", propsMap);
