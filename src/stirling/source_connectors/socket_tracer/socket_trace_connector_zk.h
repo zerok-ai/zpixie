@@ -137,6 +137,24 @@ namespace px {
             resp_message.body_size, resp_message.body, ToJSONString(resp_message.headers), calculateLatency(req_message.timestamp_ns, resp_message.timestamp_ns));
         }
 
+        static std::string generateRandomString() {
+          // Seed the random number generator with the current time
+          std::srand(std::time(0));
+
+          const std::string characters =
+              "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+          const int length = 4;
+
+          std::string randomString;
+
+          for (int i = 0; i < length; ++i) {
+            int randomIndex = std::rand() % characters.length();
+            randomString += characters[randomIndex];
+          }
+
+          return randomString;
+        }
+
         static zk::ZkTraceInfo httpEvaluate(const std::map<std::string, std::string>& propsMap){
           // std::string myString = "";
           // for (const auto& pair : propsMap) {
@@ -144,7 +162,9 @@ namespace px {
           // }
           // LOG(INFO) << "AVIN_DEBUG05__SocketTraceConnector::AppendMessage myString " << myString;
           std::string json = ToJSONString(propsMap);
-          client.zkSend(json);
+          std::string msgId = generateRandomString();
+          std::stding msg = msgId + ";" + json;
+          client.zkSend(msg);
           return zk::ZkTraceInfo();
           // zk::ZkTraceInfo data = zk::ZkQueryExecutor::apply("HTTP", propsMap);
           // return data;
