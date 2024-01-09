@@ -177,7 +177,7 @@ Status Manager::Init() {
   //                                    registration_handler_));
   // registration_handler_->RegisterAgent();
 
-  this->PostRegisterHook(1);
+  (void)this->PostRegisterHook(1);
 
   return InitImpl();
 }
