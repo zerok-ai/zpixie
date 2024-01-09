@@ -226,18 +226,18 @@ Status Manager::RegisterBackgroundHelpers() {
   chan_cache_garbage_collect_timer_->EnableTimer(kChanCacheCleanupChansionPeriod);
 
   // Add Heartbeat and execute query handlers.
-  heartbeat_handler_ = std::make_shared<HeartbeatMessageHandler>(
-      dispatcher_.get(), relation_info_manager_.get(), &info_,
-      agent_nats_connector_.get());
+  // heartbeat_handler_ = std::make_shared<HeartbeatMessageHandler>(
+  //     dispatcher_.get(), relation_info_manager_.get(), &info_,
+  //     agent_nats_connector_.get());
 
-  auto heartbeat_nack_handler = std::make_shared<HeartbeatNackMessageHandler>(
-      dispatcher_.get(), &info_, agent_nats_connector_.get(),
-      std::bind(&Manager::ReregisterHook, this));
+  // auto heartbeat_nack_handler = std::make_shared<HeartbeatNackMessageHandler>(
+  //     dispatcher_.get(), &info_, agent_nats_connector_.get(),
+  //     std::bind(&Manager::ReregisterHook, this));
 
-  PX_CHECK_OK(
-      RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatAck, heartbeat_handler_));
-  PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatNack,
-                                     heartbeat_nack_handler));
+  // PX_CHECK_OK(
+  //     RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatAck, heartbeat_handler_));
+  // PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kHeartbeatNack,
+  //                                    heartbeat_nack_handler));
 
   // Attach message handler for config updates.
   auto config_manager =
@@ -380,16 +380,16 @@ Status Manager::PostRegisterHook(uint32_t asid) {
 }
 
 Status Manager::ReregisterHook() {
-  LOG_IF(FATAL, heartbeat_handler_ == nullptr) << "Heartbeat handler is not set up";
-  heartbeat_handler_->DisableHeartbeats();
+  // LOG_IF(FATAL, heartbeat_handler_ == nullptr) << "Heartbeat handler is not set up";
+  // heartbeat_handler_->DisableHeartbeats();
   registration_handler_->ReregisterAgent();
   return Status::OK();
 }
 
 Status Manager::PostReregisterHook(uint32_t asid) {
-  LOG_IF(FATAL, heartbeat_handler_ == nullptr) << "Heartbeat handler is not set up";
+  // LOG_IF(FATAL, heartbeat_handler_ == nullptr) << "Heartbeat handler is not set up";
   LOG_IF(FATAL, asid != info_.asid) << "Received conflicting ASID after reregistration";
-  heartbeat_handler_->EnableHeartbeats();
+  // heartbeat_handler_->EnableHeartbeats();
   return Status::OK();
 }
 
