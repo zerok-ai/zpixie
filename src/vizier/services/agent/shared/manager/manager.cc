@@ -209,7 +209,7 @@ Status Manager::Stop(std::chrono::milliseconds timeout) {
 Status Manager::RegisterBackgroundHelpers() {
   metadata_update_timer_ = dispatcher_->CreateTimer([this]() {
     VLOG(1) << "State Update";
-    ECHECK_OK(mds_manager_->PerformMetadataStateUpdate());
+    // ECHECK_OK(mds_manager_->PerformMetadataStateUpdate());
     if (metadata_update_timer_) {
       metadata_update_timer_->EnableTimer(std::chrono::seconds(5));
     }
@@ -227,7 +227,7 @@ Status Manager::RegisterBackgroundHelpers() {
 
   // Add Heartbeat and execute query handlers.
   heartbeat_handler_ = std::make_shared<HeartbeatMessageHandler>(
-      dispatcher_.get(), mds_manager_.get(), relation_info_manager_.get(), &info_,
+      dispatcher_.get(), relation_info_manager_.get(), &info_,
       agent_nats_connector_.get());
 
   auto heartbeat_nack_handler = std::make_shared<HeartbeatNackMessageHandler>(
@@ -288,14 +288,14 @@ Status Manager::PostRegisterHook(uint32_t asid) {
   LOG_IF(FATAL, info_.asid != 0) << "Attempted to register existing agent with new ASID";
   info_.asid = asid;
 
-  mds_manager_ = std::make_unique<px::md::AgentMetadataStateManagerImpl>(
-      info_.hostname, info_.asid, info_.pid, info_.pod_name, info_.agent_id,
-      info_.capabilities.collects_data(), px::system::Config::GetInstance(),
-      agent_metadata_filter_.get(), sole::rebuild(FLAGS_vizier_id), FLAGS_vizier_name,
-      FLAGS_vizier_namespace, time_system_.get());
-  // Register the Carnot callback for metadata.
-  carnot_->RegisterAgentMetadataCallback(
-      std::bind(&px::md::AgentMetadataStateManager::CurrentAgentMetadataState, mds_manager_.get()));
+  // mds_manager_ = std::make_unique<px::md::AgentMetadataStateManagerImpl>(
+  //     info_.hostname, info_.asid, info_.pid, info_.pod_name, info_.agent_id,
+  //     info_.capabilities.collects_data(), px::system::Config::GetInstance(),
+  //     agent_metadata_filter_.get(), sole::rebuild(FLAGS_vizier_id), FLAGS_vizier_name,
+  //     FLAGS_vizier_namespace, time_system_.get());
+  // // Register the Carnot callback for metadata.
+  // carnot_->RegisterAgentMetadataCallback(
+  //     std::bind(&px::md::AgentMetadataStateManager::CurrentAgentMetadataState, mds_manager_.get()));
 
   // Call the derived class post-register hook.
   PX_CHECK_OK(PostRegisterHookImpl());
@@ -308,12 +308,12 @@ Status Manager::PostRegisterHook(uint32_t asid) {
 
   PX_RETURN_IF_ERROR(k8s_nats_connector_->Connect(dispatcher_.get()));
 
-  auto k8s_update_handler =
-      std::make_shared<K8sUpdateHandler>(dispatcher_.get(), mds_manager_.get(), &info_,
-                                         k8s_nats_connector_.get(), k8s_update_selector());
+  // auto k8s_update_handler =
+  //     std::make_shared<K8sUpdateHandler>(dispatcher_.get(), mds_manager_.get(), &info_,
+  //                                        k8s_nats_connector_.get(), k8s_update_selector());
 
-  PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kK8SMetadataMessage,
-                                     k8s_update_handler));
+  // PX_CHECK_OK(RegisterMessageHandler(messages::VizierMessage::MsgCase::kK8SMetadataMessage,
+  //                                    k8s_update_handler));
 
   // Attach the message handler for k8s nats:
   k8s_nats_connector_->RegisterMessageHandler(
