@@ -177,6 +177,8 @@ Status Manager::Init() {
   //                                    registration_handler_));
   // registration_handler_->RegisterAgent();
 
+  this->PostRegisterHook(1);
+
   return InitImpl();
 }
 
@@ -382,7 +384,7 @@ Status Manager::PostRegisterHook(uint32_t asid) {
 Status Manager::ReregisterHook() {
   // LOG_IF(FATAL, heartbeat_handler_ == nullptr) << "Heartbeat handler is not set up";
   // heartbeat_handler_->DisableHeartbeats();
-  // registration_handler_->ReregisterAgent();
+  registration_handler_->ReregisterAgent();
   return Status::OK();
 }
 
